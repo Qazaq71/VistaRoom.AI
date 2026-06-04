@@ -9,7 +9,7 @@ const replicate = new Replicate({
 
 // Stable Diffusion XL img2img — отличный результат для интерьеров
 const MODEL_VERSION =
-  const MODEL_VERSION = 'black-forest-labs/flux-schnell';
+  const MODEL_VERSION = "0a90ea504a37b12d525fc9eec726e6d11cd1ef5c2cfca8ff7227bf6fb32b4b45";
 
 export async function POST(req: NextRequest) {
   try {
