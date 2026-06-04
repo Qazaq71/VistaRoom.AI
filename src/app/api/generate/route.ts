@@ -7,9 +7,10 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN!,
 })
 
-// Stable Diffusion XL img2img — отличный результат для интерьеров
+// Stable Diffusion 2.1 img2img — актуальная версия (Latest на replicate.com)
+// Источник: https://replicate.com/stability-ai/stable-diffusion-img2img/versions
 const MODEL_VERSION =
-  const MODEL_VERSION = "0a90ea504a37b12d525fc9eec726e6d11cd1ef5c2cfca8ff7227bf6fb32b4b45";
+  '15a3689ee13b0d2616e98820eca31d4c3abcd36672df6afce5cb6feb1d66087d'
 
 export async function POST(req: NextRequest) {
   try {
@@ -66,27 +67,25 @@ export async function POST(req: NextRequest) {
     const clampedStrength = Math.min(0.9, Math.max(0.4, strength))
 
     // 5. Запускаем предикцию (асинхронно — не ждём результата)
-    const output = await replicate.run(
-  MODEL_VERSION,
-  {
-    
+    const prediction = await replicate.predictions.create({
+      version: MODEL_VERSION,
       input: {
         image: dataUri,
-        prompt: prompt,
-        go_fast: true,
-         megapixels: "1"
-        
-        
-        
+        prompt,
+        negative_prompt: NEGATIVE_PROMPT,
+        num_inference_steps: 30,
+        strength: clampedStrength,
+        guidance_scale: 7.5,
+        scheduler: 'K_EULER_ANCESTRAL',
       },
     })
 
     return NextResponse.json(
       {
-        output: output,
+        predictionId: prediction.id,
+        status: prediction.status,
         remaining,
-          
-        
+        limit,
       },
       {
         headers: {
