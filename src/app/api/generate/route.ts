@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+
 import Replicate from 'replicate'
 import { getRateLimit } from '@/lib/rateLimit'
 import { buildPrompt, NEGATIVE_PROMPT } from '@/lib/prompts'
@@ -10,7 +11,7 @@ const replicate = new Replicate({
 // Stable Diffusion 2.1 img2img — актуальная версия (Latest на replicate.com)
 // Источник: https://replicate.com/stability-ai/stable-diffusion-img2img/versions
 const MODEL_VERSION =
-  '15a3689ee13b0d2616e98820eca31d4c3abcd36672df6afce5cb6feb1d66087d'
+  '76604baddc85b1b4616e1c6475eca080da339c8875bd4996705440484a6eac38'
 
 export async function POST(req: NextRequest) {
   try {
@@ -73,10 +74,10 @@ export async function POST(req: NextRequest) {
         image: dataUri,
         prompt,
         negative_prompt: NEGATIVE_PROMPT,
-        num_inference_steps: 30,
+        num_inference_steps: 50,
         strength: clampedStrength,
-        guidance_scale: 7.5,
-        scheduler: 'K_EULER_ANCESTRAL',
+        guidance_scale: 15,
+        
       },
     })
 
