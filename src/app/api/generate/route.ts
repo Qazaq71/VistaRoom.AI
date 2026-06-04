@@ -9,7 +9,7 @@ const replicate = new Replicate({
 
 // Stable Diffusion XL img2img — отличный результат для интерьеров
 const MODEL_VERSION =
-  '7762fd07cf82c948538e41f63f77d685e02b063e37e496241f10aa99441669b8'
+  const MODEL_VERSION = 'black-forest-labs/flux-schnell';
 
 export async function POST(req: NextRequest) {
   try {
@@ -66,25 +66,27 @@ export async function POST(req: NextRequest) {
     const clampedStrength = Math.min(0.9, Math.max(0.4, strength))
 
     // 5. Запускаем предикцию (асинхронно — не ждём результата)
-    const prediction = await replicate.predictions.create({
-      version: MODEL_VERSION,
+    const output = await replicate.run(
+  MODEL_VERSION,
+  {
+    
       input: {
         image: dataUri,
-        prompt,
-        negative_prompt: NEGATIVE_PROMPT,
-        num_inference_steps: 30,
-        strength: clampedStrength,
-        guidance_scale: 7.5,
-        scheduler: 'K_EULER',
+        prompt: prompt,
+        go_fast: true,
+         megapixels: "1"
+        
+        
+        
       },
     })
 
     return NextResponse.json(
       {
-        predictionId: prediction.id,
-        status: prediction.status,
+        output: output,
         remaining,
-        limit,
+          
+        
       },
       {
         headers: {
