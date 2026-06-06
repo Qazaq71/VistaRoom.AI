@@ -1,26 +1,26 @@
 export const ROOM_NAMES: Record<string, string> = {
-  office:   'modern office interior',
-  cafe:     'cafe and coffee shop interior',
-  shop:     'retail store and boutique interior',
-  salon:    'luxury beauty salon interior',
-  living:   'living room interior',
-  bedroom:  'bedroom interior',
-  kitchen:  'kitchen interior',
-  bathroom: 'bathroom interior',
-  toilet:   'toilet room interior',
-  kids:     "children's room interior",
+  office:   'office',
+  cafe:     'cafe',
+  shop:     'retail store',
+  salon:    'beauty salon',
+  living:   'living room',
+  bedroom:  'bedroom',
+  kitchen:  'kitchen',
+  bathroom: 'bathroom',
+  toilet:   'toilet room',
+  kids:     "children's room",
 }
 
-export const STYLES: Record<string, { label: string; emoji: string; prompt: string }> = {
-  minimalist:    { label: 'Минимализм',      emoji: '🤍', prompt: 'modern minimalist style, clean lines, neutral palette, uncluttered' },
-  loft:          { label: 'Лофт',            emoji: '🏭', prompt: 'industrial loft style, exposed brick walls, warm Edison bulbs, metal elements, reclaimed wood' },
-  scandinavian:  { label: 'Скандинавский',   emoji: '🌿', prompt: 'scandinavian style, light wood, white walls, cozy textiles, hygge atmosphere' },
-  luxury:        { label: 'Люкс',            emoji: '✨', prompt: 'luxury interior, marble surfaces, gold accents, crystal chandelier, high-end materials, opulent' },
-  japandi:       { label: 'Japandi',         emoji: '⛩️', prompt: 'japandi style, wabi-sabi, natural materials, muted earth tones, zen minimalism' },
-  biophilic:     { label: 'Биофилик',        emoji: '🍃', prompt: 'biophilic design, lush living plant walls, natural wood, organic forms, earthy green palette' },
-  artdeco:       { label: 'Арт-деко',        emoji: '🔶', prompt: 'art deco style, geometric patterns, brass fixtures, velvet upholstery, glamorous 1930s elegance' },
-  mediterranean: { label: 'Средиземноморье', emoji: '🏛️', prompt: 'mediterranean style, warm terracotta tiles, white arches, mosaic accents, sunlit' },
-  cyberpunk:     { label: 'Киберпанк',       emoji: '🌆', prompt: 'cyberpunk style, purple neon lights, dark walls, holographic panels, futuristic tech aesthetic' },
+export const STYLES: Record<string, { label: string; emoji: string; editPrompt: string }> = {
+  minimalist:    { label: 'Минимализм',      emoji: '🤍', editPrompt: 'minimalist style with clean lines, neutral whites and beiges, uncluttered surfaces' },
+  loft:          { label: 'Лофт',            emoji: '🏭', editPrompt: 'industrial loft style with exposed brick walls, Edison bulb lighting, raw metal elements, reclaimed wood surfaces' },
+  scandinavian:  { label: 'Скандинавский',   emoji: '🌿', editPrompt: 'Scandinavian style with light pine wood, white walls, cozy wool textiles, hygge atmosphere' },
+  luxury:        { label: 'Люкс',            emoji: '✨', editPrompt: 'luxury style with marble surfaces, gold hardware, crystal chandelier, rich velvet upholstery, opulent decor' },
+  japandi:       { label: 'Japandi',         emoji: '⛩️', editPrompt: 'Japandi style with wabi-sabi aesthetics, muted earth tones, natural linen textiles, minimal zen decor' },
+  biophilic:     { label: 'Биофилик',        emoji: '🍃', editPrompt: 'biophilic design with abundant indoor plants, living moss wall, natural wood, rattan furniture, earthy greens' },
+  artdeco:       { label: 'Арт-деко',        emoji: '🔶', editPrompt: 'Art Deco style with geometric brass fixtures, chevron patterns, velvet upholstery, mirrored surfaces, 1930s glamour' },
+  mediterranean: { label: 'Средиземноморье', emoji: '🏛️', editPrompt: 'Mediterranean style with terracotta floor tiles, whitewashed walls, mosaic accents, arched doorways, warm sunlight' },
+  cyberpunk:     { label: 'Киберпанк',       emoji: '🌆', editPrompt: 'cyberpunk style with purple and cyan neon strip lights, dark charcoal walls, holographic panels, futuristic tech aesthetic' },
 }
 
 export interface RoomDetails {
@@ -37,182 +37,169 @@ export interface RoomDetails {
   extraNotes: string
 }
 
-// Переводим HEX в описание цвета для промпта
 function hexToColorName(hex: string): string {
-  if (!hex || hex.length < 7) return ''
+  if (!hex || hex.length < 4) return ''
   const r = parseInt(hex.slice(1,3),16)
   const g = parseInt(hex.slice(3,5),16)
   const b = parseInt(hex.slice(5,7),16)
-  const brightness = (r*299 + g*587 + b*114) / 1000
-  const max = Math.max(r,g,b), min = Math.min(r,g,b)
-  const diff = max - min
-  if (diff < 30) {
-    if (brightness > 230) return 'pure white'
-    if (brightness > 180) return 'light gray'
-    if (brightness > 100) return 'medium gray'
-    if (brightness > 40)  return 'dark gray'
-    return 'near black'
+  const br = (r*299 + g*587 + b*114) / 1000
+  const max = Math.max(r,g,b)
+  const diff = max - Math.min(r,g,b)
+  if (diff < 25) {
+    if (br > 235) return 'pure white'
+    if (br > 190) return 'light grey'
+    if (br > 120) return 'medium grey'
+    if (br > 50)  return 'dark grey'
+    return 'black'
   }
-  if (r > g && r > b) {
-    if (g > 100) return brightness > 180 ? 'warm beige' : 'terracotta'
-    return brightness > 150 ? 'soft pink' : 'deep red'
+  if (r === max) {
+    if (g > 130) return br > 180 ? 'warm beige' : 'terracotta'
+    return br > 160 ? 'light pink' : 'deep red'
   }
-  if (g > r && g > b) return brightness > 150 ? 'sage green' : 'forest green'
-  if (b > r && b > g) return brightness > 150 ? 'soft blue' : 'navy blue'
-  if (r > 150 && g > 150 && b < 100) return 'warm yellow'
-  if (r > 150 && b > 150 && g < 100) return 'violet'
-  return `color rgb(${r},${g},${b})`
+  if (g === max) return br > 160 ? 'sage green' : 'deep green'
+  return br > 160 ? 'light blue' : 'deep navy blue'
 }
 
-export function buildPrompt(
+// Строим промпт как ИНСТРУКЦИЮ ДЛЯ РЕДАКТИРОВАНИЯ — ключевое отличие от старого подхода
+export function buildEditPrompt(
   roomKey: string,
   styleKey: string,
   details?: Partial<RoomDetails>
 ): string {
-  const room  = ROOM_NAMES[roomKey]  ?? 'interior'
-  const style = STYLES[styleKey]?.prompt ?? 'modern contemporary style'
+  const room  = ROOM_NAMES[roomKey]  ?? 'room'
+  const style = STYLES[styleKey]?.editPrompt ?? 'modern contemporary style'
 
-  // Начинаем с очень конкретного описания — это ключ к соблюдению деталей
-  const parts: string[] = []
-
-  // 1. Тип комнаты и стиль — ПЕРВЫМИ, они самые важные
-  parts.push(`photorealistic interior design render of a ${room}`)
-  parts.push(style)
+  // Начинаем с ключевой инструкции: сохранить структуру, изменить отделку
+  const instructions: string[] = [
+    `Redesign this ${room} interior.`,
+    `Keep the exact same room layout, all windows, all doors, all architectural elements, ceiling height, and furniture positions.`,
+    `Apply ${style}.`,
+  ]
 
   if (details) {
-    // 2. Размер и потолок
-    if (details.size)          parts.push(`room area is ${details.size}`)
-    if (details.ceilingHeight) parts.push(`ceiling height ${details.ceilingHeight}`)
-
-    // 3. Стены — цвет и отделка (КОНКРЕТНО)
+    // Стены
     const wallColor = hexToColorName(details.wallColorHex || '')
-    if (wallColor) parts.push(`walls are painted ${wallColor}`)
 
     if (details.wallFinish?.length) {
-      const finishMap: Record<string, string> = {
-        'Покраска / колеровка': 'smooth painted walls',
-        'Обои':                 'textured wallpaper on walls',
-        'Декоративная штукатурка': 'decorative venetian plaster walls',
-        'Кирпич':               'exposed brick wall texture, visible individual bricks with mortar joints',
-        'Дерево / вагонка':     'wooden wall paneling, natural wood planks on walls',
-        'Керамогранит':         'large format porcelain tile wall cladding',
-        'Мрамор':               'marble wall cladding with visible veining',
-        'Гипсовые панели':      '3D gypsum decorative wall panels',
-        'Жидкие обои':          'liquid wallpaper textured wall coating',
-        'Микроцемент':          'microcement smooth wall finish',
-        'Металлические панели': 'metal cladding panels on walls',
-        'Стеклянные панели':    'glass wall panels',
-        'Мозаика':              'mosaic tile wall covering',
-        'Имитация бетона':      'concrete effect wall finish',
-        'Натуральный камень':   'natural stone wall cladding',
-        'Пробка':               'cork wall tiles',
+      const finishMap: Record<string,string> = {
+        'Покраска / колеровка':    `Paint all walls ${wallColor || 'in the style color'}`,
+        'Обои':                    `Cover walls with patterned wallpaper${wallColor ? ` in ${wallColor} tones` : ''}`,
+        'Декоративная штукатурка': 'Apply Venetian decorative plaster texture to walls',
+        'Кирпич':                  'Replace wall surface with exposed red brick texture — show individual bricks with mortar joints clearly',
+        'Дерево / вагонка':        'Clad walls with horizontal wooden planks — show wood grain texture clearly',
+        'Керамогранит':            'Clad walls with large-format porcelain stoneware slabs',
+        'Мрамор':                  'Clad walls with white marble panels showing grey veining',
+        'Гипсовые панели':         'Install 3D decorative gypsum wall panels with geometric relief',
+        'Жидкие обои':             'Apply textured liquid wallpaper coating to walls',
+        'Микроцемент':             'Apply smooth microcement coating to walls in concrete look',
+        'Металлические панели':    'Install brushed metal wall cladding panels',
+        'Стеклянные панели':       'Install glass wall panels',
+        'Мозаика':                 'Cover walls with small mosaic tiles',
+        'Имитация бетона':         'Apply decorative concrete-effect finish to walls',
+        'Натуральный камень':      'Clad walls with natural stone — show stone texture and joints',
+        'Пробка':                  'Install cork tile wall covering',
       }
-      const translated = details.wallFinish.map(f => finishMap[f] || f)
-      parts.push(translated.join(', '))
+      details.wallFinish.forEach(f => {
+        if (finishMap[f]) instructions.push(finishMap[f] + '.')
+      })
+    } else if (wallColor) {
+      instructions.push(`Paint walls ${wallColor}.`)
     }
 
-    // 4. Пол — материал и цвет (КОНКРЕТНО)
+    // Пол
     const floorColor = hexToColorName(details.floorColorHex || '')
     if (details.floorMaterial) {
-      const floorMap: Record<string, string> = {
-        'Паркет светлый':  'light oak hardwood parquet flooring',
-        'Паркет тёмный':   'dark walnut hardwood parquet flooring',
-        'Ламинат':         'laminate flooring planks',
-        'Плитка':          'ceramic tile floor',
-        'Бетон':           'polished concrete floor',
-        'Ковёр':           'fitted carpet flooring',
-        'Мрамор':          'white marble floor with grey veining',
-        'Керамогранит':    'large format porcelain stoneware floor tiles',
-        'Линолеум':        'vinyl linoleum floor covering',
+      const floorMap: Record<string,string> = {
+        'Паркет светлый':  'Replace floor with light oak herringbone parquet — show wood grain',
+        'Паркет тёмный':   'Replace floor with dark walnut parquet — show rich wood texture',
+        'Ламинат':         'Replace floor with laminate planks',
+        'Плитка':          `Replace floor with ceramic tiles${floorColor ? ` in ${floorColor}` : ''}`,
+        'Бетон':           'Replace floor with polished concrete — show smooth grey concrete texture',
+        'Ковёр':           `Cover floor with fitted carpet${floorColor ? ` in ${floorColor}` : ''}`,
+        'Мрамор':          'Replace floor with white marble tiles showing grey veining — highly polished',
+        'Керамогранит':    `Replace floor with large-format porcelain stoneware tiles${floorColor ? ` in ${floorColor}` : ''}`,
+        'Линолеум':        `Replace floor with vinyl linoleum${floorColor ? ` in ${floorColor}` : ''}`,
       }
-      const floorDesc = floorMap[details.floorMaterial] || details.floorMaterial
-      parts.push(floorColor ? `${floorColor} ${floorDesc}` : floorDesc)
-    } else if (floorColor) {
-      parts.push(`${floorColor} floor`)
+      const desc = floorMap[details.floorMaterial] || `Replace floor with ${details.floorMaterial}`
+      instructions.push(desc + '.')
     }
 
-    // 5. Зоны кафеля (ОЧЕНЬ конкретно для кухни/ванной)
+    // Зоны кафеля
     if (details.tilezone?.length) {
-      const tileMap: Record<string, string> = {
-        'Фартук кухни':    'kitchen backsplash with ceramic tiles between countertop and upper cabinets',
-        'Пол кухни':       'kitchen floor covered with tiles',
-        'Стены ванной':    'bathroom walls fully tiled from floor to ceiling',
-        'Пол ванной':      'bathroom floor with non-slip tiles',
-        'Стены туалета':   'toilet room walls with tile cladding',
-        'Пол туалета':     'toilet room tiled floor',
-        'Душевая зона':    'shower area with mosaic or large tile enclosure',
-        'Вокруг ванны':    'tile surround around the bathtub',
+      const tileMap: Record<string,string> = {
+        'Фартук кухни':    'Add ceramic tile backsplash between the kitchen countertop and upper cabinets',
+        'Пол кухни':       'Replace kitchen floor with ceramic or porcelain tiles',
+        'Стены ванной':    'Tile all bathroom walls floor-to-ceiling with ceramic tiles',
+        'Пол ванной':      'Replace bathroom floor with non-slip ceramic tiles',
+        'Стены туалета':   'Tile toilet room walls with ceramic tiles',
+        'Пол туалета':     'Replace toilet room floor with ceramic tiles',
+        'Душевая зона':    'Clad shower enclosure walls and floor with mosaic tiles',
+        'Вокруг ванны':    'Add tile surround panels around the bathtub',
       }
-      const tileDesc = details.tilezone.map(z => tileMap[z] || z)
-      parts.push(tileDesc.join(', '))
+      details.tilezone.forEach(z => {
+        if (tileMap[z]) instructions.push(tileMap[z] + '.')
+      })
     }
 
-    // 6. Мебель
-    if (details.furniture?.length) {
-      parts.push(`furniture includes: ${details.furniture.join(', ')}`)
-    }
-
-    // 7. Освещение
+    // Освещение
     if (details.lighting?.length) {
-      const lightMap: Record<string, string> = {
-        'Естественный свет':    'large windows with abundant natural daylight',
-        'Тёплый свет':         'warm ambient lighting 2700K',
-        'Холодный свет':       'cool white lighting 5000K',
-        'Точечные светильники':'recessed spotlights in ceiling',
-        'Люстра':              'decorative chandelier as centerpiece',
-        'Торшер':              'floor lamp in corner',
-        'Подсветка':           'LED strip accent lighting',
-        'Светодиодная лента':  'LED ribbon light strips',
-        'Бра':                 'wall sconces',
-        'Пендант':             'pendant lights hanging from ceiling',
+      const lightMap: Record<string,string> = {
+        'Естественный свет':    'Keep natural daylight through windows',
+        'Тёплый свет':         'Use warm 2700K ambient lighting',
+        'Холодный свет':       'Use cool 5000K white lighting',
+        'Точечные светильники':'Add recessed spotlights in the ceiling',
+        'Люстра':              'Add a statement chandelier on the ceiling',
+        'Торшер':              'Add a floor lamp in the corner',
+        'Подсветка':           'Add LED accent backlight strips',
+        'Светодиодная лента':  'Add LED strip lights along ceiling perimeter',
+        'Бра':                 'Add wall sconce lights',
+        'Пендант':             'Add pendant lights hanging from ceiling',
       }
-      const lightDesc = details.lighting.map(l => lightMap[l] || l)
-      parts.push(lightDesc.join(', '))
+      const lights = details.lighting.map(l => lightMap[l] || l).filter(Boolean)
+      if (lights.length) instructions.push(lights.join(', ') + '.')
     }
 
-    // 8. Бытовая техника
+    // Бытовая техника
     if (details.appliances?.length) {
-      const appMap: Record<string, string> = {
+      const appMap: Record<string,string> = {
         'Холодильник':          'stainless steel refrigerator',
-        'Микроволновка':        'built-in microwave oven',
+        'Микроволновка':        'built-in microwave',
         'Посудомоечная машина': 'integrated dishwasher',
         'Стиральная машина':    'front-loading washing machine',
-        'Кухонная плита':       'gas or electric cooking range with hob',
+        'Кухонная плита':       'gas cooking range with hob',
         'Духовой шкаф':        'built-in electric oven',
-        'Вытяжка':             'range hood above cooktop',
-        'Кофемашина':          'espresso coffee machine on counter',
-        'Кондиционер':         'wall-mounted air conditioner unit',
-        'Телевизор':           'flat screen TV mounted on wall',
+        'Вытяжка':             'kitchen range hood above cooktop',
+        'Кофемашина':          'espresso machine on counter',
+        'Кондиционер':         'wall-mounted air conditioning unit',
+        'Телевизор':           'flat screen TV on wall',
       }
-      const appDesc = details.appliances.map(a => appMap[a] || a)
-      parts.push(`appliances visible: ${appDesc.join(', ')}`)
+      const apps = details.appliances.map(a => appMap[a] || a)
+      instructions.push(`Show these appliances: ${apps.join(', ')}.`)
     }
 
-    // 9. Дополнительные пожелания
-    if (details.extraNotes) parts.push(details.extraNotes)
+    // Мебель
+    if (details.furniture?.length) {
+      instructions.push(`Include this furniture: ${details.furniture.join(', ')}.`)
+    }
+
+    // Размер
+    if (details.size)          instructions.push(`Room area is ${details.size}.`)
+    if (details.ceilingHeight) instructions.push(`Ceiling height is ${details.ceilingHeight}.`)
+
+    // Дополнительно
+    if (details.extraNotes) instructions.push(details.extraNotes)
   }
 
-  // 10. Качество — в конце
-  parts.push(
-    'preserve all windows and doors and room architecture',
-    'hyperrealistic architectural visualization',
-    '8k uhd photorealistic render',
-    'sharp focus, perfect exposure',
-    'professional interior photography',
-    'physically based rendering, ray traced lighting',
-    'realistic material textures'
+  // Финальные инструкции для качества
+  instructions.push(
+    'Photorealistic architectural visualization, 8K quality.',
+    'Realistic material textures, physically based rendering.',
+    'Perfect lighting and shadows.',
+    'Professional interior photography.'
   )
 
-  return parts.join(', ')
+  return instructions.join(' ')
 }
 
-export const NEGATIVE_PROMPT = [
-  'remove windows, block windows, no windows',
-  'cartoon, illustration, painting, drawing, sketch, anime',
-  'blurry, low quality, distorted, deformed, ugly',
-  'oversaturated, overexposed, underexposed, washed out',
-  'watermark, text, logo, signature',
-  'floating furniture, wrong perspective, impossible geometry',
-  'extra limbs, duplicate objects',
-  'unrealistic materials, plastic-looking surfaces',
-].join(', ')
+export const NEGATIVE_PROMPT =
+  'cartoon, anime, illustration, painting, sketch, blurry, low quality, distorted, watermark, text, logo, extra windows removed, blocked windows, missing windows'
