@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Replicate from 'replicate'
 import { getRateLimit } from '@/lib/rateLimit'
-import { buildEditPrompt, NEGATIVE_PROMPT, RoomDetails } from '@/lib/prompts'
+import { buildEditPrompt, RoomDetails } from '@/lib/prompts'
 
 const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! })
 
-// flux-kontext-pro: лучший в классе редактор изображений по текстовым инструкциям
-// 49M+ запусков, $0.04/изображение
-// Документация: https://replicate.com/black-forest-labs/flux-kontext-pro
 const MODEL = 'black-forest-labs/flux-kontext-pro'
 
 export async function POST(req: NextRequest) {
@@ -55,14 +52,16 @@ export async function POST(req: NextRequest) {
 
     const prompt = buildEditPrompt(room, style, details)
 
-    // flux-kontext-pro: input_image + prompt
-    // guidance 3.5 = баланс между изменением и сохранением структуры
+    console.log('[PROMPT]', prompt)
+
     const prediction = await replicate.predictions.create({
       model: MODEL,
       input: {
         input_image:      dataUri,
         prompt,
-        guidance:         3.5,
+        // guidance 4.5 — баланс: меняет отделку, но сохраняет архитектуру (окна, двери)
+        // 7.5 было слишком агрессивно — модель закрашивала окна
+        guidance:         4.5,
         output_format:    'png',
         output_quality:   100,
         safety_tolerance: 2,
