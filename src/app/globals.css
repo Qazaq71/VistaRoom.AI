@@ -554,3 +554,46 @@ footer {
   font-family: monospace;
   word-break: break-word;
 }
+
+/* ── Color picker ── */
+.color-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  align-items: center;
+}
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+  flex-shrink: 0;
+  position: relative;
+}
+.color-swatch:hover { transform: scale(1.15); }
+.color-swatch.selected {
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink);
+  transform: scale(1.15);
+}
+.color-custom-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+}
+.color-custom {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--muted);
+  padding: 0;
+  cursor: pointer;
+  background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
+  opacity: .85;
+}
+.color-custom::-webkit-color-swatch-wrapper { padding: 0; border-radius: 50%; }
+.color-custom::-webkit-color-swatch { border: none; border-radius: 50%; }
+.color-custom-label { font-size: 9px; color: var(--muted); }
