@@ -1,20 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Replicate from 'replicate'
 import { getRateLimit } from '@/lib/rateLimit'
-import { buildPrompt, NEGATIVE_PROMPT, RoomDetails } from '@/lib/prompts'
+import { buildEditPrompt, NEGATIVE_PROMPT, RoomDetails } from '@/lib/prompts'
 
 const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! })
 
-// flux-canny-pro: сохраняет структуру (окна, двери, планировку) через edge detection
-// + отлично следует детальному промпту
-// Документация: https://replicate.com/black-forest-labs/flux-canny-pro
-const MODEL = 'black-forest-labs/flux-canny-pro'
+// flux-kontext-pro: лучший в классе редактор изображений по текстовым инструкциям
+// 49M+ запусков, $0.04/изображение
+// Документация: https://replicate.com/black-forest-labs/flux-kontext-pro
+const MODEL = 'black-forest-labs/flux-kontext-pro'
 
 export async function POST(req: NextRequest) {
   try {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim()
-      ?? req.headers.get('x-real-ip')
-      ?? '127.0.0.1'
+      ?? req.headers.get('x-real-ip') ?? '127.0.0.1'
 
     const { ok, remaining, limit } = getRateLimit(ip)
     if (!ok) {
@@ -54,21 +53,19 @@ export async function POST(req: NextRequest) {
     const base64  = Buffer.from(arrayBuffer).toString('base64')
     const dataUri = `data:${imageFile.type};base64,${base64}`
 
-    const prompt = buildPrompt(room, style, details)
+    const prompt = buildEditPrompt(room, style, details)
 
-    // flux-canny-pro принимает: control_image, prompt, steps, guidance, safety_tolerance
-    // control_image — исходное фото (модель сама извлекает края Canny и сохраняет структуру)
+    // flux-kontext-pro: input_image + prompt
+    // guidance 3.5 = баланс между изменением и сохранением структуры
     const prediction = await replicate.predictions.create({
       model: MODEL,
       input: {
-        control_image:    dataUri,   // исходное фото = источник структуры
+        input_image:      dataUri,
         prompt,
-        negative_prompt:  NEGATIVE_PROMPT,
-        steps:            28,         // оптимально для flux
-        guidance:         7,          // баланс между промптом и структурой
-        safety_tolerance: 2,
+        guidance:         3.5,
         output_format:    'png',
         output_quality:   100,
+        safety_tolerance: 2,
       },
     })
 
