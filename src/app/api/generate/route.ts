@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Replicate from 'replicate'
+import sharp from 'sharp'
 import { getRateLimit } from '@/lib/rateLimit'
-import { buildEditPrompt, RoomDetails } from '@/lib/prompts'
+import { buildEditPrompt, NEGATIVE_PROMPT, RoomDetails } from '@/lib/prompts'
 
 const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! })
 
-const MODEL = 'black-forest-labs/flux-kontext-pro'
+// adirik/interior-design — специализированная модель именно для редизайна интерьеров
+// Realistic Vision V3.0 + ControlNet сегментации
+const INTERIOR_MODEL = '76604baddc85b1b4616e1c6475eca080da339c8875bd4996705440484a6eac38'
+
+// Сжимаем до 1024px — решает CUDA OOM для фото с телефона (4000x3000px и т.п.)
+async function compressImage(buffer: Buffer, mimeType: string): Promise<string> {
+  const compressed = await sharp(buffer)
+    .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 90 })
+    .toBuffer()
+  return `data:image/jpeg;base64,${compressed.toString('base64')}`
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,24 +59,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Файл слишком большой (макс. 10 МБ)' }, { status: 400 })
 
     const arrayBuffer = await imageFile.arrayBuffer()
-    const base64  = Buffer.from(arrayBuffer).toString('base64')
-    const dataUri = `data:${imageFile.type};base64,${base64}`
+    const buffer = Buffer.from(arrayBuffer)
+
+    // Сжимаем изображение — решает CUDA OOM
+    const dataUri = await compressImage(buffer, imageFile.type)
 
     const prompt = buildEditPrompt(room, style, details)
-
     console.log('[PROMPT]', prompt)
 
     const prediction = await replicate.predictions.create({
-      model: MODEL,
+      version: INTERIOR_MODEL,
       input: {
-        input_image:      dataUri,
+        image:               dataUri,
         prompt,
-        // guidance 4.5 — баланс: меняет отделку, но сохраняет архитектуру (окна, двери)
-        // 7.5 было слишком агрессивно — модель закрашивала окна
-        guidance:         6.0,  // 6.0 — активно меняет мебель и отделку, но не ломает архитектуру
-        output_format:    'png',
-        output_quality:   100,
-        safety_tolerance: 2,
+        negative_prompt:     NEGATIVE_PROMPT,
+        guidance_scale:      15,
+        num_inference_steps: 50,
+        strength:            0.85,
       },
     })
 
@@ -77,9 +88,7 @@ export async function POST(req: NextRequest) {
     })
   } catch (err: unknown) {
     console.error('[/api/generate]', err)
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Внутренняя ошибка' },
-      { status: 500 }
-    )
+    const msg = err instanceof Error ? err.message : 'Внутренняя ошибка'
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
