@@ -207,9 +207,9 @@ export function buildEditPrompt(
   // ── Часть 1: ОБЩИЙ СТИЛЬ И НАСТРОЕНИЕ ──────────────────────────────
   // Стиль всегда задаёт атмосферу и цветовую палитру
   if (style) {
-    parts.push(`Redesign this ${room} interior. Apply ${style.moodPrompt}.`)
+    parts.push(`Redesign this ${room} interior. Keep all windows, doors, ceiling and floor plan exactly as they are — do not remove or cover any window or door. Replace all furniture, curtains, decor, and wall finishes completely. Apply ${style.moodPrompt}.`)
   } else {
-    parts.push(`Redesign this ${room} interior with modern contemporary style.`)
+    parts.push(`Redesign this ${room} interior with modern contemporary style. Keep all windows, doors, ceiling and floor plan exactly as they are — do not remove or cover any window or door. Replace all furniture, curtains, decor, and wall finishes completely.`)
   }
 
   // ── Часть 2: СТЕНЫ ─────────────────────────────────────────────────
@@ -283,4 +283,4 @@ export function buildEditPrompt(
 }
 
 export const NEGATIVE_PROMPT =
-  'cartoon, anime, sketch, painting, watercolor, blurry, low quality, distorted, watermark, text, unrealistic materials, plastic look'
+  'cartoon, anime, sketch, painting, watercolor, blurry, low quality, distorted, watermark, text, unrealistic materials, plastic look, missing window, window covered, window removed, blocked window, wall where window should be, old furniture, old curtains, old decor, original furniture remaining'
