@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
         prompt,
         // guidance 4.5 — баланс: меняет отделку, но сохраняет архитектуру (окна, двери)
         // 7.5 было слишком агрессивно — модель закрашивала окна
-        guidance:         4.5,
+        guidance:         6.0,  // 6.0 — активно меняет мебель и отделку, но не ломает архитектуру
         output_format:    'png',
         output_quality:   100,
         safety_tolerance: 2,
