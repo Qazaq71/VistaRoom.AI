@@ -57,11 +57,42 @@ export const STYLES: Record<string, { label: string; emoji: string; prompt: stri
   },
 }
 
-export function buildPrompt(roomKey: string, styleKey: string): string {
+export interface RoomDetails {
+  size: string
+  ceilingHeight: string
+  wallColor: string
+  floorMaterial: string
+  furniture: string[]
+  lighting: string[]
+  materials: string[]
+  extraNotes: string
+}
+
+export function buildPrompt(
+  roomKey: string,
+  styleKey: string,
+  details?: Partial<RoomDetails>
+): string {
   const room = ROOM_NAMES[roomKey] ?? 'interior'
   const style = STYLES[styleKey]?.prompt ?? 'modern contemporary style'
-  return `${room}, ${style}, 4k ultra detailed, professional interior design photography, award winning, realistic lighting, high resolution`
+
+  const parts: string[] = [`${room}, ${style}`]
+
+  if (details) {
+    if (details.size) parts.push(`room size ${details.size}`)
+    if (details.ceilingHeight) parts.push(`ceiling height ${details.ceilingHeight}`)
+    if (details.wallColor) parts.push(`${details.wallColor} walls`)
+    if (details.floorMaterial) parts.push(`${details.floorMaterial} floor`)
+    if (details.furniture?.length) parts.push(`existing furniture: ${details.furniture.join(', ')}`)
+    if (details.lighting?.length) parts.push(`${details.lighting.join(', ')} lighting`)
+    if (details.materials?.length) parts.push(`finishing materials: ${details.materials.join(', ')}`)
+    if (details.extraNotes) parts.push(details.extraNotes)
+  }
+
+  parts.push('4k ultra detailed, professional interior design photography, award winning, realistic lighting, high resolution')
+
+  return parts.join(', ')
 }
 
 export const NEGATIVE_PROMPT =
-  'blurry, low quality, distorted proportions, ugly, deformed, oversaturated, amateur, dark, gloomy, extra furniture, clutter'
+  'blurry, low quality, distorted proportions, ugly, deformed, oversaturated, amateur, dark, gloomy, clutter, text, watermark'
