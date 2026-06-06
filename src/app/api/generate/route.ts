@@ -1,21 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-
 import Replicate from 'replicate'
 import { getRateLimit } from '@/lib/rateLimit'
-import { buildPrompt, NEGATIVE_PROMPT } from '@/lib/prompts'
+import { buildPrompt, NEGATIVE_PROMPT, RoomDetails } from '@/lib/prompts'
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN!,
 })
 
-// Stable Diffusion 2.1 img2img — актуальная версия (Latest на replicate.com)
-// Источник: https://replicate.com/stability-ai/stable-diffusion-img2img/versions
+// adirik/interior-design — специализированная модель для интерьеров
+// Realistic Vision V3.0 + ControlNet сегментации + MLSD
 const MODEL_VERSION =
   '76604baddc85b1b4616e1c6475eca080da339c8875bd4996705440484a6eac38'
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Rate limiting по IP
     const ip =
       req.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
       req.headers.get('x-real-ip') ??
@@ -29,28 +27,31 @@ export async function POST(req: NextRequest) {
           error: `Лимит исчерпан. Вы можете генерировать до ${limit} изображений в день. Попробуйте завтра.`,
           code: 'RATE_LIMIT',
         },
-        {
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': String(limit),
-            'X-RateLimit-Remaining': '0',
-          },
-        }
+        { status: 429 }
       )
     }
 
-    // 2. Разбираем multipart form
     const form = await req.formData()
     const imageFile = form.get('image') as File | null
     const room = (form.get('room') as string) || 'living'
     const style = (form.get('style') as string) || 'minimalist'
     const strength = parseFloat((form.get('strength') as string) || '0.65')
 
+    // Детали комнаты
+    const details: Partial<RoomDetails> = {
+      size: (form.get('size') as string) || '',
+      ceilingHeight: (form.get('ceilingHeight') as string) || '',
+      wallColor: (form.get('wallColor') as string) || '',
+      floorMaterial: (form.get('floorMaterial') as string) || '',
+      furniture: JSON.parse((form.get('furniture') as string) || '[]'),
+      lighting: JSON.parse((form.get('lighting') as string) || '[]'),
+      materials: JSON.parse((form.get('materials') as string) || '[]'),
+      extraNotes: (form.get('extraNotes') as string) || '',
+    }
+
     if (!imageFile) {
       return NextResponse.json({ error: 'Изображение не загружено' }, { status: 400 })
     }
-
-    // Валидация файла
     if (!imageFile.type.startsWith('image/')) {
       return NextResponse.json({ error: 'Файл должен быть изображением' }, { status: 400 })
     }
@@ -58,43 +59,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Файл слишком большой (макс. 10 МБ)' }, { status: 400 })
     }
 
-    // 3. Конвертируем в base64 для Replicate
     const arrayBuffer = await imageFile.arrayBuffer()
     const base64 = Buffer.from(arrayBuffer).toString('base64')
     const dataUri = `data:${imageFile.type};base64,${base64}`
 
-    // 4. Строим промпт
-    const prompt = buildPrompt(room, style)
-    const clampedStrength = Math.min(0.9, Math.max(0.4, strength))
+    const prompt = buildPrompt(room, style, details)
+    const clampedStrength = Math.min(0.99, Math.max(0.5, strength))
 
-    // 5. Запускаем предикцию (асинхронно — не ждём результата)
     const prediction = await replicate.predictions.create({
       version: MODEL_VERSION,
       input: {
         image: dataUri,
         prompt,
         negative_prompt: NEGATIVE_PROMPT,
+        guidance_scale: 15,
         num_inference_steps: 50,
         strength: clampedStrength,
-        guidance_scale: 15,
-        
       },
     })
 
-    return NextResponse.json(
-      {
-        predictionId: prediction.id,
-        status: prediction.status,
-        remaining,
-        limit,
-      },
-      {
-        headers: {
-          'X-RateLimit-Limit': String(limit),
-          'X-RateLimit-Remaining': String(remaining),
-        },
-      }
-    )
+    return NextResponse.json({
+      predictionId: prediction.id,
+      status: prediction.status,
+      remaining,
+      limit,
+      promptUsed: prompt, // для отладки
+    })
   } catch (err: unknown) {
     console.error('[/api/generate]', err)
     const message = err instanceof Error ? err.message : 'Внутренняя ошибка сервера'
