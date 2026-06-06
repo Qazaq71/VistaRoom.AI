@@ -202,7 +202,7 @@ export default function Home() {
     form.append('image',        imageFile)
     form.append('room',         room)
     form.append('style',        style)
-    form.append('strength',     String(strength / 100))
+    // flux-canny-pro не использует strength
     form.append('size',         roomSize)
     form.append('ceilingHeight',ceilingHeight)
     form.append('wallColor',    wallPreset ? 'custom' : '')
