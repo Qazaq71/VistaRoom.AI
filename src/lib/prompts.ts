@@ -207,9 +207,9 @@ export function buildEditPrompt(
   // ── Часть 1: ОБЩИЙ СТИЛЬ И НАСТРОЕНИЕ ──────────────────────────────
   // Стиль всегда задаёт атмосферу и цветовую палитру
   if (style) {
-    parts.push(`Redesign this ${room} interior. Keep all windows, doors, ceiling and floor plan exactly as they are — do not remove or cover any window or door. Replace all furniture, curtains, decor, and wall finishes completely. Apply ${style.moodPrompt}.`)
+    parts.push(`This is an interior redesign task. The source image shows the current state of the ${room}. Your job: completely redesign it in ${style.moodPrompt}. MUST KEEP: the window opening and door openings in their exact positions. MUST REPLACE COMPLETELY: all furniture (table, chairs, sofa, bed, cabinets — replace with new style-appropriate pieces), all curtains and blinds (replace with new ones), all wall surfaces and finishes, all decor items, all lighting fixtures. Imagine this room after a full renovation with new everything except the structural openings.`)
   } else {
-    parts.push(`Redesign this ${room} interior with modern contemporary style. Keep all windows, doors, ceiling and floor plan exactly as they are — do not remove or cover any window or door. Replace all furniture, curtains, decor, and wall finishes completely.`)
+    parts.push(`This is an interior redesign task. The source image shows the current state of the ${room}. Your job: completely redesign it in modern contemporary style. MUST KEEP: the window opening and door openings in their exact positions. MUST REPLACE COMPLETELY: all furniture, all curtains and blinds, all wall surfaces, all decor items, all lighting fixtures. Imagine this room after a full renovation with new everything except the structural openings.`)
   }
 
   // ── Часть 2: СТЕНЫ ─────────────────────────────────────────────────
@@ -283,4 +283,4 @@ export function buildEditPrompt(
 }
 
 export const NEGATIVE_PROMPT =
-  'cartoon, anime, sketch, painting, watercolor, blurry, low quality, distorted, watermark, text, unrealistic materials, plastic look, missing window, window covered, window removed, blocked window, wall where window should be, old furniture, old curtains, old decor, original furniture remaining'
+  'cartoon, anime, sketch, painting, watercolor, blurry, low quality, distorted, watermark, text, unrealistic materials, missing window, window covered, window removed, blocked window, same furniture as original, unchanged furniture, orange cabinets, old chairs, old table, old curtains, red blinds, original decor remaining, unchanged room'
