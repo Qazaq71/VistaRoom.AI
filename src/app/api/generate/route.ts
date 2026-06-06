@@ -6,17 +6,18 @@ import { buildEditPrompt, NEGATIVE_PROMPT, RoomDetails } from '@/lib/prompts'
 
 const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! })
 
-// adirik/interior-design — специализированная модель именно для редизайна интерьеров
-// Realistic Vision V3.0 + ControlNet сегментации
 const INTERIOR_MODEL = '76604baddc85b1b4616e1c6475eca080da339c8875bd4996705440484a6eac38'
 
-// Сжимаем до 1024px — решает CUDA OOM для фото с телефона (4000x3000px и т.п.)
-async function compressImage(buffer: Buffer, mimeType: string): Promise<string> {
+async function compressImage(buffer: Buffer): Promise<string> {
   const compressed = await sharp(buffer)
     .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
     .jpeg({ quality: 90 })
     .toBuffer()
   return `data:image/jpeg;base64,${compressed.toString('base64')}`
+}
+
+function toAscii(text: string): string {
+  return text.replace(/[^\x00-\x7F]/g, '').replace(/\s+/g, ' ').trim()
 }
 
 export async function POST(req: NextRequest) {
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
     const { ok, remaining, limit } = getRateLimit(ip)
     if (!ok) {
       return NextResponse.json(
-        { error: `Лимит исчерпан. До ${limit} генераций в день. Попробуйте завтра.`, code: 'RATE_LIMIT' },
+        { error: 'Daily limit reached. Try again tomorrow.', code: 'RATE_LIMIT' },
         { status: 429 }
       )
     }
@@ -52,27 +53,28 @@ export async function POST(req: NextRequest) {
     }
 
     if (!imageFile)
-      return NextResponse.json({ error: 'Изображение не загружено' }, { status: 400 })
+      return NextResponse.json({ error: 'No image uploaded' }, { status: 400 })
     if (!imageFile.type.startsWith('image/'))
-      return NextResponse.json({ error: 'Файл должен быть изображением' }, { status: 400 })
+      return NextResponse.json({ error: 'File must be an image' }, { status: 400 })
     if (imageFile.size > 10 * 1024 * 1024)
-      return NextResponse.json({ error: 'Файл слишком большой (макс. 10 МБ)' }, { status: 400 })
+      return NextResponse.json({ error: 'File too large (max 10MB)' }, { status: 400 })
 
     const arrayBuffer = await imageFile.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
+    const dataUri = await compressImage(buffer)
 
-    // Сжимаем изображение — решает CUDA OOM
-    const dataUri = await compressImage(buffer, imageFile.type)
+    const rawPrompt = buildEditPrompt(room, style, details)
+    const prompt = toAscii(rawPrompt)
+    const negPrompt = toAscii(NEGATIVE_PROMPT)
 
-    const prompt = buildEditPrompt(room, style, details)
     console.log('[PROMPT]', prompt)
 
     const prediction = await replicate.predictions.create({
       version: INTERIOR_MODEL,
       input: {
         image:               dataUri,
-        prompt,
-        negative_prompt:     NEGATIVE_PROMPT,
+        prompt:              prompt,
+        negative_prompt:     negPrompt,
         guidance_scale:      15,
         num_inference_steps: 50,
         strength:            0.85,
@@ -88,7 +90,7 @@ export async function POST(req: NextRequest) {
     })
   } catch (err: unknown) {
     console.error('[/api/generate]', err)
-    const msg = err instanceof Error ? err.message : 'Внутренняя ошибка'
+    const msg = err instanceof Error ? err.message : 'Internal server error'
     return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
