@@ -137,6 +137,25 @@ const FLOOR_COLORS_PRESET = [
   { label: 'Чёрный',    hex: '#1A1A1A' },
 ]
 
+const TILE_COLORS_PRESET = [
+  { label: 'Белый',       hex: '#FFFFFF' },
+  { label: 'Кремовый',    hex: '#FFF8E7' },
+  { label: 'Бежевый',     hex: '#F0E6D3' },
+  { label: 'Песочный',    hex: '#D4BA8C' },
+  { label: 'Светло-серый',hex: '#D9D9D9' },
+  { label: 'Серый',       hex: '#9E9E9E' },
+  { label: 'Антрацит',    hex: '#37474F' },
+  { label: 'Голубой',     hex: '#B3D9F2' },
+  { label: 'Бирюзовый',  hex: '#80CBC4' },
+  { label: 'Синий',       hex: '#5C6BC0' },
+  { label: 'Зелёный',     hex: '#A5C8A0' },
+  { label: 'Терракота',   hex: '#C97B63' },
+  { label: 'Коричневый',  hex: '#8D6E63' },
+  { label: 'Чёрный',      hex: '#212121' },
+  { label: 'Мрамор белый',hex: '#F0EDE8' },
+  { label: 'Мрамор серый',hex: '#B0ADA8' },
+]
+
 type Status = 'idle' | 'uploading' | 'processing' | 'done' | 'error'
 
 function ColorPicker({ label, presets, customColor, onCustomChange, selectedPreset, onPresetClick }:{
@@ -267,6 +286,8 @@ export default function Home() {
   const [floorCustom, setFloorCustom] = useState('')
 
   const [tilezone, setTilezone]       = useState<string[]>([])
+  const [tilePreset, setTilePreset]   = useState('')
+  const [tileCustom, setTileCustom]   = useState('')
   const [furniture, setFurniture]     = useState<string[]>([])
   const [lighting, setLighting]       = useState<string[]>([])
   const [appliances, setAppliances]   = useState<string[]>([])
@@ -287,9 +308,10 @@ export default function Home() {
 
   const wallColorHex  = wallCustom  || wallPreset
   const floorColorHex = floorCustom || floorPreset
+  const tileColorHex  = tileCustom  || tilePreset
 
   const hasDetails = !!(roomSize || ceilingHeight || wallPreset || wallCustom || wallFinish.length ||
-    floorMaterial || floorPreset || floorCustom || tilezone.length ||
+    floorMaterial || floorPreset || floorCustom || tilezone.length || tilePreset || tileCustom ||
     furniture.length || lighting.length || appliances.length || extraNotes)
 
   const handleFile = useCallback((file: File) => {
@@ -349,6 +371,7 @@ export default function Home() {
     form.append('floorMaterial',floorMaterial)
     form.append('floorColorHex',floorColorHex)
     form.append('tilezone',     JSON.stringify(tilezone))
+    form.append('tileColorHex',tileColorHex)
     form.append('furniture',    JSON.stringify(furniture))
     form.append('lighting',     JSON.stringify(lighting))
     form.append('appliances',   JSON.stringify(appliances))
@@ -363,7 +386,7 @@ export default function Home() {
       setStatus('processing'); setStatusMsg('Генерирую дизайн...')
       pollPrediction(data.predictionId)
     } catch { setStatus('error'); setStatusMsg('Нет соединения с сервером.') }
-  }, [imageFile, room, style, strength, roomSize, ceilingHeight, wallPreset, wallColorHex, wallFinish, floorMaterial, floorColorHex, tilezone, furniture, lighting, appliances, extraNotes, pollPrediction])
+  }, [imageFile, room, style, strength, roomSize, ceilingHeight, wallPreset, wallColorHex, wallFinish, floorMaterial, floorColorHex, tilezone, tileColorHex, furniture, lighting, appliances, extraNotes, pollPrediction])
 
   const download = async () => {
     if (!outputUrl) return
@@ -546,6 +569,17 @@ export default function Home() {
                         <button key={z.key} className={`dchip${tilezone.includes(z.key) ? ' on' : ''}`}
                           onClick={() => toggleArr(tilezone, setTilezone, z.key)}>{z.label}</button>
                       ))}
+                    </div>
+
+                    <div style={{ marginTop: 12 }}>
+                      <ColorPicker
+                        label="Цвет кафеля"
+                        presets={TILE_COLORS_PRESET}
+                        customColor={tileCustom}
+                        onCustomChange={v => { setTileCustom(v); setTilePreset('') }}
+                        selectedPreset={tilePreset}
+                        onPresetClick={hex => { setTilePreset(hex); setTileCustom('') }}
+                      />
                     </div>
                   </div>
                 )}
