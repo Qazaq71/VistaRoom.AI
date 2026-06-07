@@ -11,17 +11,49 @@ export const ROOM_NAMES: Record<string, string> = {
   kids:     "children's room interior",
 }
 
-export const STYLE_PROMPTS: Record<string, string> = {
-  minimalist:    'minimalist style, plain white walls, simple clean-line furniture, neutral palette, uncluttered',
-  loft:          'industrial loft style, exposed red brick walls, black metal frames, Edison bulb pendant lights, concrete accents',
-  scandinavian:  'Scandinavian hygge style, white walls, light birch furniture, wool textiles, warm cozy atmosphere',
-  luxury:        'luxury interior, white marble walls and floor, gold brass hardware, crystal chandelier, velvet upholstery',
-  japandi:       'Japandi wabi-sabi style, warm natural oak panels, low furniture, paper lantern light, muted sand and charcoal tones, zen',
-  biophilic:     'biophilic design, lush indoor plants, moss wall, rattan furniture, natural wood, earthy green palette',
-  artdeco:       'Art Deco style, geometric gold wallpaper, brass fixtures, velvet armchairs, chevron marble floor, 1930s glamour',
-  mediterranean: 'Mediterranean style, whitewashed walls, terracotta tile floor, blue mosaic accents, arched elements, warm sunlight',
-  cyberpunk:     'cyberpunk style, dark walls, purple and cyan neon LED strips, holographic panels, glossy black surfaces, futuristic',
+// Style split: base = atmosphere/furniture (always), walls/floor = only if user didn't specify
+export const STYLE_BASE: Record<string, string> = {
+  minimalist:    'minimalist style, simple clean-line furniture, neutral palette, uncluttered, calm atmosphere',
+  loft:          'industrial loft style, black metal frames, Edison bulb pendant lights, raw industrial furniture',
+  scandinavian:  'Scandinavian hygge style, light birch furniture, wool textiles, warm cozy atmosphere',
+  luxury:        'luxury interior, gold brass hardware, crystal chandelier, velvet upholstery, opulent decor',
+  japandi:       'Japandi wabi-sabi style, low furniture, paper lantern light, handcrafted ceramics, zen atmosphere',
+  biophilic:     'biophilic design, lush indoor plants, rattan furniture, natural wood accents, organic forms',
+  artdeco:       'Art Deco style, brass fixtures, velvet armchairs, geometric patterns, 1930s glamour',
+  mediterranean: 'Mediterranean style, arched elements, warm sunlight, rustic wooden furniture, ceramic accents',
+  cyberpunk:     'cyberpunk style, holographic panels, glossy black surfaces, futuristic furniture, neon accents',
 }
+
+export const STYLE_WALL_DEFAULT: Record<string, string> = {
+  minimalist:    'plain white walls',
+  loft:          'exposed red brick walls',
+  scandinavian:  'white painted walls',
+  luxury:        'white marble wall panels',
+  japandi:       'warm natural oak wall panels',
+  biophilic:     'living moss wall accent',
+  artdeco:       'geometric gold wallpaper',
+  mediterranean: 'whitewashed plaster walls',
+  cyberpunk:     'dark charcoal walls',
+}
+
+export const STYLE_FLOOR_DEFAULT: Record<string, string> = {
+  minimalist:    'light wood floor',
+  loft:          'polished concrete floor',
+  scandinavian:  'light pine floor',
+  luxury:        'white marble floor',
+  japandi:       'natural oak floor',
+  biophilic:     'natural stone floor',
+  artdeco:       'chevron marble floor',
+  mediterranean: 'terracotta tile floor',
+  cyberpunk:     'glossy black epoxy floor',
+}
+
+// Keep STYLE_PROMPTS for backward compat
+export const STYLE_PROMPTS: Record<string, string> = Object.fromEntries(
+  Object.keys(STYLE_BASE).map(k => [k,
+    STYLE_BASE[k] + ', ' + STYLE_WALL_DEFAULT[k] + ', ' + STYLE_FLOOR_DEFAULT[k]
+  ])
+)
 
 // Keep STYLES export for page.tsx import compatibility
 export const STYLES: Record<string, { label: string; emoji: string; prompt: string }> = {
@@ -203,11 +235,15 @@ export function buildEditPrompt(
   details?: Partial<RoomDetails>
 ): string {
   const room  = ROOM_NAMES[roomKey] ?? 'interior'
-  const style = STYLE_PROMPTS[styleKey] ?? 'modern contemporary style'
   const tokens: string[] = []
 
   // 1. Room type
   tokens.push(room)
+
+  // Determine if user specified custom walls/floor
+  const hasCustomWalls = !!(details?.wallFinish?.length || details?.wallColorHex)
+  const hasCustomFloor = !!(details?.floorMaterial || details?.floorColorHex)
+  const hasCustomTile  = !!(details?.tilezone?.length)
 
   // 2. COLORS FIRST - model pays most attention to first tokens
   // Walls
@@ -276,8 +312,11 @@ export function buildEditPrompt(
     if (a.length) tokens.push(a.join(', '))
   }
 
-  // 8. Style (after details so colors take priority)
-  tokens.push(style)
+  // 8. Style - base atmosphere always, wall/floor defaults only if user didn't specify
+  const styleKey2 = styleKey || 'minimalist'
+  tokens.push(STYLE_BASE[styleKey2] || STYLE_BASE.minimalist)
+  if (!hasCustomWalls) tokens.push(STYLE_WALL_DEFAULT[styleKey2] || '')
+  if (!hasCustomFloor) tokens.push(STYLE_FLOOR_DEFAULT[styleKey2] || '')
 
   // 9. Size / notes
   if (details?.size)         tokens.push('room size ' + details.size.replace(/[^\x00-\x7F]/g,'').trim())
