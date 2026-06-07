@@ -53,7 +53,7 @@ export interface RoomDetails {
 
 // Direct English lookup by key - no translation needed
 const WALL_FINISH_EN: Record<string, string> = {
-  paint:       'smooth painted walls',
+  paint:       '{WC} smooth painted walls',
   wallpaper:   'decorative patterned wallpaper on walls',
   plaster:     'Venetian decorative plaster texture on walls',
   brick:       'exposed red brick walls with clearly visible individual bricks and white mortar joints',
@@ -84,14 +84,14 @@ const FLOOR_EN: Record<string, string> = {
 }
 
 const TILE_EN: Record<string, string> = {
-  kitchen_backsplash: 'white subway tile backsplash on the kitchen wall between counter and upper cabinets',
-  kitchen_floor:      'porcelain tile kitchen floor',
-  bath_walls:         'ceramic tiles covering all bathroom walls from floor to ceiling',
-  bath_floor:         'non-slip ceramic mosaic tiles on bathroom floor',
-  toilet_walls:       'ceramic wall tiles in the toilet room',
-  toilet_floor:       'ceramic tile toilet room floor',
-  shower:             'mosaic tiles in the shower enclosure walls and floor',
-  tub_surround:       'ceramic tile panels around the bathtub',
+  kitchen_backsplash: '{C} subway tile backsplash on the kitchen wall between counter and upper cabinets',
+  kitchen_floor:      '{C} porcelain tile kitchen floor',
+  bath_walls:         '{C} ceramic tiles covering all bathroom walls from floor to ceiling',
+  bath_floor:         '{C} non-slip ceramic tiles on bathroom floor',
+  toilet_walls:       '{C} ceramic wall tiles in the toilet room',
+  toilet_floor:       '{C} ceramic tile toilet room floor',
+  shower:             '{C} mosaic tiles in the shower enclosure walls and floor',
+  tub_surround:       '{C} ceramic tile panels around the bathtub',
 }
 
 const LIGHT_EN: Record<string, string> = {
@@ -143,18 +143,58 @@ function hexToColorName(hex: string): string {
   const g = parseInt(hex.slice(3,5),16)
   const b = parseInt(hex.slice(5,7),16)
   const br = (r*299 + g*587 + b*114) / 1000
-  const diff = Math.max(r,g,b) - Math.min(r,g,b)
-  if (diff < 25) {
-    if (br > 235) return 'pure white'
-    if (br > 190) return 'light grey'
-    if (br > 120) return 'medium grey'
-    if (br > 50)  return 'dark charcoal'
+  const max = Math.max(r,g,b), min = Math.min(r,g,b)
+  const diff = max - min
+
+  // Achromatic (greys)
+  if (diff < 20) {
+    if (br > 240) return 'pure white'
+    if (br > 200) return 'off-white'
+    if (br > 160) return 'light grey'
+    if (br > 100) return 'medium grey'
+    if (br > 50)  return 'dark grey'
     return 'black'
   }
-  if (r > g && r > b) return g > 130 ? (br > 180 ? 'warm beige' : 'terracotta') : (br > 160 ? 'soft pink' : 'deep red')
-  if (g > r && g > b) return br > 160 ? 'sage green' : 'forest green'
-  if (b > r && b > g) return br > 160 ? 'sky blue' : 'navy blue'
-  return ''
+
+  // Calculate hue
+  let h = 0
+  if (max === r)      h = 60 * (((g - b) / diff) % 6)
+  else if (max === g) h = 60 * ((b - r) / diff + 2)
+  else                h = 60 * ((r - g) / diff + 4)
+  if (h < 0) h += 360
+  const s = diff / max
+
+  // Map hue + brightness + saturation to color name
+  if (s < 0.25) {
+    if (br > 200) return 'off-white'
+    if (br > 120) return 'light grey'
+    return 'dark grey'
+  }
+
+  // Red-orange-yellow range (0-60)
+  if (h < 10)  return br > 160 ? 'soft pink' : 'deep red'
+  if (h < 40)  return br > 160 ? 'peach' : 'terracotta'
+  if (h < 50)  return br > 160 ? 'golden yellow' : 'amber'
+  if (h < 70)  return br > 180 ? 'yellow' : 'olive'
+
+  // Green range (70-160)
+  if (h < 90)  return br > 160 ? 'lime green' : 'olive green'
+  if (h < 150) return br > 160 ? 'sage green' : 'forest green'
+  if (h < 170) return br > 160 ? 'mint green' : 'emerald green'
+
+  // Teal-Cyan range (170-200)
+  if (h < 200) return br > 160 ? 'turquoise' : 'teal'
+
+  // Blue range (200-260)
+  if (h < 230) return br > 160 ? 'sky blue' : 'royal blue'
+  if (h < 260) return br > 140 ? 'cornflower blue' : 'navy blue'
+
+  // Purple-Violet range (260-310)
+  if (h < 290) return br > 140 ? 'lavender' : 'deep purple'
+  if (h < 330) return br > 140 ? 'orchid pink' : 'plum'
+
+  // Pink-Red range (330-360)
+  return br > 160 ? 'rose pink' : 'crimson red'
 }
 
 export function buildEditPrompt(
@@ -173,18 +213,25 @@ export function buildEditPrompt(
   // 2. Walls
   const wallColor = hexToColorName(details?.wallColorHex || '')
   if (details?.wallFinish?.length) {
-    const f = details.wallFinish.map(k => WALL_FINISH_EN[k]).filter(Boolean)
+    const f = details.wallFinish.map(k => {
+      const desc = WALL_FINISH_EN[k]
+      if (!desc) return ''
+      return wallColor ? desc.replace('{WC}', wallColor) : desc.replace('{WC} ', '')
+    }).filter(Boolean)
     if (f.length) tokens.push(...f)
-    if (wallColor) tokens.push(wallColor + ' wall color')
+    if (wallColor && !f.some(x => x.includes(wallColor))) tokens.push(wallColor + ' walls')
   } else if (wallColor) {
-    tokens.push(wallColor + ' walls')
+    tokens.push(wallColor + ' painted walls')
   }
 
   // 3. Floor
   const floorColor = hexToColorName(details?.floorColorHex || '')
   if (details?.floorMaterial) {
     const f = FLOOR_EN[details.floorMaterial]
-    if (f) tokens.push(floorColor ? floorColor + ' ' + f : f)
+    if (f) {
+      const floorDesc = floorColor ? floorColor + ' ' + f : f
+      tokens.push(floorDesc)
+    }
   } else if (floorColor) {
     tokens.push(floorColor + ' floor')
   }
@@ -192,13 +239,13 @@ export function buildEditPrompt(
   // 4. Tile zones + color
   if (details?.tilezone?.length) {
     const tileColor = hexToColorName(details?.tileColorHex || '')
+    const colorWord = tileColor || 'white'
     const t = details.tilezone.map(k => {
-      const desc = TILE_EN[k]
-      if (!desc) return ''
-      return tileColor ? desc.replace('tile', tileColor + ' tile').replace('tiles', tileColor + ' tiles') : desc
+      const template = TILE_EN[k]
+      if (!template) return ''
+      return template.replace('{C}', colorWord)
     }).filter(Boolean)
     if (t.length) tokens.push(...t)
-    if (tileColor && !t.length) tokens.push(tileColor + ' tiles')
   }
 
   // 5. Furniture
