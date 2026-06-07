@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
       floorMaterial: (form.get('floorMaterial') as string) || '',
       floorColorHex: (form.get('floorColorHex') as string) || '',
       tilezone:      JSON.parse((form.get('tilezone')    as string) || '[]'),
+      tileColorHex:  (form.get('tileColorHex')  as string) || '',
       furniture:     JSON.parse((form.get('furniture')   as string) || '[]'),
       lighting:      JSON.parse((form.get('lighting')    as string) || '[]'),
       appliances:    JSON.parse((form.get('appliances')  as string) || '[]'),
