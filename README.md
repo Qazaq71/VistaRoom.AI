@@ -1,4 +1,4 @@
-# SpaceAI — ИИ-дизайн интерьеров
+# VistaRoom AI — ИИ-дизайн интерьеров
 
 Production-ready Next.js приложение с безопасным бэкендом, rate limiting и Replicate API.
 
