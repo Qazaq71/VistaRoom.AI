@@ -5,7 +5,7 @@ Production-ready Next.js приложение с безопасным бэкен
 ## Структура проекта
 
 ```
-spaceai/
+VistaRoom AI/
 ├── src/
 │   ├── app/
 │   │   ├── api/
