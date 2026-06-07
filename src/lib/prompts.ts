@@ -54,21 +54,21 @@ export interface RoomDetails {
 // Direct English lookup by key - no translation needed
 const WALL_FINISH_EN: Record<string, string> = {
   paint:       '{WC} smooth painted walls',
-  wallpaper:   'decorative patterned wallpaper on walls',
-  plaster:     'Venetian decorative plaster texture on walls',
-  brick:       'exposed red brick walls with clearly visible individual bricks and white mortar joints',
-  wood:        'horizontal wooden plank wall cladding with visible wood grain',
-  porcelain:   'large format porcelain stoneware wall tiles',
-  marble:      'polished white marble wall panels with grey veining',
-  gypsum:      '3D decorative gypsum relief wall panels',
-  liquidwalls: 'liquid wallpaper textured wall coating',
-  microcement: 'seamless grey microcement wall finish',
-  metal:       'brushed metal wall cladding panels',
-  glass:       'glass wall panels',
-  mosaic:      'small colorful mosaic wall tiles',
-  concrete:    'raw concrete decorative effect on walls',
-  stone:       'natural stone wall cladding with visible texture',
-  cork:        'natural cork tile wall covering',
+  wallpaper:   '{WC} decorative patterned wallpaper on walls',
+  plaster:     '{WC} Venetian decorative plaster texture on walls',
+  brick:       '{WC} exposed brick walls with clearly visible individual bricks and mortar joints',
+  wood:        '{WC} horizontal wooden plank wall cladding with visible wood grain',
+  porcelain:   '{WC} porcelain stoneware wall tiles',
+  marble:      '{WC} polished marble wall panels with veining',
+  gypsum:      '{WC} 3D decorative gypsum relief wall panels',
+  liquidwalls: '{WC} liquid wallpaper textured wall coating',
+  microcement: '{WC} seamless microcement wall finish',
+  metal:       '{WC} brushed metal wall cladding panels',
+  glass:       '{WC} glass wall panels',
+  mosaic:      '{WC} small mosaic wall tiles',
+  concrete:    '{WC} concrete decorative effect on walls',
+  stone:       '{WC} natural stone wall cladding with visible texture',
+  cork:        '{WC} natural cork tile wall covering',
 }
 
 const FLOOR_EN: Record<string, string> = {
@@ -206,11 +206,11 @@ export function buildEditPrompt(
   const style = STYLE_PROMPTS[styleKey] ?? 'modern contemporary style'
   const tokens: string[] = []
 
-  // 1. Room + style
+  // 1. Room type
   tokens.push(room)
-  tokens.push(style)
 
-  // 2. Walls
+  // 2. COLORS FIRST - model pays most attention to first tokens
+  // Walls
   const wallColor = hexToColorName(details?.wallColorHex || '')
   if (details?.wallFinish?.length) {
     const f = details.wallFinish.map(k => {
@@ -219,9 +219,9 @@ export function buildEditPrompt(
       return wallColor ? desc.replace('{WC}', wallColor) : desc.replace('{WC} ', '')
     }).filter(Boolean)
     if (f.length) tokens.push(...f)
-    if (wallColor && !f.some(x => x.includes(wallColor))) tokens.push(wallColor + ' walls')
+    if (wallColor) tokens.push('all walls are ' + wallColor + ' color')
   } else if (wallColor) {
-    tokens.push(wallColor + ' painted walls')
+    tokens.push('all walls painted ' + wallColor + ', ' + wallColor + ' wall color')
   }
 
   // 3. Floor
@@ -233,10 +233,10 @@ export function buildEditPrompt(
       tokens.push(floorDesc)
     }
   } else if (floorColor) {
-    tokens.push(floorColor + ' floor')
+    tokens.push(floorColor + ' colored floor, floor is ' + floorColor)
   }
 
-  // 4. Tile zones + color
+  // 4. Tile zones + color (repeated for emphasis - model needs strong color signal)
   if (details?.tilezone?.length) {
     const tileColor = hexToColorName(details?.tileColorHex || '')
     const colorWord = tileColor || 'white'
@@ -245,7 +245,17 @@ export function buildEditPrompt(
       if (!template) return ''
       return template.replace('{C}', colorWord)
     }).filter(Boolean)
-    if (t.length) tokens.push(...t)
+    if (t.length) {
+      // Push color emphasis BEFORE tile descriptions
+      if (tileColor) {
+        tokens.push('IMPORTANT: all tiles must be ' + tileColor + ' colored')
+      }
+      tokens.push(...t)
+      // Repeat color after for reinforcement
+      if (tileColor) {
+        tokens.push(tileColor + ' tile color throughout')
+      }
+    }
   }
 
   // 5. Furniture
@@ -266,12 +276,15 @@ export function buildEditPrompt(
     if (a.length) tokens.push(a.join(', '))
   }
 
-  // 8. Size / notes
+  // 8. Style (after details so colors take priority)
+  tokens.push(style)
+
+  // 9. Size / notes
   if (details?.size)         tokens.push('room size ' + details.size.replace(/[^\x00-\x7F]/g,'').trim())
   if (details?.ceilingHeight) tokens.push('ceiling height ' + details.ceilingHeight.replace(/[^\x00-\x7F]/g,'').trim())
   if (details?.extraNotes)   tokens.push(details.extraNotes.replace(/[^\x00-\x7F]/g,'').trim())
 
-  // 9. Quality
+  // 10. Quality
   tokens.push(
     'photorealistic', 'hyperrealistic', '8k resolution',
     'professional interior photography', 'sharp focus',
