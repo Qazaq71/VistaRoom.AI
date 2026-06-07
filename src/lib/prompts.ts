@@ -44,6 +44,7 @@ export interface RoomDetails {
   floorMaterial: string
   floorColorHex: string
   tilezone: string[]
+  tileColorHex: string
   furniture: string[]
   lighting: string[]
   appliances: string[]
@@ -188,10 +189,16 @@ export function buildEditPrompt(
     tokens.push(floorColor + ' floor')
   }
 
-  // 4. Tile zones
+  // 4. Tile zones + color
   if (details?.tilezone?.length) {
-    const t = details.tilezone.map(k => TILE_EN[k]).filter(Boolean)
+    const tileColor = hexToColorName(details?.tileColorHex || '')
+    const t = details.tilezone.map(k => {
+      const desc = TILE_EN[k]
+      if (!desc) return ''
+      return tileColor ? desc.replace('tile', tileColor + ' tile').replace('tiles', tileColor + ' tiles') : desc
+    }).filter(Boolean)
     if (t.length) tokens.push(...t)
+    if (tileColor && !t.length) tokens.push(tileColor + ' tiles')
   }
 
   // 5. Furniture
