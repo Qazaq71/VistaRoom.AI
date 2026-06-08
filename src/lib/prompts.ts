@@ -378,14 +378,36 @@ export function buildEditPrompt(
   }
 
   // [4] BACKSPLASH ZONE (kitchen only, highly localized)
+  // Strategy: repeat the backsplash instruction THREE times in different phrasings.
+  // Diffusion models are token-frequency-sensitive — repetition raises attention weight.
+  // We also add an explicit "override" guard so the wall finish doesn't bleed in.
   if (backsplashDescs.length) {
+    const bsColor = tileColorWord
+
+    // 4a. Primary instruction — spatial anchor
     sections.push(
-      `KITCHEN BACKSPLASH ZONE (localized area only): ` +
-      `${backsplashDescs.join(', ')}, ` +
-      `located EXCLUSIVELY between the countertop and upper cabinets. ` +
-      `This tile color (${tileColorWord}) applies ONLY to this narrow backsplash strip. ` +
-      `Do NOT extend backsplash tiles onto the main walls, ceiling, or floor. ` +
-      `The backsplash is visually distinct and fully isolated from the wall finish.`
+      `KITCHEN BACKSPLASH ZONE: the area between the kitchen countertop and upper cabinets ` +
+      `is covered with ${bsColor} subway tiles. ` +
+      `This is a mandatory design element. The backsplash MUST be visible and rendered as ${bsColor} tiles. ` +
+      `The wall finish (${wallFinishShorts.join(', ') || 'wall material'}) does NOT appear in the backsplash zone — ` +
+      `the backsplash overrides the wall in this area.`
+    )
+
+    // 4b. Reinforcement — color emphasis
+    sections.push(
+      `BACKSPLASH COLOR OVERRIDE: the kitchen backsplash strip is strictly ${bsColor}. ` +
+      `Color of backsplash tiles: ${bsColor}. ` +
+      `The backsplash is clearly ${bsColor}, not white, not grey, not the same as the wall. ` +
+      `It creates a strong visual contrast against the surrounding wall finish.`
+    )
+
+    // 4c. Spatial isolation — prevent tile spread
+    sections.push(
+      `BACKSPLASH BOUNDARIES: ${bsColor} tiles exist ONLY in the backsplash strip. ` +
+      `Do NOT spread ${bsColor} tiles onto the main walls beyond the backsplash zone. ` +
+      `Do NOT extend ${bsColor} tiles to the ceiling. ` +
+      `Do NOT place ${bsColor} tiles on the floor. ` +
+      `The backsplash is a separate, isolated surface element.`
     )
   }
 
@@ -455,6 +477,23 @@ export function buildEditPrompt(
     )
   }
 
+  // Prevent wall finish from covering the backsplash zone
+  if (backsplashDescs.length) {
+    for (const short of wallFinishShorts) {
+      negParts.push(
+        `${short} in backsplash area`,
+        `${short} between countertop and cabinets`,
+      )
+    }
+    negParts.push(
+      `no backsplash`,
+      `missing backsplash`,
+      `backsplash same as wall`,
+      `wall covering entire kitchen wall with no backsplash break`,
+      `wallpaper covering backsplash zone`,
+    )
+  }
+
   // Prevent tile/backsplash color from bleeding onto walls/ceiling
   if (tileColor && backsplashDescs.length) {
     negParts.push(
@@ -463,6 +502,8 @@ export function buildEditPrompt(
       `${tileColor} floor`,
       `backsplash tiles on main walls`,
       `tile pattern on ceiling`,
+      `white backsplash`,
+      `grey backsplash`,
     )
   }
 
