@@ -272,6 +272,10 @@ export function buildEditPrompt(
       STYLE_BASE[sk]         || STYLE_BASE.minimalist,
       STYLE_WALL_DEFAULT[sk] || '',
       STYLE_FLOOR_DEFAULT[sk]|| '',
+      'keep all existing windows and doors in their exact original positions',
+      'preserve all window openings exactly as in the original photo',
+      'preserve all door openings exactly as in the original photo',
+      'do not add or remove any windows or doors',
       'photorealistic', 'hyperrealistic', '8k resolution',
       'professional interior photography', 'sharp focus',
       'realistic materials and textures', 'perfect lighting',
@@ -332,6 +336,16 @@ export function buildEditPrompt(
   // [0] Header
   sections.push(
     `Professional interior design photography of a ${room}, custom style.`
+  )
+
+  // [0b] STRUCTURAL PRESERVATION — must appear early, before any surface zones
+  sections.push(
+    `STRUCTURAL ELEMENTS: preserve ALL existing windows and doors EXACTLY as they appear in the original photo. ` +
+    `Window openings must remain in the same position, same size, and same shape. ` +
+    `Door openings must remain in the same position, same size, and same shape. ` +
+    `Do NOT add new windows. Do NOT remove any windows. Do NOT block or cover any windows. ` +
+    `Do NOT add new doors. Do NOT remove any doors. Do NOT block or cover any doors. ` +
+    `The room layout and architectural openings are FIXED and must not change.`
   )
 
   // [1] WALLS ZONE
@@ -440,7 +454,9 @@ export function buildEditPrompt(
     `Wall materials stay on walls only. ` +
     `Ceiling is white and plain. ` +
     `Floor material stays on the floor only. ` +
-    `Backsplash tiles stay in the backsplash zone only.`
+    `Backsplash tiles stay in the backsplash zone only. ` +
+    `CRITICAL: all windows and doors from the original photo remain in their exact positions — ` +
+    `do not remove, block, move, resize, or add any windows or doors.`
   )
 
   // [10] Optional room dimensions / notes
@@ -528,7 +544,13 @@ const NEGATIVE_PROMPT_BASE_PARTS: string[] = [
   'cartoon', 'anime', 'sketch', 'painting', 'watercolor',
   'blurry', 'low quality', 'distorted', 'deformed',
   'watermark', 'text', 'logo', 'ugly',
-  'window removed', 'missing window', 'blocked window',
+  'window removed', 'missing window', 'blocked window', 'covered window',
+  'bricked up window', 'wall where window was', 'window replaced by wall',
+  'door removed', 'missing door', 'blocked door', 'door replaced by wall',
+  'wall where door was', 'door opening closed',
+  'changed window position', 'moved window', 'changed door position',
+  'new window', 'extra window', 'added window', 'added door',
+  'structural changes', 'architectural changes', 'layout change',
   'unrealistic', 'plastic look', 'oversaturated',
   'mixed materials', 'tiling errors', 'inconsistent surfaces',
   'material bleeding', 'wrong zone materials',
