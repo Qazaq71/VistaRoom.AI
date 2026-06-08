@@ -71,13 +71,18 @@ export async function POST(req: NextRequest) {
 
     const clampedStrength = Math.min(0.95, Math.max(0.5, strength))
 
+    // For my_style with tile color — increase guidance to force color adherence
+    const isMyStyle = style === 'my_style'
+    const hasTileColor = !!(details.tilezone?.length && details.tileColorHex)
+    const guidanceScale = (isMyStyle && hasTileColor) ? 18 : 15
+
     const prediction = await replicate.predictions.create({
       version: INTERIOR_MODEL,
       input: {
         image:               dataUri,
         prompt:              prompt,
         negative_prompt:     negPrompt,
-        guidance_scale:      15,
+        guidance_scale:      guidanceScale,
         num_inference_steps: 50,
         strength:            clampedStrength,
       },

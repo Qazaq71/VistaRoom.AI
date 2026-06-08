@@ -297,11 +297,19 @@ export function buildEditPrompt(
       }).filter(Boolean)
       if (t.length) {
         if (tileColor) {
-          tokens.push('IMPORTANT: tiles color must be strictly ' + tileColor + ', apply tiles ONLY in these zones:')
+          // Repeat color name multiple times for strong signal to the model
+          tokens.push(
+            'IMPORTANT: ALL tiles must be ' + tileColor + ' color',
+            'tile color: ' + tileColor,
+            colorWord + ' colored tiles only'
+          )
         }
         tokens.push(...t)
         if (tileColor) {
-          tokens.push('tile color is ' + tileColor + ' throughout all tiled zones, no other tile color')
+          tokens.push(
+            'every tile surface is ' + tileColor,
+            tileColor + ' tile finish, strictly ' + tileColor + ' tiles, no white tiles, no other tile color'
+          )
         }
       }
     }
