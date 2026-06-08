@@ -487,7 +487,18 @@ export default function Home() {
                 <button
                   key={k}
                   className={`style-chip${style === k ? ' active' : ''}${k === 'my_style' ? ' my-style-chip' : ''}`}
-                  onClick={() => setStyle(k)}
+                  onClick={() => {
+                    setStyle(k)
+                    // При переключении на любой стиль кроме "Мой стиль" — сбрасываем детализацию
+                    if (k !== 'my_style') {
+                      setRoomSize(''); setCeilingHeight('')
+                      setWallPreset(''); setWallCustom(''); setWallFinish([])
+                      setFloorMaterial(''); setFloorPreset(''); setFloorCustom('')
+                      setTilezone([]); setTilePreset(''); setTileCustom('')
+                      setFurniture([]); setLighting([]); setAppliances([])
+                      setExtraNotes(''); setPromptPreview('')
+                    }
+                  }}
                 >
                   <span className="em">{s.emoji}</span>{s.label}
                   {k === 'my_style' && <span className="my-style-badge">Свои параметры</span>}
