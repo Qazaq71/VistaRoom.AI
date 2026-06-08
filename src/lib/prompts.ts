@@ -11,8 +11,6 @@ export const ROOM_NAMES: Record<string, string> = {
   kids:     "children's room interior",
 }
 
-// Style split: base = atmosphere/furniture (always), walls/floor = only if user didn't specify
-// my_style = fully custom, no preset atmosphere — all details come from user input
 export const STYLE_BASE: Record<string, string> = {
   my_style:      'custom interior design style, tailored to user specifications',
   minimalist:    'minimalist style, simple clean-line furniture, neutral palette, uncluttered, calm atmosphere',
@@ -52,14 +50,12 @@ export const STYLE_FLOOR_DEFAULT: Record<string, string> = {
   cyberpunk:     'glossy black epoxy floor',
 }
 
-// Keep STYLE_PROMPTS for backward compat
 export const STYLE_PROMPTS: Record<string, string> = Object.fromEntries(
   Object.keys(STYLE_BASE).map(k => [k,
     STYLE_BASE[k] + ', ' + STYLE_WALL_DEFAULT[k] + ', ' + STYLE_FLOOR_DEFAULT[k]
   ])
 )
 
-// Keep STYLES export for page.tsx import compatibility
 export const STYLES: Record<string, { label: string; emoji: string; prompt: string }> = {
   minimalist:    { label: 'Minimalism',    emoji: '-', prompt: STYLE_PROMPTS.minimalist },
   loft:          { label: 'Loft',          emoji: '-', prompt: STYLE_PROMPTS.loft },
@@ -87,7 +83,8 @@ export interface RoomDetails {
   extraNotes: string
 }
 
-// Direct English lookup by key - no translation needed
+// ─── English lookup tables ────────────────────────────────────────────────────
+
 const WALL_FINISH_EN: Record<string, string> = {
   paint:       '{WC} smooth painted walls',
   wallpaper:   '{WC} decorative patterned wallpaper on walls',
@@ -107,6 +104,26 @@ const WALL_FINISH_EN: Record<string, string> = {
   cork:        '{WC} natural cork tile wall covering',
 }
 
+// Human-readable short names for negative prompt building
+const WALL_FINISH_SHORT: Record<string, string> = {
+  paint:       'painted wall texture',
+  wallpaper:   'wallpaper',
+  plaster:     'plaster texture',
+  brick:       'brick texture',
+  wood:        'wood wall cladding',
+  porcelain:   'porcelain wall tiles',
+  marble:      'marble wall panels',
+  gypsum:      'gypsum relief panels',
+  liquidwalls: 'liquid wallpaper',
+  microcement: 'microcement texture',
+  metal:       'metal wall cladding',
+  glass:       'glass wall panels',
+  mosaic:      'mosaic wall tiles',
+  concrete:    'concrete wall texture',
+  stone:       'stone wall cladding',
+  cork:        'cork wall covering',
+}
+
 const FLOOR_EN: Record<string, string> = {
   light_parquet: 'light oak herringbone parquet floor with visible wood grain',
   dark_parquet:  'dark walnut herringbone parquet floor',
@@ -119,8 +136,9 @@ const FLOOR_EN: Record<string, string> = {
   linoleum:      'vinyl linoleum floor covering',
 }
 
+// Tile zone EN templates — {C} = color, {ZONE} = zone restriction label
 const TILE_EN: Record<string, string> = {
-  kitchen_backsplash: '{C} subway tile backsplash on the kitchen wall between counter and upper cabinets',
+  kitchen_backsplash: '{C} subway tile kitchen backsplash',
   kitchen_floor:      '{C} porcelain tile kitchen floor',
   bath_walls:         '{C} ceramic tiles covering all bathroom walls from floor to ceiling',
   bath_floor:         '{C} non-slip ceramic tiles on bathroom floor',
@@ -128,6 +146,11 @@ const TILE_EN: Record<string, string> = {
   toilet_floor:       '{C} ceramic tile toilet room floor',
   shower:             '{C} mosaic tiles in the shower enclosure walls and floor',
   tub_surround:       '{C} ceramic tile panels around the bathtub',
+}
+
+// Is this tile zone a backsplash (needs stricter spatial isolation)?
+const IS_BACKSPLASH: Record<string, boolean> = {
+  kitchen_backsplash: true,
 }
 
 const LIGHT_EN: Record<string, string> = {
@@ -173,6 +196,8 @@ const FURN_EN: Record<string, string> = {
   shower_cabin: 'shower cabin',
 }
 
+// ─── Hex → color name ────────────────────────────────────────────────────────
+
 function hexToColorName(hex: string): string {
   if (!hex || hex.length < 7) return ''
   const r = parseInt(hex.slice(1,3),16)
@@ -182,7 +207,6 @@ function hexToColorName(hex: string): string {
   const max = Math.max(r,g,b), min = Math.min(r,g,b)
   const diff = max - min
 
-  // Achromatic (greys)
   if (diff < 20) {
     if (br > 240) return 'pure white'
     if (br > 200) return 'off-white'
@@ -192,7 +216,6 @@ function hexToColorName(hex: string): string {
     return 'black'
   }
 
-  // Calculate hue
   let h = 0
   if (max === r)      h = 60 * (((g - b) / diff) % 6)
   else if (max === g) h = 60 * ((b - r) / diff + 2)
@@ -200,173 +223,277 @@ function hexToColorName(hex: string): string {
   if (h < 0) h += 360
   const s = diff / max
 
-  // Map hue + brightness + saturation to color name
   if (s < 0.25) {
     if (br > 200) return 'off-white'
     if (br > 120) return 'light grey'
     return 'dark grey'
   }
 
-  // Red-orange-yellow range (0-60)
-  if (h < 10)  return br > 160 ? 'soft pink' : 'deep red'
-  if (h < 40)  return br > 160 ? 'peach' : 'terracotta'
-  if (h < 50)  return br > 160 ? 'golden yellow' : 'amber'
-  if (h < 70)  return br > 180 ? 'yellow' : 'olive'
-
-  // Green range (70-160)
-  if (h < 90)  return br > 160 ? 'lime green' : 'olive green'
-  if (h < 150) return br > 160 ? 'sage green' : 'forest green'
-  if (h < 170) return br > 160 ? 'mint green' : 'emerald green'
-
-  // Teal-Cyan range (170-200)
-  if (h < 200) return br > 160 ? 'turquoise' : 'teal'
-
-  // Blue range (200-260)
-  if (h < 230) return br > 160 ? 'sky blue' : 'royal blue'
+  if (h < 10)  return br > 160 ? 'soft pink'       : 'deep red'
+  if (h < 40)  return br > 160 ? 'peach'           : 'terracotta'
+  if (h < 50)  return br > 160 ? 'golden yellow'   : 'amber'
+  if (h < 70)  return br > 180 ? 'yellow'          : 'olive'
+  if (h < 90)  return br > 160 ? 'lime green'      : 'olive green'
+  if (h < 150) return br > 160 ? 'sage green'      : 'forest green'
+  if (h < 170) return br > 160 ? 'mint green'      : 'emerald green'
+  if (h < 200) return br > 160 ? 'turquoise'       : 'teal'
+  if (h < 230) return br > 160 ? 'sky blue'        : 'royal blue'
   if (h < 260) return br > 140 ? 'cornflower blue' : 'navy blue'
-
-  // Purple-Violet range (260-310)
-  if (h < 290) return br > 140 ? 'lavender' : 'deep purple'
-  if (h < 330) return br > 140 ? 'orchid pink' : 'plum'
-
-  // Pink-Red range (330-360)
+  if (h < 290) return br > 140 ? 'lavender'        : 'deep purple'
+  if (h < 330) return br > 140 ? 'orchid pink'     : 'plum'
   return br > 160 ? 'rose pink' : 'crimson red'
 }
 
+// ─── Main export ─────────────────────────────────────────────────────────────
+
+/**
+ * Builds a strictly zone-isolated prompt for interior image generation.
+ * Returns { positive, negative } so the caller can pass both to the API.
+ *
+ * Usage:
+ *   const { positive, negative } = buildEditPrompt(roomKey, styleKey, details)
+ *   // For backward-compat callers that expect a plain string:
+ *   const prompt = buildEditPrompt(roomKey, styleKey, details) as unknown as string
+ */
 export function buildEditPrompt(
-  roomKey: string,
+  roomKey:  string,
   styleKey: string,
   details?: Partial<RoomDetails>
-): string {
-  const room  = ROOM_NAMES[roomKey] ?? 'interior'
+): { positive: string; negative: string } {
+
+  const room      = ROOM_NAMES[roomKey] ?? 'interior'
   const isMyStyle = styleKey === 'my_style'
-  const tokens: string[] = []
 
-  // 1. Room type
-  tokens.push(room)
+  // ── Preset styles: unchanged behaviour, wrapped in new return shape ────────
+  if (!isMyStyle) {
+    const sk = styleKey || 'minimalist'
+    const positive = [
+      room,
+      STYLE_BASE[sk]         || STYLE_BASE.minimalist,
+      STYLE_WALL_DEFAULT[sk] || '',
+      STYLE_FLOOR_DEFAULT[sk]|| '',
+      'photorealistic', 'hyperrealistic', '8k resolution',
+      'professional interior photography', 'sharp focus',
+      'realistic materials and textures', 'perfect lighting',
+    ].filter(Boolean).join(', ')
 
-  // Determine if user specified custom walls/floor/tile
-  const hasCustomWalls = !!(details?.wallFinish?.length || details?.wallColorHex)
-  const hasCustomFloor = !!(details?.floorMaterial || details?.floorColorHex)
-  const hasCustomTile  = !!(details?.tilezone?.length)
-
-  // ── For "my_style": user parameters are the ONLY source of truth ──
-  // We push strong override instructions first so the model obeys them
-
-  if (isMyStyle) {
-    // 2a. Wall color — explicit override
-    const wallColor = hexToColorName(details?.wallColorHex || '')
-    if (details?.wallFinish?.length) {
-      const f = details.wallFinish.map(k => {
-        const desc = WALL_FINISH_EN[k]
-        if (!desc) return ''
-        return wallColor ? desc.replace('{WC}', wallColor) : desc.replace('{WC} ', '')
-      }).filter(Boolean)
-      if (f.length) {
-        // Strong instruction: ONLY these wall finishes, nothing else
-        tokens.push('IMPORTANT: walls must have ONLY the following finish: ' + f.join('; '))
-        if (wallColor) tokens.push('wall color is strictly ' + wallColor + ', do NOT add any other wall material')
-      }
-    } else if (wallColor) {
-      tokens.push('IMPORTANT: all walls must be painted ' + wallColor + ' only, no brick, no stone, no other texture')
-    } else {
-      // No wall specified — keep walls neutral
-      tokens.push('keep walls neutral and clean')
-    }
-
-    // 2b. Floor — explicit override
-    const floorColor = hexToColorName(details?.floorColorHex || '')
-    if (details?.floorMaterial) {
-      const f = FLOOR_EN[details.floorMaterial]
-      if (f) {
-        const floorDesc = floorColor ? floorColor + ' ' + f : f
-        tokens.push('IMPORTANT: floor must be ' + floorDesc + ' only')
-      }
-    } else if (floorColor) {
-      tokens.push('IMPORTANT: floor color must be ' + floorColor + ' only')
-    }
-
-    // 2c. Tile zones — explicit override, only in specified zones
-    if (hasCustomTile) {
-      const tileColor = hexToColorName(details?.tileColorHex || '')
-      const colorWord = tileColor || 'white'
-      const t = details!.tilezone!.map(k => {
-        const template = TILE_EN[k]
-        if (!template) return ''
-        return template.replace('{C}', colorWord)
-      }).filter(Boolean)
-      if (t.length) {
-        if (tileColor) {
-          // Repeat color name multiple times for strong signal to the model
-          tokens.push(
-            'IMPORTANT: ALL tiles must be ' + tileColor + ' color',
-            'tile color: ' + tileColor,
-            colorWord + ' colored tiles only'
-          )
-        }
-        tokens.push(...t)
-        if (tileColor) {
-          tokens.push(
-            'every tile surface is ' + tileColor,
-            tileColor + ' tile finish, strictly ' + tileColor + ' tiles, no white tiles, no other tile color'
-          )
-        }
-      }
-    }
-
-    // 2d. Furniture
-    if (details?.furniture?.length) {
-      const f = details.furniture.map(k => FURN_EN[k] || k).filter(Boolean)
-      if (f.length) tokens.push('include these furniture items: ' + f.join(', '))
-    }
-
-    // 2e. Lighting
-    if (details?.lighting?.length) {
-      const l = details.lighting.map(k => LIGHT_EN[k]).filter(Boolean)
-      if (l.length) tokens.push(...l)
-    }
-
-    // 2f. Appliances
-    if (details?.appliances?.length) {
-      const a = details.appliances.map(k => APP_EN[k]).filter(Boolean)
-      if (a.length) tokens.push(a.join(', '))
-    }
-
-    // 2g. Style tag — minimal, just quality marker
-    tokens.push('custom interior design, tailored to exact user specifications')
-
-    // 2h. Size / notes
-    if (details?.size)          tokens.push('room size ' + details.size.replace(/[^\x00-\x7F]/g,'').trim())
-    if (details?.ceilingHeight) tokens.push('ceiling height ' + details.ceilingHeight.replace(/[^\x00-\x7F]/g,'').trim())
-    if (details?.extraNotes)    tokens.push(details.extraNotes.replace(/[^\x00-\x7F]/g,'').trim())
-
-  } else {
-    // ── For preset styles: use style defaults, ignore details ──
-
-    // 2. Walls (style default only)
-    // 3. Floor (style default only)
-    // 4. Tile — not used for preset styles
-
-    // 5. Furniture (not used for preset styles)
-    // 6. Lighting (not used for preset styles)
-    // 7. Appliances (not used for preset styles)
-
-    // 8. Style — full preset
-    const styleKey2 = styleKey || 'minimalist'
-    tokens.push(STYLE_BASE[styleKey2] || STYLE_BASE.minimalist)
-    tokens.push(STYLE_WALL_DEFAULT[styleKey2] || '')
-    tokens.push(STYLE_FLOOR_DEFAULT[styleKey2] || '')
+    return { positive, negative: NEGATIVE_PROMPT_BASE }
   }
 
-  // Quality — always last
-  tokens.push(
-    'photorealistic', 'hyperrealistic', '8k resolution',
-    'professional interior photography', 'sharp focus',
-    'realistic materials and textures', 'perfect lighting'
+  // ── my_style: fully structured, zone-isolated prompt ──────────────────────
+
+  const wallColor  = hexToColorName(details?.wallColorHex  || '')
+  const floorColor = hexToColorName(details?.floorColorHex || '')
+  const tileColor  = hexToColorName(details?.tileColorHex  || '')
+
+  // Resolve wall finish descriptions and short names for negative prompt
+  const wallFinishDescs:  string[] = []
+  const wallFinishShorts: string[] = []
+
+  if (details?.wallFinish?.length) {
+    for (const k of details.wallFinish) {
+      const desc  = WALL_FINISH_EN[k]
+      const short = WALL_FINISH_SHORT[k]
+      if (desc) {
+        wallFinishDescs.push(
+          wallColor
+            ? desc.replace('{WC}', wallColor)
+            : desc.replace('{WC} ', '')
+        )
+      }
+      if (short) wallFinishShorts.push(short)
+    }
+  }
+
+  // Resolve tile zones — separate backsplash zones from other tile zones
+  const backsplashDescs: string[] = []
+  const otherTileDescs:  string[] = []
+  const tileColorWord = tileColor || 'white'
+
+  if (details?.tilezone?.length) {
+    for (const k of details.tilezone) {
+      const template = TILE_EN[k]
+      if (!template) continue
+      const desc = template.replace('{C}', tileColorWord)
+      if (IS_BACKSPLASH[k]) backsplashDescs.push(desc)
+      else otherTileDescs.push(desc)
+    }
+  }
+
+  // Resolve furniture, lighting, appliances
+  const furnitureList  = (details?.furniture  ?? []).map(k => FURN_EN[k]  || k).filter(Boolean)
+  const lightingList   = (details?.lighting   ?? []).map(k => LIGHT_EN[k] || '').filter(Boolean)
+  const appliancesList = (details?.appliances ?? []).map(k => APP_EN[k]   || '').filter(Boolean)
+
+  // ── Assemble structured positive prompt ─────────────────────────────────
+
+  const sections: string[] = []
+
+  // [0] Header
+  sections.push(
+    `Professional interior design photography of a ${room}, custom style.`
   )
 
-  return tokens.filter(Boolean).join(', ')
+  // [1] WALLS ZONE
+  if (wallFinishDescs.length) {
+    sections.push(
+      `WALLS ZONE: ${wallFinishDescs.join(' and ')}, ` +
+      `applied ONLY to vertical wall surfaces. ` +
+      `Do NOT apply this wall material to the ceiling. ` +
+      `Do NOT apply this wall material to the floor. ` +
+      `Do NOT apply this wall material to the backsplash area.`
+    )
+  } else if (wallColor) {
+    sections.push(
+      `WALLS ZONE: all vertical wall surfaces painted ${wallColor}. ` +
+      `No other material or texture on the walls. ` +
+      `Ceiling is NOT ${wallColor}.`
+    )
+  } else {
+    sections.push(`WALLS ZONE: clean neutral walls.`)
+  }
+
+  // [2] CEILING ZONE — always explicit to prevent contamination
+  sections.push(
+    `CEILING ZONE: smooth plain white painted ceiling. ` +
+    `Absolutely NO wall material, NO wall texture, NO wall color on the ceiling. ` +
+    `Ceiling must look completely different from the walls.`
+  )
+
+  // [3] FLOOR ZONE
+  if (details?.floorMaterial) {
+    const floorDesc = FLOOR_EN[details.floorMaterial]
+    if (floorDesc) {
+      const full = floorColor ? `${floorColor} ${floorDesc}` : floorDesc
+      sections.push(
+        `FLOOR ZONE: ${full}. ` +
+        `This material covers ONLY the horizontal floor surface, not the walls.`
+      )
+    }
+  } else if (floorColor) {
+    sections.push(
+      `FLOOR ZONE: floor in ${floorColor} color. ` +
+      `Floor surface only — not applied to walls or ceiling.`
+    )
+  }
+
+  // [4] BACKSPLASH ZONE (kitchen only, highly localized)
+  if (backsplashDescs.length) {
+    sections.push(
+      `KITCHEN BACKSPLASH ZONE (localized area only): ` +
+      `${backsplashDescs.join(', ')}, ` +
+      `located EXCLUSIVELY between the countertop and upper cabinets. ` +
+      `This tile color (${tileColorWord}) applies ONLY to this narrow backsplash strip. ` +
+      `Do NOT extend backsplash tiles onto the main walls, ceiling, or floor. ` +
+      `The backsplash is visually distinct and fully isolated from the wall finish.`
+    )
+  }
+
+  // [5] OTHER TILE ZONES
+  if (otherTileDescs.length) {
+    sections.push(
+      `TILE ZONES: ${otherTileDescs.join('; ')}. ` +
+      `Each tile zone is confined strictly to its designated surface.`
+    )
+  }
+
+  // [6] FURNITURE
+  if (furnitureList.length) {
+    sections.push(`FURNITURE: ${furnitureList.join(', ')}.`)
+  }
+
+  // [7] LIGHTING
+  if (lightingList.length) {
+    sections.push(`LIGHTING: ${lightingList.join(', ')}.`)
+  }
+
+  // [8] APPLIANCES
+  if (appliancesList.length) {
+    sections.push(`APPLIANCES: ${appliancesList.join(', ')}.`)
+  }
+
+  // [9] ZONE ISOLATION RULE (repeated at end for emphasis)
+  sections.push(
+    `ZONE ISOLATION RULE: each material and finish is strictly confined to its designated zone. ` +
+    `Wall materials stay on walls only. ` +
+    `Ceiling is white and plain. ` +
+    `Floor material stays on the floor only. ` +
+    `Backsplash tiles stay in the backsplash zone only.`
+  )
+
+  // [10] Optional room dimensions / notes
+  if (details?.size)          sections.push(`Room size: ${details.size.replace(/[^\x00-\x7F]/g,'').trim()}.`)
+  if (details?.ceilingHeight) sections.push(`Ceiling height: ${details.ceilingHeight.replace(/[^\x00-\x7F]/g,'').trim()}.`)
+  if (details?.extraNotes)    sections.push(details.extraNotes.replace(/[^\x00-\x7F]/g,'').trim())
+
+  // [11] Quality tail
+  sections.push(
+    `High-end architectural rendering, realistic textures, sharp details, ` +
+    `8k resolution, professional studio lighting, photorealistic, hyperrealistic.`
+  )
+
+  const positive = sections.join(' ')
+
+  // ── Assemble dynamic negative prompt ────────────────────────────────────
+
+  const negParts: string[] = [...NEGATIVE_PROMPT_BASE_PARTS]
+
+  // Prevent wall material from bleeding into other zones
+  for (const short of wallFinishShorts) {
+    negParts.push(
+      `${short} on ceiling`,
+      `${short} on floor`,
+      `${short} on backsplash`,
+    )
+  }
+
+  // Prevent wall color from appearing on wrong surfaces
+  if (wallColor) {
+    negParts.push(
+      `${wallColor} ceiling`,
+      `${wallColor} floor`,
+    )
+  }
+
+  // Prevent tile/backsplash color from bleeding onto walls/ceiling
+  if (tileColor && backsplashDescs.length) {
+    negParts.push(
+      `${tileColor} walls`,
+      `${tileColor} ceiling`,
+      `${tileColor} floor`,
+      `backsplash tiles on main walls`,
+      `tile pattern on ceiling`,
+    )
+  }
+
+  // Prevent floor material from appearing on walls
+  if (details?.floorMaterial) {
+    const floorShort = details.floorMaterial.replace(/_/g, ' ')
+    negParts.push(
+      `${floorShort} on walls`,
+      `${floorShort} on ceiling`,
+    )
+  }
+
+  const negative = negParts.join(', ')
+
+  return { positive, negative }
 }
 
-export const NEGATIVE_PROMPT =
-  'cartoon, anime, sketch, painting, watercolor, blurry, low quality, distorted, deformed, watermark, text, logo, ugly, window removed, missing window, blocked window, unrealistic, plastic look, oversaturated'
+// ─── Static negative prompt parts ────────────────────────────────────────────
+
+/** Base negative tokens always included regardless of user selections */
+const NEGATIVE_PROMPT_BASE_PARTS: string[] = [
+  'cartoon', 'anime', 'sketch', 'painting', 'watercolor',
+  'blurry', 'low quality', 'distorted', 'deformed',
+  'watermark', 'text', 'logo', 'ugly',
+  'window removed', 'missing window', 'blocked window',
+  'unrealistic', 'plastic look', 'oversaturated',
+  'mixed materials', 'tiling errors', 'inconsistent surfaces',
+  'material bleeding', 'wrong zone materials',
+]
+
+/** Backward-compat static export (for callers that reference NEGATIVE_PROMPT directly) */
+export const NEGATIVE_PROMPT = NEGATIVE_PROMPT_BASE_PARTS.join(', ')
+
+const NEGATIVE_PROMPT_BASE = NEGATIVE_PROMPT
