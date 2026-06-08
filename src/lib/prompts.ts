@@ -85,26 +85,50 @@ export interface RoomDetails {
 
 // ─── English lookup tables ────────────────────────────────────────────────────
 
+// FIX: color placeholder moved AFTER material name.
+// Diffusion models tokenize left-to-right — material name must come first
+// so the model knows WHAT to render before it reads the color.
+// Old: '{WC} decorative wallpaper' → model sees unknown token then 'wallpaper' → uses wallpaper default color
+// New: 'decorative wallpaper, color: {WC}' → model renders wallpaper, then applies specified color
 const WALL_FINISH_EN: Record<string, string> = {
-  paint:       '{WC} smooth painted walls',
-  wallpaper:   '{WC} decorative patterned wallpaper on walls',
-  plaster:     '{WC} Venetian decorative plaster texture on walls',
-  brick:       '{WC} exposed brick walls with clearly visible individual bricks and mortar joints',
-  wood:        '{WC} horizontal wooden plank wall cladding with visible wood grain',
-  porcelain:   '{WC} porcelain stoneware wall tiles',
-  marble:      '{WC} polished marble wall panels with veining',
-  gypsum:      '{WC} 3D decorative gypsum relief wall panels',
-  liquidwalls: '{WC} liquid wallpaper textured wall coating',
-  microcement: '{WC} seamless microcement wall finish',
-  metal:       '{WC} brushed metal wall cladding panels',
-  glass:       '{WC} glass wall panels',
-  mosaic:      '{WC} small mosaic wall tiles',
-  concrete:    '{WC} concrete decorative effect on walls',
-  stone:       '{WC} natural stone wall cladding with visible texture',
-  cork:        '{WC} natural cork tile wall covering',
+  paint:       'smooth painted walls, wall color: {WC}',
+  wallpaper:   'decorative wallpaper on walls, wallpaper color: {WC}',
+  plaster:     'Venetian decorative plaster on walls, plaster color: {WC}',
+  brick:       'exposed brick walls, brick color: {WC}',
+  wood:        'horizontal wooden plank wall cladding, wood color: {WC}',
+  porcelain:   'porcelain stoneware wall tiles, tile color: {WC}',
+  marble:      'polished marble wall panels with veining, marble color: {WC}',
+  gypsum:      '3D decorative gypsum relief wall panels, panel color: {WC}',
+  liquidwalls: 'liquid wallpaper textured wall coating, color: {WC}',
+  microcement: 'seamless microcement wall finish, color: {WC}',
+  metal:       'brushed metal wall cladding panels, metal color: {WC}',
+  glass:       'glass wall panels, glass tint: {WC}',
+  mosaic:      'small mosaic wall tiles, mosaic color: {WC}',
+  concrete:    'concrete decorative wall finish, concrete tone: {WC}',
+  stone:       'natural stone wall cladding, stone color: {WC}',
+  cork:        'natural cork tile wall covering, cork color: {WC}',
 }
 
-// Human-readable short names for negative prompt building
+// Used when no color selected — no placeholder at all
+const WALL_FINISH_EN_NOCOLOR: Record<string, string> = {
+  paint:       'smooth painted walls',
+  wallpaper:   'decorative wallpaper on walls',
+  plaster:     'Venetian decorative plaster on walls',
+  brick:       'exposed brick walls with clearly visible bricks and mortar joints',
+  wood:        'horizontal wooden plank wall cladding with visible wood grain',
+  porcelain:   'porcelain stoneware wall tiles on walls',
+  marble:      'polished marble wall panels with veining',
+  gypsum:      '3D decorative gypsum relief wall panels',
+  liquidwalls: 'liquid wallpaper textured wall coating',
+  microcement: 'seamless microcement wall finish',
+  metal:       'brushed metal wall cladding panels',
+  glass:       'glass wall panels',
+  mosaic:      'small mosaic wall tiles on walls',
+  concrete:    'concrete decorative wall finish',
+  stone:       'natural stone wall cladding with visible texture',
+  cork:        'natural cork tile wall covering',
+}
+
 const WALL_FINISH_SHORT: Record<string, string> = {
   paint:       'painted wall texture',
   wallpaper:   'wallpaper',
@@ -137,7 +161,7 @@ const FLOOR_EN: Record<string, string> = {
 }
 
 const TILE_EN: Record<string, string> = {
-  kitchen_backsplash: '{C} subway tile kitchen backsplash',
+  kitchen_backsplash: '{C} ceramic subway tile backsplash',
   kitchen_floor:      '{C} porcelain tile kitchen floor',
   bath_walls:         '{C} ceramic tiles covering all bathroom walls from floor to ceiling',
   bath_floor:         '{C} non-slip ceramic tiles on bathroom floor',
@@ -194,18 +218,14 @@ const FURN_EN: Record<string, string> = {
   shower_cabin: 'shower cabin',
 }
 
-// ─── Hex → dual description (name + hex code for model accuracy) ─────────────
-// Returns both a human-readable color name AND the raw hex value.
-// Diffusion models (SDXL, Flux) understand hex codes directly and this
-// gives much more precise color matching than names alone.
+// ─── Hex → color name ────────────────────────────────────────────────────────
 
-function hexToColorDescription(hex: string): string {
-  if (!hex || hex.length < 7) return ''
-  const name = hexToColorName(hex)
-  // Return "color-name (hex #XXXXXX)" — model uses whichever signal is stronger
-  return name ? `${name} (hex ${hex.toUpperCase()})` : `hex ${hex.toUpperCase()}`
-}
-
+// FIX: replaced s = diff/max (HSV saturation) with correct HSL saturation formula.
+// HSV formula severely underestimates saturation of pastel colors causing them
+// to fall into the grey zone. Examples with old formula:
+//   green #81C784 → 'light grey'  (should be 'light green')
+//   pink  #F48FB1 → 'off-white'   (should be 'light pink')
+//   mint  #80CBC4 → 'light grey'  (should be 'mint green')
 function hexToColorName(hex: string): string {
   if (!hex || hex.length < 7) return ''
   const r = parseInt(hex.slice(1,3),16)
@@ -215,7 +235,7 @@ function hexToColorName(hex: string): string {
   const max = Math.max(r,g,b), min = Math.min(r,g,b)
   const diff = max - min
 
-  // Truly achromatic — no usable hue
+  // Truly achromatic
   if (diff < 15) {
     if (br > 240) return 'pure white'
     if (br > 200) return 'off-white'
@@ -231,11 +251,11 @@ function hexToColorName(hex: string): string {
   else                h = 60 * ((r - g) / diff + 4)
   if (h < 0) h += 360
 
-  // HSL saturation — correct formula (not diff/max which breaks for pastels)
+  // Correct HSL saturation (not HSV)
   const l = (max + min) / 2 / 255
   const s_hsl = diff / 255 / (1 - Math.abs(2 * l - 1))
 
-  // Near-grey: hue exists but saturation is too low to name
+  // Near-grey: hue present but saturation too low
   if (s_hsl < 0.10) {
     if (br > 220) return 'off-white'
     if (br > 160) return 'light grey'
@@ -243,10 +263,10 @@ function hexToColorName(hex: string): string {
     return 'dark grey'
   }
 
-  // Warm beige: yellowish hue, low-medium saturation, high brightness — name as beige
+  // Warm beige: low-sat warm tone at high brightness
   if (s_hsl < 0.50 && br > 210 && h >= 25 && h <= 55) return 'warm beige'
 
-  // Dark tones: low brightness — saturation decides if we name the hue
+  // Dark tones: low brightness
   if (br < 85) {
     if (s_hsl < 0.25) return br < 50 ? 'black' : 'charcoal grey'
     if (h < 30 || h >= 330) return 'dark brown'
@@ -259,87 +279,25 @@ function hexToColorName(hex: string): string {
 
   const light = br > 160
 
-  if (h < 15)  return light ? 'light salmon'      : 'terracotta'
-  if (h < 30)  return light ? 'peach'             : 'burnt orange'
-  if (h < 50)  return light ? 'golden yellow'     : 'amber'
-  if (h < 65)  return light ? 'pale yellow'       : 'yellow-green'
-  if (h < 80)  return light ? 'olive'             : 'dark olive'
-  if (h < 90)  return light ? 'light yellow-green': 'yellow-green'
-  if (h < 150) return light ? 'light green'       : 'forest green'
-  if (h < 170) return light ? 'mint green'        : 'emerald green'
-  if (h < 200) return light ? 'light cyan'        : 'teal'
-  if (h < 220) return light ? 'light blue'        : 'sky blue'
-  if (h < 250) return light ? 'cornflower blue'   : 'royal blue'
-  if (h < 270) return light ? 'periwinkle'        : 'navy blue'
-  if (h < 295) return light ? 'light lavender'    : 'deep purple'
-  if (h < 330) return light ? 'light pink'        : 'plum'
+  if (h < 15)  return light ? 'light salmon'       : 'terracotta'
+  if (h < 30)  return light ? 'peach'              : 'burnt orange'
+  if (h < 50)  return light ? 'golden yellow'      : 'amber'
+  if (h < 65)  return light ? 'pale yellow'        : 'yellow-green'
+  if (h < 80)  return light ? 'olive'              : 'dark olive'
+  if (h < 90)  return light ? 'light yellow-green' : 'yellow-green'
+  if (h < 150) return light ? 'light green'        : 'forest green'
+  if (h < 170) return light ? 'mint green'         : 'emerald green'
+  if (h < 200) return light ? 'light cyan'         : 'teal'
+  if (h < 220) return light ? 'light blue'         : 'sky blue'
+  if (h < 250) return light ? 'cornflower blue'    : 'royal blue'
+  if (h < 270) return light ? 'periwinkle'         : 'navy blue'
+  if (h < 295) return light ? 'light lavender'     : 'deep purple'
+  if (h < 330) return light ? 'light pink'         : 'plum'
   return light ? 'light rose' : 'crimson'
-}
-
-// ─── Conflict detector ────────────────────────────────────────────────────────
-
-/**
- * Returns a list of human-readable conflict warnings for the given details.
- * Used by the UI to warn users before generating.
- */
-export function detectConflicts(
-  roomKey: string,
-  details: Partial<RoomDetails>
-): string[] {
-  const warnings: string[] = []
-
-  // Brick wall + pastel/light color — model will be confused
-  if (details.wallFinish?.includes('brick') && details.wallColorHex) {
-    const name = hexToColorName(details.wallColorHex)
-    const lightColors = ['pure white','off-white','light grey','soft pink','peach','golden yellow','yellow','lime green','mint green','turquoise','sky blue','lavender','orchid pink','rose pink']
-    if (lightColors.includes(name)) {
-      warnings.push(`Кирпич + ${name}: модель может проигнорировать цвет, так как кирпич уже имеет свой цвет`)
-    }
-  }
-
-  // Marble wall + color — marble has its own veining, color override rarely works
-  if (details.wallFinish?.includes('marble') && details.wallColorHex) {
-    const name = hexToColorName(details.wallColorHex)
-    if (name && !['pure white','off-white','light grey'].includes(name)) {
-      warnings.push(`Мрамор + ${name}: мраморные панели имеют собственный рисунок, цвет может не применяться точно`)
-    }
-  }
-
-  // Backsplash selected but room is not kitchen
-  const kitchenTileZones = ['kitchen_backsplash','kitchen_floor']
-  const bathTileZones = ['bath_walls','bath_floor','shower','tub_surround']
-  const toiletTileZones = ['toilet_walls','toilet_floor']
-
-  if (details.tilezone?.some(z => kitchenTileZones.includes(z)) && roomKey !== 'kitchen') {
-    warnings.push(`Кухонный фартук / пол кухни выбраны, но тип помещения — не кухня`)
-  }
-  if (details.tilezone?.some(z => bathTileZones.includes(z)) && roomKey !== 'bathroom') {
-    warnings.push(`Зоны ванной выбраны, но тип помещения — не ванная`)
-  }
-  if (details.tilezone?.some(z => toiletTileZones.includes(z)) && roomKey !== 'toilet') {
-    warnings.push(`Зоны туалета выбраны, но тип помещения — не туалет`)
-  }
-
-  // Multiple wall finishes — model may blend them unpredictably
-  if ((details.wallFinish?.length ?? 0) > 2) {
-    warnings.push(`Выбрано ${details.wallFinish!.length} видов отделки стен — модель может смешать их непредсказуемо, рекомендуется 1–2`)
-  }
-
-  return warnings
 }
 
 // ─── Main export ─────────────────────────────────────────────────────────────
 
-/**
- * Builds a strictly zone-isolated prompt for interior image generation.
- * Returns { positive, negative } so the caller can pass both to the API.
- *
- * Key improvements:
- * - Colors passed as "name (hex #XXXXXX)" for maximum model accuracy
- * - Backsplash section consolidated from 3 blocks into 1 (reduces token bloat)
- * - Size/ceiling omitted from prompt (they don't affect img2img output)
- * - extraNotes placed right after header for higher attention weight
- */
 export function buildEditPrompt(
   roomKey:  string,
   styleKey: string,
@@ -349,133 +307,135 @@ export function buildEditPrompt(
   const room      = ROOM_NAMES[roomKey] ?? 'interior'
   const isMyStyle = styleKey === 'my_style'
 
-  // ── Preset styles ─────────────────────────────────────────────────────────
   if (!isMyStyle) {
     const sk = styleKey || 'minimalist'
     const positive = [
       room,
-      STYLE_BASE[sk]         || STYLE_BASE.minimalist,
-      STYLE_WALL_DEFAULT[sk] || '',
-      STYLE_FLOOR_DEFAULT[sk]|| '',
+      STYLE_BASE[sk]          || STYLE_BASE.minimalist,
+      STYLE_WALL_DEFAULT[sk]  || '',
+      STYLE_FLOOR_DEFAULT[sk] || '',
       'keep all existing windows and doors in their exact original positions',
-      'preserve all window and door openings exactly as in the original photo',
       'do not add or remove any windows or doors',
       'photorealistic', 'hyperrealistic', '8k resolution',
       'professional interior photography', 'sharp focus',
       'realistic materials and textures', 'perfect lighting',
     ].filter(Boolean).join(', ')
-
     return { positive, negative: NEGATIVE_PROMPT_BASE }
   }
 
-  // ── my_style: fully structured, zone-isolated prompt ──────────────────────
+  // ── my_style ──────────────────────────────────────────────────────────────
 
-  // Use dual description (name + hex) for accurate color rendering
-  const wallColorDesc  = hexToColorDescription(details?.wallColorHex  || '')
-  const floorColorDesc = hexToColorDescription(details?.floorColorHex || '')
-  const tileColorDesc  = hexToColorDescription(details?.tileColorHex  || '')
-
-  // Keep plain name for negative prompt (shorter tokens)
   const wallColorName  = hexToColorName(details?.wallColorHex  || '')
   const floorColorName = hexToColorName(details?.floorColorHex || '')
   const tileColorName  = hexToColorName(details?.tileColorHex  || '')
 
-  // Resolve wall finish descriptions and short names for negative prompt
+  // Hex values — passed separately as additional color signal
+  const wallHex  = details?.wallColorHex  ? details.wallColorHex.toUpperCase()  : ''
+  const floorHex = details?.floorColorHex ? details.floorColorHex.toUpperCase() : ''
+  const tileHex  = details?.tileColorHex  ? details.tileColorHex.toUpperCase()  : ''
+
+  // Combined color description: "light green, hex #81C784"
+  // Comma-separated — no parentheses which confuse the tokenizer
+  const wallColorDesc  = wallColorName  && wallHex  ? `${wallColorName}, hex ${wallHex}`  : wallColorName  || ''
+  const floorColorDesc = floorColorName && floorHex ? `${floorColorName}, hex ${floorHex}` : floorColorName || ''
+  const tileColorDesc  = tileColorName  && tileHex  ? `${tileColorName}, hex ${tileHex}`  : tileColorName  || ''
+
+  // Wall finish descriptions — color comes AFTER material name
   const wallFinishDescs:  string[] = []
   const wallFinishShorts: string[] = []
 
   if (details?.wallFinish?.length) {
     for (const k of details.wallFinish) {
-      const desc  = WALL_FINISH_EN[k]
       const short = WALL_FINISH_SHORT[k]
-      if (desc) {
-        wallFinishDescs.push(
-          wallColorDesc
-            ? desc.replace('{WC}', wallColorDesc)
-            : desc.replace('{WC} ', '')
-        )
+      let desc: string
+      if (wallColorDesc) {
+        const template = WALL_FINISH_EN[k]
+        desc = template ? template.replace('{WC}', wallColorDesc) : ''
+      } else {
+        desc = WALL_FINISH_EN_NOCOLOR[k] || ''
       }
+      if (desc) wallFinishDescs.push(desc)
       if (short) wallFinishShorts.push(short)
     }
   }
 
-  // Resolve tile zones — separate backsplash from other tiles
-  const backsplashDescs: string[] = []
+  // Tile zones
+  const backsplashZones: string[] = []
   const otherTileDescs:  string[] = []
-  const tileColorWord = tileColorDesc || 'white'
-  const tileColorShort = tileColorName || 'white'
+  // Use short color name only for tile templates — cleaner token weight
+  const tileColorForTile = tileColorName || 'white'
 
   if (details?.tilezone?.length) {
     for (const k of details.tilezone) {
       const template = TILE_EN[k]
       if (!template) continue
-      const desc = template.replace('{C}', tileColorWord)
-      if (IS_BACKSPLASH[k]) backsplashDescs.push(desc)
+      const desc = template.replace('{C}', tileColorForTile)
+      if (IS_BACKSPLASH[k]) backsplashZones.push(desc)
       else otherTileDescs.push(desc)
     }
   }
 
-  // Resolve furniture, lighting, appliances
   const furnitureList  = (details?.furniture  ?? []).map(k => FURN_EN[k]  || k).filter(Boolean)
   const lightingList   = (details?.lighting   ?? []).map(k => LIGHT_EN[k] || '').filter(Boolean)
   const appliancesList = (details?.appliances ?? []).map(k => APP_EN[k]   || '').filter(Boolean)
 
-  // ── Assemble structured positive prompt ─────────────────────────────────
+  // ── Assemble prompt ───────────────────────────────────────────────────────
 
   const sections: string[] = []
 
   // [0] Header
   sections.push(`Professional interior design photography of a ${room}, custom style.`)
 
-  // [0b] User notes — placed early for high attention weight
-  // (extraNotes are most important to honor, so they come before zone instructions)
-  if (details?.extraNotes) {
-    sections.push(
-      `DESIGN INTENT: ${details.extraNotes.replace(/[^\x00-\x7F]/g,'').trim()}.`
-    )
-  }
-
-  // [0c] STRUCTURAL PRESERVATION
+  // [0b] Structural preservation
   sections.push(
-    `FIXED STRUCTURE: preserve ALL existing windows and doors exactly as in the original photo — ` +
+    `FIXED STRUCTURE: preserve ALL existing windows and doors exactly as in original photo — ` +
     `same position, size and shape. Do not add, remove, block or move any windows or doors.`
   )
 
-  // [1] WALLS ZONE
+  // [1] WALLS
   if (wallFinishDescs.length) {
     sections.push(
       `WALLS: ${wallFinishDescs.join(' and ')}, ` +
-      `on vertical wall surfaces only. Not on ceiling, not on floor, not on backsplash.`
+      `applied to vertical wall surfaces only. Not on ceiling. Not on floor. Not on backsplash.`
     )
   } else if (wallColorDesc) {
     sections.push(
-      `WALLS: all vertical wall surfaces painted ${wallColorDesc}. ` +
-      `Ceiling is NOT this color.`
+      `WALLS: all vertical wall surfaces painted ${wallColorDesc}. Ceiling is NOT this color.`
     )
   } else {
     sections.push(`WALLS: clean neutral walls.`)
   }
 
-  // [2] CEILING ZONE
-  sections.push(`CEILING: smooth plain white painted ceiling, no wall material on ceiling.`)
+  // [2] CEILING
+  sections.push(
+    `CEILING: smooth plain white painted ceiling. ` +
+    `No wall material, no wall color, no texture on the ceiling.`
+  )
 
-  // [3] FLOOR ZONE
+  // [3] FLOOR
   if (details?.floorMaterial) {
     const floorDesc = FLOOR_EN[details.floorMaterial]
     if (floorDesc) {
       const full = floorColorDesc ? `${floorColorDesc} ${floorDesc}` : floorDesc
-      sections.push(`FLOOR: ${full}. Covers only the horizontal floor surface.`)
+      sections.push(`FLOOR: ${full}. Floor surface only, not on walls.`)
     }
   } else if (floorColorDesc) {
-    sections.push(`FLOOR: floor surface in ${floorColorDesc} color.`)
+    sections.push(`FLOOR: floor surface in ${floorColorDesc}.`)
   }
 
-  // [4] BACKSPLASH ZONE — consolidated single instruction (was 3 redundant blocks)
-  if (backsplashDescs.length) {
+  // [4] BACKSPLASH — FIX: explicit color repeated 3x, hex included, "visible" enforced
+  if (backsplashZones.length) {
+    const bsName = tileColorForTile
+    const bsHex  = tileHex ? `, hex ${tileHex}` : ''
+
     sections.push(
-      `KITCHEN BACKSPLASH: the strip between countertop and upper cabinets is covered with ` +
-      `${tileColorWord} subway tiles. This zone is mandatory and overrides the wall finish. ` +
-      `Backsplash tiles stay ONLY in this strip — not on main walls, not on ceiling, not on floor.`
+      `KITCHEN BACKSPLASH ZONE: there MUST be a clearly visible backsplash tile strip ` +
+      `between the kitchen countertop and upper cabinets. ` +
+      `This strip is covered with ${bsName}${bsHex} ceramic subway tiles. ` +
+      `The backsplash tile color is ${bsName}${bsHex}. ` +
+      `The backsplash is ${bsName} and is clearly visible and distinct from the wall color. ` +
+      `The wall finish does NOT continue into the backsplash zone — tiles override the wall here. ` +
+      `Backsplash tiles exist ONLY in this strip between countertop and cabinets.`
     )
   }
 
@@ -503,11 +463,14 @@ export function buildEditPrompt(
 
   // [9] ZONE ISOLATION RULE
   sections.push(
-    `ZONE RULE: wall finish on walls only, floor material on floor only, ceiling stays white. ` +
-    `Windows and doors unchanged from original photo.`
+    `ZONE RULE: wall finish on walls only. Ceiling plain white. Floor material on floor only. ` +
+    `Backsplash tiles only in backsplash strip. Windows and doors unchanged.`
   )
 
-  // [10] Quality tail
+  // [10] Notes
+  if (details?.extraNotes) sections.push(details.extraNotes.replace(/[^\x00-\x7F]/g,'').trim())
+
+  // [11] Quality
   sections.push(
     `High-end architectural rendering, realistic textures, sharp details, ` +
     `8k resolution, professional studio lighting, photorealistic, hyperrealistic.`
@@ -515,52 +478,40 @@ export function buildEditPrompt(
 
   const positive = sections.join(' ')
 
-  // ── Assemble dynamic negative prompt ────────────────────────────────────
+  // ── Negative prompt ───────────────────────────────────────────────────────
 
   const negParts: string[] = [...NEGATIVE_PROMPT_BASE_PARTS]
 
-  // Prevent wall material from bleeding into other zones
   for (const short of wallFinishShorts) {
-    negParts.push(
-      `${short} on ceiling`,
-      `${short} on floor`,
-      `${short} on backsplash`,
-    )
+    negParts.push(`${short} on ceiling`, `${short} on floor`, `${short} on backsplash`)
   }
 
-  // Prevent wall color from appearing on wrong surfaces
   if (wallColorName) {
-    negParts.push(
-      `${wallColorName} ceiling`,
-      `${wallColorName} floor`,
-    )
+    negParts.push(`${wallColorName} ceiling`, `${wallColorName} floor`)
   }
 
-  // Backsplash negative tokens (consolidated)
-  if (backsplashDescs.length) {
+  if (backsplashZones.length) {
     for (const short of wallFinishShorts) {
-      negParts.push(`${short} in backsplash area`)
+      negParts.push(`${short} in backsplash area`, `${short} between countertop and cabinets`)
     }
     negParts.push(
       `no backsplash`,
       `missing backsplash`,
-      `backsplash same as wall`,
+      `invisible backsplash`,
+      `backsplash same color as wall`,
+      `wall covering entire kitchen wall with no backsplash`,
     )
-    if (tileColorShort) {
-      negParts.push(
-        `${tileColorShort} on main walls`,
-        `${tileColorShort} on ceiling`,
-      )
+    if (wallColorName) {
+      negParts.push(`${wallColorName} backsplash`, `${wallColorName} tiles`)
+    }
+    if (tileColorName) {
+      negParts.push(`${tileColorName} walls`, `${tileColorName} ceiling`, `${tileColorName} floor`)
     }
   }
 
-  // Prevent floor material from appearing on walls
   if (details?.floorMaterial) {
     const floorShort = details.floorMaterial.replace(/_/g, ' ')
-    negParts.push(
-      `${floorShort} on walls`,
-      `${floorShort} on ceiling`,
-    )
+    negParts.push(`${floorShort} on walls`, `${floorShort} on ceiling`)
   }
 
   const negative = negParts.join(', ')
@@ -575,17 +526,12 @@ const NEGATIVE_PROMPT_BASE_PARTS: string[] = [
   'blurry', 'low quality', 'distorted', 'deformed',
   'watermark', 'text', 'logo', 'ugly',
   'window removed', 'missing window', 'blocked window', 'covered window',
-  'bricked up window', 'wall where window was', 'window replaced by wall',
-  'door removed', 'missing door', 'blocked door', 'door replaced by wall',
-  'wall where door was', 'door opening closed',
-  'changed window position', 'moved window', 'changed door position',
-  'new window', 'extra window', 'added window', 'added door',
-  'structural changes', 'architectural changes', 'layout change',
+  'door removed', 'missing door', 'blocked door',
+  'wall where window was', 'structural changes',
   'unrealistic', 'plastic look', 'oversaturated',
   'mixed materials', 'tiling errors', 'inconsistent surfaces',
   'material bleeding', 'wrong zone materials',
 ]
 
 export const NEGATIVE_PROMPT = NEGATIVE_PROMPT_BASE_PARTS.join(', ')
-
 const NEGATIVE_PROMPT_BASE = NEGATIVE_PROMPT
