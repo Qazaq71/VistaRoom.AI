@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Replicate from 'replicate'
 import sharp from 'sharp'
 import { getRateLimit } from '@/lib/rateLimit'
-import { buildEditPrompt, NEGATIVE_PROMPT, RoomDetails } from '@/lib/prompts'
+import { buildEditPrompt, RoomDetails } from '@/lib/prompts'
 
 const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! })
 
@@ -65,22 +65,17 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer)
     const dataUri = await compressImage(buffer)
 
-    const rawPrompt = buildEditPrompt(room, style, details)
-    const prompt = toAscii(rawPrompt)
-    const negPrompt = toAscii(NEGATIVE_PROMPT)
+    // ✅ FIX: buildEditPrompt now returns { positive, negative }
+    const { positive, negative } = buildEditPrompt(room, style, details)
+    const prompt       = toAscii(positive)
+    const finalNegPrompt = toAscii(negative)
 
     const clampedStrength = Math.min(0.95, Math.max(0.5, strength))
 
     // For my_style — increase guidance and steps to force strict adherence to user params
     const isMyStyle = style === 'my_style'
-    const guidanceScale = isMyStyle ? 20 : 15
-    const inferenceSteps = isMyStyle ? 60 : 50
-
-    // For my_style — build a focused negative prompt that prevents ignoring user choices
-    const myStyleNegExtra = isMyStyle
-      ? 'white tiles, beige tiles, grey tiles, missing tiles, no backsplash, wrong tile color, wrong wall color, wrong floor material, '
-      : ''
-    const finalNegPrompt = toAscii(myStyleNegExtra + NEGATIVE_PROMPT)
+    const guidanceScale    = isMyStyle ? 20 : 15
+    const inferenceSteps   = isMyStyle ? 60 : 50
 
     const prediction = await replicate.predictions.create({
       version: INTERIOR_MODEL,
