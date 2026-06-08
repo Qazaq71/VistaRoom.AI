@@ -12,7 +12,9 @@ export const ROOM_NAMES: Record<string, string> = {
 }
 
 // Style split: base = atmosphere/furniture (always), walls/floor = only if user didn't specify
+// my_style = fully custom, no preset atmosphere — all details come from user input
 export const STYLE_BASE: Record<string, string> = {
+  my_style:      'custom interior design style, tailored to user specifications',
   minimalist:    'minimalist style, simple clean-line furniture, neutral palette, uncluttered, calm atmosphere',
   loft:          'industrial loft style, black metal frames, Edison bulb pendant lights, raw industrial furniture',
   scandinavian:  'Scandinavian hygge style, light birch furniture, wool textiles, warm cozy atmosphere',
@@ -25,6 +27,7 @@ export const STYLE_BASE: Record<string, string> = {
 }
 
 export const STYLE_WALL_DEFAULT: Record<string, string> = {
+  my_style:      '',
   minimalist:    'plain white walls',
   loft:          'exposed red brick walls',
   scandinavian:  'white painted walls',
@@ -37,6 +40,7 @@ export const STYLE_WALL_DEFAULT: Record<string, string> = {
 }
 
 export const STYLE_FLOOR_DEFAULT: Record<string, string> = {
+  my_style:      '',
   minimalist:    'light wood floor',
   loft:          'polished concrete floor',
   scandinavian:  'light pine floor',

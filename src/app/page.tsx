@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react'
 
 // Style display data — only used in frontend, never sent to server
 const STYLE_DISPLAY: Record<string, { label: string; emoji: string }> = {
+  my_style:      { label: 'Мой стиль',       emoji: '🎨' },
   minimalist:    { label: 'Минимализм',      emoji: '🤍' },
   loft:          { label: 'Лофт',            emoji: '🏭' },
   scandinavian:  { label: 'Скандинавский',   emoji: '🌿' },
@@ -273,6 +274,9 @@ export default function Home() {
   const [style, setStyle]             = useState('minimalist')
   const [strength, setStrength]       = useState(70)
 
+  // "Мой стиль" — детализация всегда открыта при выборе этого стиля
+  const isMyStyle = style === 'my_style'
+
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [roomSize, setRoomSize]       = useState('')
   const [ceilingHeight, setCeilingHeight] = useState('')
@@ -358,24 +362,27 @@ export default function Home() {
     if (pollRef.current) clearInterval(pollRef.current)
     setStatus('uploading'); setStatusMsg('Отправляю изображение...'); setOutputUrl(null)
 
+    // Для "Мой стиль" передаём детализацию, для остальных — только стиль
+    const sendDetails = isMyStyle
+
     const form = new FormData()
     form.append('image',        imageFile)
     form.append('room',         room)
-    form.append('style',        style)
+    form.append('style',        isMyStyle ? 'my_style' : style)
     form.append('strength',    String(strength / 100))
-    form.append('size',         roomSize)
-    form.append('ceilingHeight',ceilingHeight)
-    form.append('wallColor',    wallPreset ? 'custom' : '')
-    form.append('wallColorHex', wallColorHex)
-    form.append('wallFinish',   JSON.stringify(wallFinish))
-    form.append('floorMaterial',floorMaterial)
-    form.append('floorColorHex',floorColorHex)
-    form.append('tilezone',     JSON.stringify(tilezone))
-    form.append('tileColorHex',tileColorHex)
-    form.append('furniture',    JSON.stringify(furniture))
-    form.append('lighting',     JSON.stringify(lighting))
-    form.append('appliances',   JSON.stringify(appliances))
-    form.append('extraNotes',   extraNotes)
+    form.append('size',         sendDetails ? roomSize : '')
+    form.append('ceilingHeight',sendDetails ? ceilingHeight : '')
+    form.append('wallColor',    sendDetails && wallPreset ? 'custom' : '')
+    form.append('wallColorHex', sendDetails ? wallColorHex : '')
+    form.append('wallFinish',   sendDetails ? JSON.stringify(wallFinish) : '[]')
+    form.append('floorMaterial',sendDetails ? floorMaterial : '')
+    form.append('floorColorHex',sendDetails ? floorColorHex : '')
+    form.append('tilezone',     sendDetails ? JSON.stringify(tilezone) : '[]')
+    form.append('tileColorHex', sendDetails ? tileColorHex : '')
+    form.append('furniture',    sendDetails ? JSON.stringify(furniture) : '[]')
+    form.append('lighting',     sendDetails ? JSON.stringify(lighting) : '[]')
+    form.append('appliances',   sendDetails ? JSON.stringify(appliances) : '[]')
+    form.append('extraNotes',   sendDetails ? extraNotes : '')
 
     try {
       const res  = await fetch('/api/generate', { method: 'POST', body: form })
@@ -386,7 +393,7 @@ export default function Home() {
       setStatus('processing'); setStatusMsg('Генерирую дизайн...')
       pollPrediction(data.predictionId)
     } catch { setStatus('error'); setStatusMsg('Нет соединения с сервером.') }
-  }, [imageFile, room, style, strength, roomSize, ceilingHeight, wallPreset, wallColorHex, wallFinish, floorMaterial, floorColorHex, tilezone, tileColorHex, furniture, lighting, appliances, extraNotes, pollPrediction])
+  }, [imageFile, room, style, isMyStyle, strength, roomSize, ceilingHeight, wallPreset, wallColorHex, wallFinish, floorMaterial, floorColorHex, tilezone, tileColorHex, furniture, lighting, appliances, extraNotes, pollPrediction])
 
   const download = async () => {
     if (!outputUrl) return
@@ -399,6 +406,9 @@ export default function Home() {
 
   const isLoading = status === 'uploading' || status === 'processing'
   const showTileZone = TILE_ROOMS.includes(room)
+
+  // Детализация показывается: для "Мой стиль" — всегда, для остальных — по кнопке
+  const showDetailsPanel = isMyStyle || detailsOpen
 
   return (
     <>
@@ -414,7 +424,7 @@ export default function Home() {
           <p className="hero-desc">Загрузите фото, опишите параметры комнаты и получите гиперреалистичный дизайн в любом стиле. Без дизайнера, без согласований.</p>
           <a href="#generate" className="btn-primary">Попробовать бесплатно</a>
           <div className="hero-stats">
-            <div><div className="stat-num">9</div><div className="stat-label">Стилей дизайна</div></div>
+            <div><div className="stat-num">10</div><div className="stat-label">Стилей дизайна</div></div>
             <div><div className="stat-num">8K</div><div className="stat-label">Разрешение</div></div>
             <div><div className="stat-num">30 сек</div><div className="stat-label">Генерация</div></div>
           </div>
@@ -474,8 +484,13 @@ export default function Home() {
             <div className="field-label">Стиль</div>
             <div className="style-grid">
               {Object.entries(STYLE_DISPLAY).map(([k, s]) => (
-                <button key={k} className={`style-chip${style === k ? ' active' : ''}`} onClick={() => setStyle(k)}>
+                <button
+                  key={k}
+                  className={`style-chip${style === k ? ' active' : ''}${k === 'my_style' ? ' my-style-chip' : ''}`}
+                  onClick={() => setStyle(k)}
+                >
                   <span className="em">{s.emoji}</span>{s.label}
+                  {k === 'my_style' && <span className="my-style-badge">Свои параметры</span>}
                 </button>
               ))}
             </div>
@@ -495,15 +510,18 @@ export default function Home() {
           </div>
 
           {/* ── DETAILS ── */}
-          <div className="details-block">
-            <button className="details-toggle" onClick={() => setDetailsOpen(o => !o)}>
-              <span>Детализация комнаты</span>
-              {hasDetails && <span className="details-badge">заполнено</span>}
-              <span className="details-arrow" style={{ transform: detailsOpen ? 'rotate(180deg)' : 'none' }}>▾</span>
-            </button>
-            <div className="details-hint">Опционально — для максимально точного и реалистичного результата</div>
+          {/* Для "Мой стиль" — детализация всегда открыта и обязательна */}
+          {/* Для остальных стилей — опциональная детализация по кнопке */}
+          {isMyStyle ? (
+            <div className="details-block my-style-details">
+              <div className="my-style-header">
+                <span className="my-style-header-icon">🎨</span>
+                <div>
+                  <div className="my-style-header-title">Мой стиль — настройте всё сами</div>
+                  <div className="my-style-header-sub">Укажите параметры, и ИИ создаст дизайн точно под ваши предпочтения</div>
+                </div>
+              </div>
 
-            {detailsOpen && (
               <div className="details-body">
 
                 {/* Size + Ceiling */}
@@ -633,8 +651,150 @@ export default function Home() {
                   </div>
                 )}
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            /* Для остальных стилей — опциональная детализация */
+            <div className="details-block">
+              <button className="details-toggle" onClick={() => setDetailsOpen(o => !o)}>
+                <span>Детализация комнаты</span>
+                {hasDetails && <span className="details-badge">заполнено</span>}
+                <span className="details-arrow" style={{ transform: detailsOpen ? 'rotate(180deg)' : 'none' }}>▾</span>
+              </button>
+              <div className="details-hint">Опционально — для максимально точного и реалистичного результата</div>
+
+              {detailsOpen && (
+                <div className="details-body">
+
+                  {/* Size + Ceiling */}
+                  <div className="details-row">
+                    <div className="details-field">
+                      <label className="field-label">Площадь</label>
+                      <input className="detail-input" placeholder="20 м²" value={roomSize} onChange={e => setRoomSize(e.target.value)} />
+                    </div>
+                    <div className="details-field">
+                      <label className="field-label">Высота потолка</label>
+                      <input className="detail-input" placeholder="2.8 м" value={ceilingHeight} onChange={e => setCeilingHeight(e.target.value)} />
+                    </div>
+                  </div>
+
+                  {/* Wall color */}
+                  <ColorPicker
+                    label="Цвет стен"
+                    presets={WALL_COLORS_PRESET}
+                    customColor={wallCustom}
+                    onCustomChange={v => { setWallCustom(v); setWallPreset('') }}
+                    selectedPreset={wallPreset}
+                    onPresetClick={hex => { setWallPreset(hex); setWallCustom('') }}
+                  />
+
+                  {/* Wall finish */}
+                  <div>
+                    <label className="field-label">Вид отделки стен</label>
+                    <div className="detail-chips" style={{ marginTop: 6 }}>
+                      {WALL_FINISHES.map(f => (
+                        <button key={f.key} className={`dchip${wallFinish.includes(f.key) ? ' on' : ''}`}
+                          onClick={() => toggleArr(wallFinish, setWallFinish, f.key)}>{f.label}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Floor material */}
+                  <div>
+                    <label className="field-label">Материал пола</label>
+                    <div className="detail-chips" style={{ marginTop: 6 }}>
+                      {FLOOR_MATERIALS.map(f => (
+                        <button key={f.key} className={`dchip${floorMaterial === f.key ? ' on' : ''}`}
+                          onClick={() => setFloorMaterial(floorMaterial === f.key ? '' : f.key)}>{f.label}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Floor color */}
+                  <ColorPicker
+                    label="Цвет пола"
+                    presets={FLOOR_COLORS_PRESET}
+                    customColor={floorCustom}
+                    onCustomChange={v => { setFloorCustom(v); setFloorPreset('') }}
+                    selectedPreset={floorPreset}
+                    onPresetClick={hex => { setFloorPreset(hex); setFloorCustom('') }}
+                  />
+
+                  {/* Tile zones — only for kitchen/bathroom/toilet */}
+                  {showTileZone && (
+                    <div>
+                      <label className="field-label">Зоны кафеля / мрамора / керамогранита</label>
+                      <div className="detail-chips" style={{ marginTop: 6 }}>
+                        {TILE_ZONES.map(z => (
+                          <button key={z.key} className={`dchip${tilezone.includes(z.key) ? ' on' : ''}`}
+                            onClick={() => toggleArr(tilezone, setTilezone, z.key)}>{z.label}</button>
+                        ))}
+                      </div>
+
+                      <div style={{ marginTop: 12 }}>
+                        <ColorPicker
+                          label="Цвет кафеля"
+                          presets={TILE_COLORS_PRESET}
+                          customColor={tileCustom}
+                          onCustomChange={v => { setTileCustom(v); setTilePreset('') }}
+                          selectedPreset={tilePreset}
+                          onPresetClick={hex => { setTilePreset(hex); setTileCustom('') }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Furniture */}
+                  <div>
+                    <label className="field-label">Мебель</label>
+                    <div className="detail-chips" style={{ marginTop: 6 }}>
+                      {FURNITURE_OPTIONS.map(f => (
+                        <button key={f.key} className={`dchip${furniture.includes(f.key) ? ' on' : ''}`}
+                          onClick={() => toggleArr(furniture, setFurniture, f.key)}>{f.label}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Lighting */}
+                  <div>
+                    <label className="field-label">Освещение</label>
+                    <div className="detail-chips" style={{ marginTop: 6 }}>
+                      {LIGHTING_OPTIONS.map(l => (
+                        <button key={l.key} className={`dchip${lighting.includes(l.key) ? ' on' : ''}`}
+                          onClick={() => toggleArr(lighting, setLighting, l.key)}>{l.label}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Appliances */}
+                  <div>
+                    <label className="field-label">Бытовая техника</label>
+                    <div className="detail-chips" style={{ marginTop: 6 }}>
+                      {APPLIANCE_OPTIONS.map(a => (
+                        <button key={a.key} className={`dchip${appliances.includes(a.key) ? ' on' : ''}`}
+                          onClick={() => toggleArr(appliances, setAppliances, a.key)}>{a.label}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Extra notes */}
+                  <div>
+                    <label className="field-label">Дополнительные пожелания</label>
+                    <textarea className="detail-textarea"
+                      placeholder="Например: рабочее место у окна, много света, место для растений..."
+                      value={extraNotes} onChange={e => setExtraNotes(e.target.value)} rows={3} />
+                  </div>
+
+                  {/* Prompt preview */}
+                  {promptPreview && (
+                    <div className="prompt-preview">
+                      <div className="field-label" style={{ marginBottom: 4 }}>Промпт для генерации</div>
+                      <div className="prompt-text">{promptPreview}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {status === 'error' && <div className="status-box error show">{statusMsg}</div>}
           {isLoading && (
@@ -674,7 +834,7 @@ export default function Home() {
         <h2 className="section-title">Прозрачные цены без сюрпризов</h2>
         <div className="pricing-grid">
           {[
-            { name: 'Старт',     price: '$19', period: 'в месяц', features: ['20 генераций', 'Все 9 стилей', 'HD качество', 'Коммерческое использование'], featured: false },
+            { name: 'Старт',     price: '$19', period: 'в месяц', features: ['20 генераций', 'Все 10 стилей', 'HD качество', 'Коммерческое использование'], featured: false },
             { name: 'Профи',     price: '$49', period: 'в месяц', features: ['100 генераций', 'Полная детализация', '8K качество', 'Цветовая палитра', 'Поддержка 24/7'], featured: true },
             { name: 'Агентство', price: '$149',period: 'в месяц', features: ['Безлимит', 'API доступ', 'White-label', '5 рабочих мест', 'Персональный менеджер'], featured: false },
           ].map(plan => (

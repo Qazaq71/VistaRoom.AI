@@ -685,3 +685,59 @@ footer {
 }
 .ba-label-before { left: 12px; }
 .ba-label-after { right: 12px; }
+
+/* ── "Мой стиль" — специальная кнопка стиля ── */
+.my-style-chip {
+  border-color: var(--warm) !important;
+  position: relative;
+}
+.my-style-chip.active {
+  background: linear-gradient(135deg, var(--warm) 0%, var(--warm-d) 100%) !important;
+  border-color: var(--warm-d) !important;
+}
+.my-style-badge {
+  display: block;
+  font-size: 8px;
+  color: var(--warm);
+  margin-top: 2px;
+  letter-spacing: 0.03em;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+.my-style-chip.active .my-style-badge {
+  color: rgba(255,255,255,0.75);
+}
+
+/* ── Блок детализации для "Мой стиль" ── */
+.my-style-details {
+  border-color: var(--warm) !important;
+  border-width: 1px !important;
+}
+
+.my-style-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, var(--warm-light) 0%, #f7f0e4 100%);
+  border-bottom: 0.5px solid rgba(200,169,110,0.3);
+}
+
+.my-style-header-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.my-style-header-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 3px;
+}
+
+.my-style-header-sub {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
