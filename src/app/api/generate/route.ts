@@ -71,19 +71,25 @@ export async function POST(req: NextRequest) {
 
     const clampedStrength = Math.min(0.95, Math.max(0.5, strength))
 
-    // For my_style with tile color — increase guidance to force color adherence
+    // For my_style — increase guidance and steps to force strict adherence to user params
     const isMyStyle = style === 'my_style'
-    const hasTileColor = !!(details.tilezone?.length && details.tileColorHex)
-    const guidanceScale = (isMyStyle && hasTileColor) ? 18 : 15
+    const guidanceScale = isMyStyle ? 20 : 15
+    const inferenceSteps = isMyStyle ? 60 : 50
+
+    // For my_style — build a focused negative prompt that prevents ignoring user choices
+    const myStyleNegExtra = isMyStyle
+      ? 'white tiles, beige tiles, grey tiles, missing tiles, no backsplash, wrong tile color, wrong wall color, wrong floor material, '
+      : ''
+    const finalNegPrompt = toAscii(myStyleNegExtra + NEGATIVE_PROMPT)
 
     const prediction = await replicate.predictions.create({
       version: INTERIOR_MODEL,
       input: {
         image:               dataUri,
         prompt:              prompt,
-        negative_prompt:     negPrompt,
+        negative_prompt:     finalNegPrompt,
         guidance_scale:      guidanceScale,
-        num_inference_steps: 50,
+        num_inference_steps: inferenceSteps,
         strength:            clampedStrength,
       },
     })
