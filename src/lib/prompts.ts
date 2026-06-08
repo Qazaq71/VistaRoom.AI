@@ -215,7 +215,8 @@ function hexToColorName(hex: string): string {
   const max = Math.max(r,g,b), min = Math.min(r,g,b)
   const diff = max - min
 
-  if (diff < 20) {
+  // Truly achromatic — no usable hue
+  if (diff < 15) {
     if (br > 240) return 'pure white'
     if (br > 200) return 'off-white'
     if (br > 160) return 'light grey'
@@ -229,27 +230,50 @@ function hexToColorName(hex: string): string {
   else if (max === g) h = 60 * ((b - r) / diff + 2)
   else                h = 60 * ((r - g) / diff + 4)
   if (h < 0) h += 360
-  const s = diff / max
 
-  if (s < 0.25) {
-    if (br > 200) return 'off-white'
-    if (br > 120) return 'light grey'
+  // HSL saturation — correct formula (not diff/max which breaks for pastels)
+  const l = (max + min) / 2 / 255
+  const s_hsl = diff / 255 / (1 - Math.abs(2 * l - 1))
+
+  // Near-grey: hue exists but saturation is too low to name
+  if (s_hsl < 0.10) {
+    if (br > 220) return 'off-white'
+    if (br > 160) return 'light grey'
+    if (br > 80)  return 'medium grey'
     return 'dark grey'
   }
 
-  if (h < 10)  return br > 160 ? 'soft pink'       : 'deep red'
-  if (h < 40)  return br > 160 ? 'peach'           : 'terracotta'
-  if (h < 50)  return br > 160 ? 'golden yellow'   : 'amber'
-  if (h < 70)  return br > 180 ? 'yellow'          : 'olive'
-  if (h < 90)  return br > 160 ? 'lime green'      : 'olive green'
-  if (h < 150) return br > 160 ? 'sage green'      : 'forest green'
-  if (h < 170) return br > 160 ? 'mint green'      : 'emerald green'
-  if (h < 200) return br > 160 ? 'turquoise'       : 'teal'
-  if (h < 230) return br > 160 ? 'sky blue'        : 'royal blue'
-  if (h < 260) return br > 140 ? 'cornflower blue' : 'navy blue'
-  if (h < 290) return br > 140 ? 'lavender'        : 'deep purple'
-  if (h < 330) return br > 140 ? 'orchid pink'     : 'plum'
-  return br > 160 ? 'rose pink' : 'crimson red'
+  // Warm beige: yellowish hue, low-medium saturation, high brightness — name as beige
+  if (s_hsl < 0.50 && br > 210 && h >= 25 && h <= 55) return 'warm beige'
+
+  // Dark tones: low brightness — saturation decides if we name the hue
+  if (br < 85) {
+    if (s_hsl < 0.25) return br < 50 ? 'black' : 'charcoal grey'
+    if (h < 30 || h >= 330) return 'dark brown'
+    if (h < 70)             return 'dark olive'
+    if (h < 170)            return 'dark green'
+    if (h < 265)            return 'dark blue'
+    if (h < 295)            return 'dark indigo'
+    return 'dark purple'
+  }
+
+  const light = br > 160
+
+  if (h < 15)  return light ? 'light salmon'      : 'terracotta'
+  if (h < 30)  return light ? 'peach'             : 'burnt orange'
+  if (h < 50)  return light ? 'golden yellow'     : 'amber'
+  if (h < 65)  return light ? 'pale yellow'       : 'yellow-green'
+  if (h < 80)  return light ? 'olive'             : 'dark olive'
+  if (h < 90)  return light ? 'light yellow-green': 'yellow-green'
+  if (h < 150) return light ? 'light green'       : 'forest green'
+  if (h < 170) return light ? 'mint green'        : 'emerald green'
+  if (h < 200) return light ? 'light cyan'        : 'teal'
+  if (h < 220) return light ? 'light blue'        : 'sky blue'
+  if (h < 250) return light ? 'cornflower blue'   : 'royal blue'
+  if (h < 270) return light ? 'periwinkle'        : 'navy blue'
+  if (h < 295) return light ? 'light lavender'    : 'deep purple'
+  if (h < 330) return light ? 'light pink'        : 'plum'
+  return light ? 'light rose' : 'crimson'
 }
 
 // ─── Conflict detector ────────────────────────────────────────────────────────
