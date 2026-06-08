@@ -296,6 +296,43 @@ function hexToColorName(hex: string): string {
   return light ? 'light rose' : 'crimson'
 }
 
+// ─── Conflict detector ────────────────────────────────────────────────────────
+
+export function detectConflicts(
+  roomKey: string,
+  details: Partial<RoomDetails>
+): string[] {
+  const warnings: string[] = []
+
+  if (details.wallFinish?.includes('brick') && details.wallColorHex) {
+    const name = hexToColorName(details.wallColorHex)
+    const lightColors = ['pure white','off-white','light grey','pale yellow','light green','light blue','light pink','light salmon','mint green','light cyan','cornflower blue','periwinkle','light lavender','light rose','warm beige']
+    if (lightColors.includes(name)) {
+      warnings.push(`Кирпич + светлый цвет: модель может проигнорировать цвет, кирпич имеет свой тон`)
+    }
+  }
+
+  if (details.wallFinish?.includes('marble') && details.wallColorHex) {
+    const name = hexToColorName(details.wallColorHex)
+    if (name && !['pure white','off-white','light grey','warm beige'].includes(name)) {
+      warnings.push(`Мрамор + цвет: мраморные панели имеют собственный рисунок, цвет может не применяться точно`)
+    }
+  }
+
+  const kitchenTileZones = ['kitchen_backsplash','kitchen_floor']
+  const bathTileZones    = ['bath_walls','bath_floor','shower','tub_surround']
+  const toiletTileZones  = ['toilet_walls','toilet_floor']
+
+  if (details.tilezone?.some(z => kitchenTileZones.includes(z)) && roomKey !== 'kitchen')
+    warnings.push(`Кухонные зоны плитки выбраны, но тип помещения — не кухня`)
+  if (details.tilezone?.some(z => bathTileZones.includes(z)) && roomKey !== 'bathroom')
+    warnings.push(`Зоны ванной выбраны, но тип помещения — не ванная`)
+  if (details.tilezone?.some(z => toiletTileZones.includes(z)) && roomKey !== 'toilet')
+    warnings.push(`Зоны туалета выбраны, но тип помещения — не туалет`)
+
+  return warnings
+}
+
 // ─── Main export ─────────────────────────────────────────────────────────────
 
 export function buildEditPrompt(

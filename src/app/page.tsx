@@ -203,7 +203,7 @@ const APPLIANCE_CARDS = [
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Status = 'idle' | 'uploading' | 'processing' | 'done' | 'error'
-type MyStyleStep = 'palette' | 'walls' | 'floors' | 'lighting' | 'extras'
+type MyStyleStep = 'palette' | 'lighting' | 'extras'
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
