@@ -239,95 +239,118 @@ export function buildEditPrompt(
   details?: Partial<RoomDetails>
 ): string {
   const room  = ROOM_NAMES[roomKey] ?? 'interior'
+  const isMyStyle = styleKey === 'my_style'
   const tokens: string[] = []
 
   // 1. Room type
   tokens.push(room)
 
-  // Determine if user specified custom walls/floor
+  // Determine if user specified custom walls/floor/tile
   const hasCustomWalls = !!(details?.wallFinish?.length || details?.wallColorHex)
   const hasCustomFloor = !!(details?.floorMaterial || details?.floorColorHex)
   const hasCustomTile  = !!(details?.tilezone?.length)
 
-  // 2. COLORS FIRST - model pays most attention to first tokens
-  // Walls
-  const wallColor = hexToColorName(details?.wallColorHex || '')
-  if (details?.wallFinish?.length) {
-    const f = details.wallFinish.map(k => {
-      const desc = WALL_FINISH_EN[k]
-      if (!desc) return ''
-      return wallColor ? desc.replace('{WC}', wallColor) : desc.replace('{WC} ', '')
-    }).filter(Boolean)
-    if (f.length) tokens.push(...f)
-    if (wallColor) tokens.push('all walls are ' + wallColor + ' color')
-  } else if (wallColor) {
-    tokens.push('all walls painted ' + wallColor + ', ' + wallColor + ' wall color')
-  }
+  // ── For "my_style": user parameters are the ONLY source of truth ──
+  // We push strong override instructions first so the model obeys them
 
-  // 3. Floor
-  const floorColor = hexToColorName(details?.floorColorHex || '')
-  if (details?.floorMaterial) {
-    const f = FLOOR_EN[details.floorMaterial]
-    if (f) {
-      const floorDesc = floorColor ? floorColor + ' ' + f : f
-      tokens.push(floorDesc)
-    }
-  } else if (floorColor) {
-    tokens.push(floorColor + ' colored floor, floor is ' + floorColor)
-  }
-
-  // 4. Tile zones + color (repeated for emphasis - model needs strong color signal)
-  if (details?.tilezone?.length) {
-    const tileColor = hexToColorName(details?.tileColorHex || '')
-    const colorWord = tileColor || 'white'
-    const t = details.tilezone.map(k => {
-      const template = TILE_EN[k]
-      if (!template) return ''
-      return template.replace('{C}', colorWord)
-    }).filter(Boolean)
-    if (t.length) {
-      // Push color emphasis BEFORE tile descriptions
-      if (tileColor) {
-        tokens.push('IMPORTANT: all tiles must be ' + tileColor + ' colored')
+  if (isMyStyle) {
+    // 2a. Wall color — explicit override
+    const wallColor = hexToColorName(details?.wallColorHex || '')
+    if (details?.wallFinish?.length) {
+      const f = details.wallFinish.map(k => {
+        const desc = WALL_FINISH_EN[k]
+        if (!desc) return ''
+        return wallColor ? desc.replace('{WC}', wallColor) : desc.replace('{WC} ', '')
+      }).filter(Boolean)
+      if (f.length) {
+        // Strong instruction: ONLY these wall finishes, nothing else
+        tokens.push('IMPORTANT: walls must have ONLY the following finish: ' + f.join('; '))
+        if (wallColor) tokens.push('wall color is strictly ' + wallColor + ', do NOT add any other wall material')
       }
-      tokens.push(...t)
-      // Repeat color after for reinforcement
-      if (tileColor) {
-        tokens.push(tileColor + ' tile color throughout')
+    } else if (wallColor) {
+      tokens.push('IMPORTANT: all walls must be painted ' + wallColor + ' only, no brick, no stone, no other texture')
+    } else {
+      // No wall specified — keep walls neutral
+      tokens.push('keep walls neutral and clean')
+    }
+
+    // 2b. Floor — explicit override
+    const floorColor = hexToColorName(details?.floorColorHex || '')
+    if (details?.floorMaterial) {
+      const f = FLOOR_EN[details.floorMaterial]
+      if (f) {
+        const floorDesc = floorColor ? floorColor + ' ' + f : f
+        tokens.push('IMPORTANT: floor must be ' + floorDesc + ' only')
+      }
+    } else if (floorColor) {
+      tokens.push('IMPORTANT: floor color must be ' + floorColor + ' only')
+    }
+
+    // 2c. Tile zones — explicit override, only in specified zones
+    if (hasCustomTile) {
+      const tileColor = hexToColorName(details?.tileColorHex || '')
+      const colorWord = tileColor || 'white'
+      const t = details!.tilezone!.map(k => {
+        const template = TILE_EN[k]
+        if (!template) return ''
+        return template.replace('{C}', colorWord)
+      }).filter(Boolean)
+      if (t.length) {
+        if (tileColor) {
+          tokens.push('IMPORTANT: tiles color must be strictly ' + tileColor + ', apply tiles ONLY in these zones:')
+        }
+        tokens.push(...t)
+        if (tileColor) {
+          tokens.push('tile color is ' + tileColor + ' throughout all tiled zones, no other tile color')
+        }
       }
     }
+
+    // 2d. Furniture
+    if (details?.furniture?.length) {
+      const f = details.furniture.map(k => FURN_EN[k] || k).filter(Boolean)
+      if (f.length) tokens.push('include these furniture items: ' + f.join(', '))
+    }
+
+    // 2e. Lighting
+    if (details?.lighting?.length) {
+      const l = details.lighting.map(k => LIGHT_EN[k]).filter(Boolean)
+      if (l.length) tokens.push(...l)
+    }
+
+    // 2f. Appliances
+    if (details?.appliances?.length) {
+      const a = details.appliances.map(k => APP_EN[k]).filter(Boolean)
+      if (a.length) tokens.push(a.join(', '))
+    }
+
+    // 2g. Style tag — minimal, just quality marker
+    tokens.push('custom interior design, tailored to exact user specifications')
+
+    // 2h. Size / notes
+    if (details?.size)          tokens.push('room size ' + details.size.replace(/[^\x00-\x7F]/g,'').trim())
+    if (details?.ceilingHeight) tokens.push('ceiling height ' + details.ceilingHeight.replace(/[^\x00-\x7F]/g,'').trim())
+    if (details?.extraNotes)    tokens.push(details.extraNotes.replace(/[^\x00-\x7F]/g,'').trim())
+
+  } else {
+    // ── For preset styles: use style defaults, ignore details ──
+
+    // 2. Walls (style default only)
+    // 3. Floor (style default only)
+    // 4. Tile — not used for preset styles
+
+    // 5. Furniture (not used for preset styles)
+    // 6. Lighting (not used for preset styles)
+    // 7. Appliances (not used for preset styles)
+
+    // 8. Style — full preset
+    const styleKey2 = styleKey || 'minimalist'
+    tokens.push(STYLE_BASE[styleKey2] || STYLE_BASE.minimalist)
+    tokens.push(STYLE_WALL_DEFAULT[styleKey2] || '')
+    tokens.push(STYLE_FLOOR_DEFAULT[styleKey2] || '')
   }
 
-  // 5. Furniture
-  if (details?.furniture?.length) {
-    const f = details.furniture.map(k => FURN_EN[k] || k).filter(Boolean)
-    if (f.length) tokens.push('furniture: ' + f.join(', '))
-  }
-
-  // 6. Lighting
-  if (details?.lighting?.length) {
-    const l = details.lighting.map(k => LIGHT_EN[k]).filter(Boolean)
-    if (l.length) tokens.push(...l)
-  }
-
-  // 7. Appliances
-  if (details?.appliances?.length) {
-    const a = details.appliances.map(k => APP_EN[k]).filter(Boolean)
-    if (a.length) tokens.push(a.join(', '))
-  }
-
-  // 8. Style - base atmosphere always, wall/floor defaults only if user didn't specify
-  const styleKey2 = styleKey || 'minimalist'
-  tokens.push(STYLE_BASE[styleKey2] || STYLE_BASE.minimalist)
-  if (!hasCustomWalls) tokens.push(STYLE_WALL_DEFAULT[styleKey2] || '')
-  if (!hasCustomFloor) tokens.push(STYLE_FLOOR_DEFAULT[styleKey2] || '')
-
-  // 9. Size / notes
-  if (details?.size)         tokens.push('room size ' + details.size.replace(/[^\x00-\x7F]/g,'').trim())
-  if (details?.ceilingHeight) tokens.push('ceiling height ' + details.ceilingHeight.replace(/[^\x00-\x7F]/g,'').trim())
-  if (details?.extraNotes)   tokens.push(details.extraNotes.replace(/[^\x00-\x7F]/g,'').trim())
-
-  // 10. Quality
+  // Quality — always last
   tokens.push(
     'photorealistic', 'hyperrealistic', '8k resolution',
     'professional interior photography', 'sharp focus',
