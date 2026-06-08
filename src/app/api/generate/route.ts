@@ -6,12 +6,15 @@ import { buildEditPrompt, RoomDetails } from '@/lib/prompts'
 
 const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! })
 
+// adirik/interior-design — MLSD + segmentation ControlNet pipeline
+// Preserves walls/floors/windows/doors, removes furniture, respects text prompt colors
+// $0.0073/run, ~8 seconds, 2.1M runs
 const INTERIOR_MODEL = '76604baddc85b1b4616e1c6475eca080da339c8875bd4996705440484a6eac38'
 
 async function compressImage(buffer: Buffer): Promise<string> {
   const compressed = await sharp(buffer)
-    .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
-    .jpeg({ quality: 90 })
+    .resize(768, 768, { fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 85 })
     .toBuffer()
   return `data:image/jpeg;base64,${compressed.toString('base64')}`
 }
@@ -37,7 +40,6 @@ export async function POST(req: NextRequest) {
     const imageFile = form.get('image') as File | null
     const room      = (form.get('room')  as string) || 'living'
     const style     = (form.get('style') as string) || 'minimalist'
-    const strength  = parseFloat((form.get('strength') as string) || '0.85')
 
     const details: Partial<RoomDetails> = {
       size:          (form.get('size')          as string) || '',
@@ -65,27 +67,40 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer)
     const dataUri = await compressImage(buffer)
 
-    // ✅ FIX: buildEditPrompt now returns { positive, negative }
     const { positive, negative } = buildEditPrompt(room, style, details)
     const prompt       = toAscii(positive)
-    const finalNegPrompt = toAscii(negative)
+    const negPrompt    = toAscii(negative)
 
-    const clampedStrength = Math.min(0.95, Math.max(0.5, strength))
+    // adirik/interior-design API parameters:
+    // - image: base64 data URI of the room photo
+    // - prompt: describes the desired interior design
+    // - negative_prompt: what to avoid
+    // - prompt_strength: how strongly to follow the prompt (0-1)
+    //   1.0 = full redesign following prompt, furniture removed
+    //   0.7 = moderate redesign, some original elements may persist
+    //   For "Мой стиль" we want maximum redesign = 1.0
+    //   For preset styles we want high redesign = 0.9
+    // - num_inference_steps: quality steps (default 50)
+    // - guidance_scale: how closely to follow prompt (default 15)
 
-    // For my_style — increase guidance and steps to force strict adherence to user params
     const isMyStyle = style === 'my_style'
-    const guidanceScale    = isMyStyle ? 20 : 15
-    const inferenceSteps   = isMyStyle ? 60 : 50
+
+    // prompt_strength=1.0 tells the inpainting pipeline to fully redraw the room
+    // The MLSD ControlNet still preserves straight-line geometry (walls/windows/doors)
+    // but the furniture, which has curved lines, is NOT preserved by MLSD
+    const promptStrength   = 1.0
+    const guidanceScale    = isMyStyle ? 15 : 12
+    const numInferenceSteps = isMyStyle ? 50 : 40
 
     const prediction = await replicate.predictions.create({
       version: INTERIOR_MODEL,
       input: {
-        image:               dataUri,
-        prompt:              prompt,
-        negative_prompt:     finalNegPrompt,
-        guidance_scale:      guidanceScale,
-        num_inference_steps: inferenceSteps,
-        strength:            clampedStrength,
+        image:                dataUri,
+        prompt:               prompt,
+        negative_prompt:      negPrompt,
+        prompt_strength:      promptStrength,
+        num_inference_steps:  numInferenceSteps,
+        guidance_scale:       guidanceScale,
       },
     })
 

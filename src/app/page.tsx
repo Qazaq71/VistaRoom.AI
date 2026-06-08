@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
 import { buildEditPrompt, detectConflicts, type RoomDetails } from '@/lib/prompts'
 
 // ─── Static data ──────────────────────────────────────────────────────────────
@@ -274,8 +274,7 @@ export default function Home() {
   const [room, setRoom]                 = useState('living')
   const [style, setStyle]               = useState('minimalist')
 
-  // Default strength: 80% for my_style (higher = more material fidelity), 70% otherwise
-  const [strength, setStrength]         = useState(70)
+  // strength removed — adirik/interior-design uses prompt_strength=1.0 internally
 
   const isMyStyle = style === 'my_style'
 
@@ -317,11 +316,7 @@ export default function Home() {
   const floorColorHex = floorCustom || floorPreset
   const tileColorHex  = tileCustom  || tilePreset
 
-  // When switching to my_style, bump strength to 80% (better material adherence)
-  useEffect(() => {
-    if (isMyStyle) setStrength(s => s < 75 ? 80 : s)
-    else           setStrength(70)
-  }, [isMyStyle])
+  
 
   // ── Live prompt preview ─────────────────────────────────────────────────────
   const liveDetails: Partial<RoomDetails> = useMemo(() => ({
@@ -396,7 +391,7 @@ export default function Home() {
     form.append('image',        imageFile)
     form.append('room',         room)
     form.append('style',        isMyStyle ? 'my_style' : style)
-    form.append('strength',     String(strength / 100))
+    // prompt_strength is now fixed at 1.0 in route.ts (handled server-side)
     form.append('size',         '')
     form.append('ceilingHeight','')
     form.append('wallColorHex', sendDetails ? wallColorHex : '')
@@ -418,7 +413,7 @@ export default function Home() {
       setStatus('processing'); setStatusMsg('Генерирую дизайн...')
       pollPrediction(data.predictionId)
     } catch { setStatus('error'); setStatusMsg('Нет соединения с сервером.') }
-  }, [imageFile, room, style, isMyStyle, strength, wallColorHex, wallFinish,
+  }, [imageFile, room, style, isMyStyle, wallColorHex, wallFinish,
       floorMaterial, floorColorHex, tilezone, tileColorHex,
       furniture, lighting, appliances, extraNotes, pollPrediction])
 
@@ -433,12 +428,6 @@ export default function Home() {
 
   const isLoading   = status === 'uploading' || status === 'processing'
   const showTileZone = TILE_ROOMS.includes(room)
-
-  // Strength slider: recommended zone for my_style = 75–90%
-  const strengthPct = ((strength - 50) / 45 * 100).toFixed(0)
-  const recLow  = ((75 - 50) / 45 * 100).toFixed(0)
-  const recHigh = ((90 - 50) / 45 * 100).toFixed(0)
-  const inRecZone = strength >= 75 && strength <= 90
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
@@ -537,42 +526,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* ── Strength slider ── */}
-          <div>
-            <div className="field-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span>Сила преобразования</span>
-              {isMyStyle && (
-                <span className={`strength-hint${inRecZone ? ' good' : ' warn'}`}>
-                  {inRecZone ? '✓ оптимально для Мой стиль' : '↑ рекомендуется 75–90% для Мой стиль'}
-                </span>
-              )}
-            </div>
-            <div className="slider-wrap">
-              <span style={{ fontSize: 12, color: 'var(--muted)' }}>Мягко</span>
-              <div className="slider-track-wrap">
-                <input
-                  type="range" min={50} max={95} step={1} value={strength}
-                  className="slider"
-                  style={{ ['--pct' as string]: `${strengthPct}%` }}
-                  onChange={e => setStrength(Number(e.target.value))}
-                />
-                {isMyStyle && (
-                  <div
-                    className="slider-rec-zone"
-                    style={{
-                      left: `${recLow}%`,
-                      width: `${Number(recHigh) - Number(recLow)}%`,
-                    }}
-                  />
-                )}
-              </div>
-              <span className="slider-val">{strength}%</span>
-            </div>
-            <div className="slider-labels">
-              <span>Сохранить структуру</span>
-              <span>Полное изменение</span>
-            </div>
-          </div>
 
           {/* ── my_style details panel ── */}
           {isMyStyle && (
