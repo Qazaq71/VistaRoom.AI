@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import { buildEditPrompt, detectConflicts, type RoomDetails } from '@/lib/prompts'
 
-// Style display data — only used in frontend, never sent to server
+// ─── Static data ──────────────────────────────────────────────────────────────
+
 const STYLE_DISPLAY: Record<string, { label: string; emoji: string }> = {
   my_style:      { label: 'Мой стиль',       emoji: '🎨' },
   minimalist:    { label: 'Минимализм',      emoji: '🤍' },
@@ -68,33 +70,33 @@ const APPLIANCE_OPTIONS = [
 ]
 
 const WALL_COLORS_PRESET = [
-  { label: 'Белый',    hex: '#FFFFFF' },
-  { label: 'Бежевый',  hex: '#F5F0E8' },
+  { label: 'Белый',        hex: '#FFFFFF' },
+  { label: 'Бежевый',      hex: '#F5F0E8' },
   { label: 'Светло-серый', hex: '#D9D9D9' },
-  { label: 'Серый',    hex: '#9E9E9E' },
-  { label: 'Голубой',  hex: '#B3D9F2' },
-  { label: 'Мятный',   hex: '#B2DFDB' },
-  { label: 'Зелёный',  hex: '#A5C8A0' },
-  { label: 'Оливковый',hex: '#A8A87A' },
-  { label: 'Жёлтый',  hex: '#FFF176' },
-  { label: 'Персиковый',hex: '#FFCCBC' },
-  { label: 'Розовый',  hex: '#F8BBD0' },
-  { label: 'Терракота',hex: '#C97B63' },
-  { label: 'Тёмно-синий',hex: '#283593' },
-  { label: 'Антрацит', hex: '#37474F' },
-  { label: 'Чёрный',   hex: '#212121' },
+  { label: 'Серый',        hex: '#9E9E9E' },
+  { label: 'Голубой',      hex: '#B3D9F2' },
+  { label: 'Мятный',       hex: '#B2DFDB' },
+  { label: 'Зелёный',      hex: '#A5C8A0' },
+  { label: 'Оливковый',    hex: '#A8A87A' },
+  { label: 'Жёлтый',       hex: '#FFF176' },
+  { label: 'Персиковый',   hex: '#FFCCBC' },
+  { label: 'Розовый',      hex: '#F8BBD0' },
+  { label: 'Терракота',    hex: '#C97B63' },
+  { label: 'Тёмно-синий',  hex: '#283593' },
+  { label: 'Антрацит',     hex: '#37474F' },
+  { label: 'Чёрный',       hex: '#212121' },
 ]
 
 const FLOOR_MATERIALS = [
-  { key: 'light_parquet',  label: 'Паркет светлый' },
-  { key: 'dark_parquet',   label: 'Паркет тёмный' },
-  { key: 'laminate',       label: 'Ламинат' },
-  { key: 'ceramic_tile',   label: 'Плитка' },
-  { key: 'concrete',       label: 'Бетон' },
-  { key: 'carpet',         label: 'Ковёр' },
-  { key: 'marble',         label: 'Мрамор' },
-  { key: 'porcelain',      label: 'Керамогранит' },
-  { key: 'linoleum',       label: 'Линолеум' },
+  { key: 'light_parquet', label: 'Паркет светлый' },
+  { key: 'dark_parquet',  label: 'Паркет тёмный' },
+  { key: 'laminate',      label: 'Ламинат' },
+  { key: 'ceramic_tile',  label: 'Плитка' },
+  { key: 'concrete',      label: 'Бетон' },
+  { key: 'carpet',        label: 'Ковёр' },
+  { key: 'marble',        label: 'Мрамор' },
+  { key: 'porcelain',     label: 'Керамогранит' },
+  { key: 'linoleum',      label: 'Линолеум' },
 ]
 
 const WALL_FINISHES = [
@@ -128,38 +130,43 @@ const TILE_ZONES = [
 ]
 
 const FLOOR_COLORS_PRESET = [
-  { label: 'Белый',     hex: '#F5F5F5' },
-  { label: 'Светлый',   hex: '#E0C9A6' },
+  { label: 'Белый',       hex: '#F5F5F5' },
+  { label: 'Светлый',     hex: '#E0C9A6' },
   { label: 'Натуральный', hex: '#C8A87A' },
-  { label: 'Средний',   hex: '#A0785A' },
-  { label: 'Тёмный',    hex: '#5D3A1A' },
-  { label: 'Серый',     hex: '#9E9E9E' },
-  { label: 'Бетон',     hex: '#7B7B7B' },
-  { label: 'Чёрный',    hex: '#1A1A1A' },
+  { label: 'Средний',     hex: '#A0785A' },
+  { label: 'Тёмный',      hex: '#5D3A1A' },
+  { label: 'Серый',       hex: '#9E9E9E' },
+  { label: 'Бетон',       hex: '#7B7B7B' },
+  { label: 'Чёрный',      hex: '#1A1A1A' },
 ]
 
 const TILE_COLORS_PRESET = [
-  { label: 'Белый',       hex: '#FFFFFF' },
-  { label: 'Кремовый',    hex: '#FFF8E7' },
-  { label: 'Бежевый',     hex: '#F0E6D3' },
-  { label: 'Песочный',    hex: '#D4BA8C' },
-  { label: 'Светло-серый',hex: '#D9D9D9' },
-  { label: 'Серый',       hex: '#9E9E9E' },
-  { label: 'Антрацит',    hex: '#37474F' },
-  { label: 'Голубой',     hex: '#B3D9F2' },
-  { label: 'Бирюзовый',  hex: '#80CBC4' },
-  { label: 'Синий',       hex: '#5C6BC0' },
-  { label: 'Зелёный',     hex: '#A5C8A0' },
-  { label: 'Терракота',   hex: '#C97B63' },
-  { label: 'Коричневый',  hex: '#8D6E63' },
-  { label: 'Чёрный',      hex: '#212121' },
-  { label: 'Мрамор белый',hex: '#F0EDE8' },
-  { label: 'Мрамор серый',hex: '#B0ADA8' },
+  { label: 'Белый',        hex: '#FFFFFF' },
+  { label: 'Кремовый',     hex: '#FFF8E7' },
+  { label: 'Бежевый',      hex: '#F0E6D3' },
+  { label: 'Песочный',     hex: '#D4BA8C' },
+  { label: 'Светло-серый', hex: '#D9D9D9' },
+  { label: 'Серый',        hex: '#9E9E9E' },
+  { label: 'Антрацит',     hex: '#37474F' },
+  { label: 'Голубой',      hex: '#B3D9F2' },
+  { label: 'Бирюзовый',    hex: '#80CBC4' },
+  { label: 'Синий',        hex: '#5C6BC0' },
+  { label: 'Зелёный',      hex: '#A5C8A0' },
+  { label: 'Терракота',    hex: '#C97B63' },
+  { label: 'Коричневый',   hex: '#8D6E63' },
+  { label: 'Чёрный',       hex: '#212121' },
+  { label: 'Мрамор белый', hex: '#F0EDE8' },
+  { label: 'Мрамор серый', hex: '#B0ADA8' },
 ]
 
-type Status = 'idle' | 'uploading' | 'processing' | 'done' | 'error'
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-function ColorPicker({ label, presets, customColor, onCustomChange, selectedPreset, onPresetClick }:{
+type Status = 'idle' | 'uploading' | 'processing' | 'done' | 'error'
+type DetailTab = 'basic' | 'advanced'
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function ColorPicker({ label, presets, customColor, onCustomChange, selectedPreset, onPresetClick }: {
   label: string
   presets: { label: string; hex: string }[]
   customColor: string
@@ -189,7 +196,6 @@ function ColorPicker({ label, presets, customColor, onCustomChange, selectedPres
   )
 }
 
-
 function BeforeAfterSlider({ before, after }: { before: string; after: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState(50)
@@ -216,7 +222,6 @@ function BeforeAfterSlider({ before, after }: { before: string; after: string })
 
   const onUp = useCallback(() => setIsDragging(false), [])
 
-  // Track container width for before image sizing
   const measuredRef = useCallback((node: HTMLDivElement | null) => {
     if (node) {
       (containerRef as React.MutableRefObject<HTMLDivElement>).current = node
@@ -237,11 +242,8 @@ function BeforeAfterSlider({ before, after }: { before: string; after: string })
       onPointerCancel={onUp}
       style={{ touchAction: 'none' }}
     >
-      {/* After image — full size, sets container height */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={after} alt="After" className="ba-img" draggable={false} />
-
-      {/* Before image — clipped from left */}
       <div className="ba-before-clip" style={{ width: position + '%' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -252,60 +254,61 @@ function BeforeAfterSlider({ before, after }: { before: string; after: string })
           style={{ width: containerWidth > 0 ? containerWidth + 'px' : '100%' }}
         />
       </div>
-
-      {/* Drag line + handle */}
       <div className="ba-line" style={{ left: position + '%' }}>
         <div className="ba-handle">
           <div className="ba-arrow-left" />
           <div className="ba-arrow-right" />
         </div>
       </div>
-
       <div className="ba-label ba-label-before" style={{ opacity: position > 15 ? 1 : 0 }}>До</div>
       <div className="ba-label ba-label-after" style={{ opacity: position < 85 ? 1 : 0 }}>После</div>
     </div>
   )
 }
 
-export default function Home() {
-  const [imageFile, setImageFile]     = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [room, setRoom]               = useState('living')
-  const [style, setStyle]             = useState('minimalist')
-  const [strength, setStrength]       = useState(70)
+// ─── Main component ───────────────────────────────────────────────────────────
 
-  // "Мой стиль" — детализация всегда открыта при выборе этого стиля
+export default function Home() {
+  const [imageFile, setImageFile]       = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [room, setRoom]                 = useState('living')
+  const [style, setStyle]               = useState('minimalist')
+
+  // Default strength: 80% for my_style (higher = more material fidelity), 70% otherwise
+  const [strength, setStrength]         = useState(70)
+
   const isMyStyle = style === 'my_style'
 
-  const [detailsOpen, setDetailsOpen] = useState(false)
-  const [roomSize, setRoomSize]       = useState('')
-  const [ceilingHeight, setCeilingHeight] = useState('')
+  // Detail tab: 'basic' (walls, floor, lighting) or 'advanced' (tile zones, appliances, furniture, notes)
+  const [detailTab, setDetailTab]       = useState<DetailTab>('basic')
+  const [detailsOpen, setDetailsOpen]   = useState(false)
 
-  const [wallPreset, setWallPreset]   = useState('')
-  const [wallCustom, setWallCustom]   = useState('')
-  const [wallFinish, setWallFinish]   = useState<string[]>([])
-
+  // "Basic" tab fields
+  const [wallPreset, setWallPreset]     = useState('')
+  const [wallCustom, setWallCustom]     = useState('')
+  const [wallFinish, setWallFinish]     = useState<string[]>([])
   const [floorMaterial, setFloorMaterial] = useState('')
-  const [floorPreset, setFloorPreset] = useState('')
-  const [floorCustom, setFloorCustom] = useState('')
+  const [floorPreset, setFloorPreset]   = useState('')
+  const [floorCustom, setFloorCustom]   = useState('')
+  const [lighting, setLighting]         = useState<string[]>([])
+  const [extraNotes, setExtraNotes]     = useState('')
 
-  const [tilezone, setTilezone]       = useState<string[]>([])
-  const [tilePreset, setTilePreset]   = useState('')
-  const [tileCustom, setTileCustom]   = useState('')
-  const [furniture, setFurniture]     = useState<string[]>([])
-  const [lighting, setLighting]       = useState<string[]>([])
-  const [appliances, setAppliances]   = useState<string[]>([])
-  const [extraNotes, setExtraNotes]   = useState('')
+  // "Advanced" tab fields
+  const [tilezone, setTilezone]         = useState<string[]>([])
+  const [tilePreset, setTilePreset]     = useState('')
+  const [tileCustom, setTileCustom]     = useState('')
+  const [furniture, setFurniture]       = useState<string[]>([])
+  const [appliances, setAppliances]     = useState<string[]>([])
 
-  const [status, setStatus]           = useState<Status>('idle')
-  const [statusMsg, setStatusMsg]     = useState('')
-  const [outputUrl, setOutputUrl]     = useState<string | null>(null)
-  const [remaining, setRemaining]     = useState<number | null>(null)
-  const [dragOver, setDragOver]       = useState(false)
-  const [promptPreview, setPromptPreview] = useState('')
+  const [status, setStatus]             = useState<Status>('idle')
+  const [statusMsg, setStatusMsg]       = useState('')
+  const [outputUrl, setOutputUrl]       = useState<string | null>(null)
+  const [remaining, setRemaining]       = useState<number | null>(null)
+  const [dragOver, setDragOver]         = useState(false)
+  const [promptPreviewOpen, setPromptPreviewOpen] = useState(false)
 
-  const fileRef  = useRef<HTMLInputElement>(null)
-  const pollRef  = useRef<ReturnType<typeof setInterval> | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const toggleArr = (arr: string[], set: (v: string[]) => void, val: string) =>
     set(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val])
@@ -314,10 +317,33 @@ export default function Home() {
   const floorColorHex = floorCustom || floorPreset
   const tileColorHex  = tileCustom  || tilePreset
 
-  const hasDetails = !!(roomSize || ceilingHeight || wallPreset || wallCustom || wallFinish.length ||
-    floorMaterial || floorPreset || floorCustom || tilezone.length || tilePreset || tileCustom ||
-    furniture.length || lighting.length || appliances.length || extraNotes)
+  // When switching to my_style, bump strength to 80% (better material adherence)
+  useEffect(() => {
+    if (isMyStyle) setStrength(s => s < 75 ? 80 : s)
+    else           setStrength(70)
+  }, [isMyStyle])
 
+  // ── Live prompt preview ─────────────────────────────────────────────────────
+  const liveDetails: Partial<RoomDetails> = useMemo(() => ({
+    wallColorHex, wallFinish, floorMaterial, floorColorHex,
+    tilezone, tileColorHex, furniture, lighting, appliances, extraNotes,
+    size: '', ceilingHeight: '',
+  }), [wallColorHex, wallFinish, floorMaterial, floorColorHex,
+       tilezone, tileColorHex, furniture, lighting, appliances, extraNotes])
+
+  const livePrompt = useMemo(() => {
+    if (!isMyStyle) return ''
+    const { positive } = buildEditPrompt(room, 'my_style', liveDetails)
+    return positive
+  }, [isMyStyle, room, liveDetails])
+
+  // ── Conflict detection ──────────────────────────────────────────────────────
+  const conflicts = useMemo(() => {
+    if (!isMyStyle) return []
+    return detectConflicts(room, liveDetails)
+  }, [isMyStyle, room, liveDetails])
+
+  // ── File handling ───────────────────────────────────────────────────────────
   const handleFile = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) return
     setImageFile(file)
@@ -332,6 +358,7 @@ export default function Home() {
     if (fileRef.current) fileRef.current.value = ''
   }
 
+  // ── Polling ─────────────────────────────────────────────────────────────────
   const pollPrediction = useCallback((id: string) => {
     let attempts = 0
     pollRef.current = setInterval(async () => {
@@ -353,26 +380,25 @@ export default function Home() {
         } else {
           setStatusMsg(`Генерирую дизайн... (${Math.min(attempts * 2, 60)} сек)`)
         }
-      } catch { /* продолжаем */ }
+      } catch { /* continue */ }
     }, 2000)
   }, [])
 
+  // ── Generate ────────────────────────────────────────────────────────────────
   const generate = useCallback(async () => {
     if (!imageFile) { setStatus('error'); setStatusMsg('Загрузите фотографию помещения'); return }
     if (pollRef.current) clearInterval(pollRef.current)
     setStatus('uploading'); setStatusMsg('Отправляю изображение...'); setOutputUrl(null)
 
-    // Для "Мой стиль" передаём детализацию, для остальных — только стиль
     const sendDetails = isMyStyle
 
     const form = new FormData()
     form.append('image',        imageFile)
     form.append('room',         room)
     form.append('style',        isMyStyle ? 'my_style' : style)
-    form.append('strength',    String(strength / 100))
-    form.append('size',         sendDetails ? roomSize : '')
-    form.append('ceilingHeight',sendDetails ? ceilingHeight : '')
-    form.append('wallColor',    sendDetails && wallPreset ? 'custom' : '')
+    form.append('strength',     String(strength / 100))
+    form.append('size',         '')
+    form.append('ceilingHeight','')
     form.append('wallColorHex', sendDetails ? wallColorHex : '')
     form.append('wallFinish',   sendDetails ? JSON.stringify(wallFinish) : '[]')
     form.append('floorMaterial',sendDetails ? floorMaterial : '')
@@ -389,11 +415,12 @@ export default function Home() {
       const data = await res.json()
       if (!res.ok) { setStatus('error'); setStatusMsg(data.error || 'Ошибка сервера'); return }
       setRemaining(data.remaining)
-      if (data.promptUsed) setPromptPreview(data.promptUsed)
       setStatus('processing'); setStatusMsg('Генерирую дизайн...')
       pollPrediction(data.predictionId)
     } catch { setStatus('error'); setStatusMsg('Нет соединения с сервером.') }
-  }, [imageFile, room, style, isMyStyle, strength, roomSize, ceilingHeight, wallPreset, wallColorHex, wallFinish, floorMaterial, floorColorHex, tilezone, tileColorHex, furniture, lighting, appliances, extraNotes, pollPrediction])
+  }, [imageFile, room, style, isMyStyle, strength, wallColorHex, wallFinish,
+      floorMaterial, floorColorHex, tilezone, tileColorHex,
+      furniture, lighting, appliances, extraNotes, pollPrediction])
 
   const download = async () => {
     if (!outputUrl) return
@@ -404,12 +431,16 @@ export default function Home() {
     } catch { window.open(outputUrl, '_blank') }
   }
 
-  const isLoading = status === 'uploading' || status === 'processing'
+  const isLoading   = status === 'uploading' || status === 'processing'
   const showTileZone = TILE_ROOMS.includes(room)
 
-  // Детализация показывается: для "Мой стиль" — всегда, для остальных — по кнопке
-  const showDetailsPanel = isMyStyle || detailsOpen
+  // Strength slider: recommended zone for my_style = 75–90%
+  const strengthPct = ((strength - 50) / 45 * 100).toFixed(0)
+  const recLow  = ((75 - 50) / 45 * 100).toFixed(0)
+  const recHigh = ((90 - 50) / 45 * 100).toFixed(0)
+  const inRecZone = strength >= 75 && strength <= 90
 
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <>
       <nav className="nav">
@@ -443,7 +474,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* Upload */}
+          {/* ── Upload ── */}
           {!imagePreview ? (
             <div>
               <div className="field-label">Загрузите фото помещения</div>
@@ -463,13 +494,14 @@ export default function Home() {
             <div>
               <div className="field-label">Ваше фото</div>
               <div className="preview-wrap">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={imagePreview} alt="preview" className="preview-img" />
                 <button className="preview-clear" onClick={clearImage}>✕</button>
               </div>
             </div>
           )}
 
-          {/* Room */}
+          {/* ── Room type ── */}
           <div>
             <div className="field-label">Тип помещения</div>
             <div className="chips">
@@ -479,7 +511,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Style */}
+          {/* ── Style ── */}
           <div>
             <div className="field-label">Стиль</div>
             <div className="style-grid">
@@ -489,14 +521,12 @@ export default function Home() {
                   className={`style-chip${style === k ? ' active' : ''}${k === 'my_style' ? ' my-style-chip' : ''}`}
                   onClick={() => {
                     setStyle(k)
-                    // При переключении на любой стиль кроме "Мой стиль" — сбрасываем детализацию
                     if (k !== 'my_style') {
-                      setRoomSize(''); setCeilingHeight('')
                       setWallPreset(''); setWallCustom(''); setWallFinish([])
                       setFloorMaterial(''); setFloorPreset(''); setFloorCustom('')
                       setTilezone([]); setTilePreset(''); setTileCustom('')
                       setFurniture([]); setLighting([]); setAppliances([])
-                      setExtraNotes(''); setPromptPreview('')
+                      setExtraNotes('')
                     }
                   }}
                 >
@@ -507,23 +537,45 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Strength */}
+          {/* ── Strength slider ── */}
           <div>
-            <div className="field-label">Сила преобразования</div>
+            <div className="field-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>Сила преобразования</span>
+              {isMyStyle && (
+                <span className={`strength-hint${inRecZone ? ' good' : ' warn'}`}>
+                  {inRecZone ? '✓ оптимально для Мой стиль' : '↑ рекомендуется 75–90% для Мой стиль'}
+                </span>
+              )}
+            </div>
             <div className="slider-wrap">
               <span style={{ fontSize: 12, color: 'var(--muted)' }}>Мягко</span>
-              <input type="range" min={50} max={95} value={strength} className="slider"
-                style={{ ['--pct' as string]: `${((strength - 50) / 45 * 100).toFixed(0)}%` }}
-                onChange={e => setStrength(Number(e.target.value))} />
+              <div className="slider-track-wrap">
+                <input
+                  type="range" min={50} max={95} step={1} value={strength}
+                  className="slider"
+                  style={{ ['--pct' as string]: `${strengthPct}%` }}
+                  onChange={e => setStrength(Number(e.target.value))}
+                />
+                {isMyStyle && (
+                  <div
+                    className="slider-rec-zone"
+                    style={{
+                      left: `${recLow}%`,
+                      width: `${Number(recHigh) - Number(recLow)}%`,
+                    }}
+                  />
+                )}
+              </div>
               <span className="slider-val">{strength}%</span>
             </div>
-            <div className="slider-labels"><span>Сохранить структуру</span><span>Полное изменение</span></div>
+            <div className="slider-labels">
+              <span>Сохранить структуру</span>
+              <span>Полное изменение</span>
+            </div>
           </div>
 
-          {/* ── DETAILS ── */}
-          {/* Для "Мой стиль" — детализация всегда открыта и обязательна */}
-          {/* Для остальных стилей — опциональная детализация по кнопке */}
-          {isMyStyle ? (
+          {/* ── my_style details panel ── */}
+          {isMyStyle && (
             <div className="details-block my-style-details">
               <div className="my-style-header">
                 <span className="my-style-header-icon">🎨</span>
@@ -533,21 +585,181 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="details-body">
-
-                {/* Size + Ceiling */}
-                <div className="details-row">
-                  <div className="details-field">
-                    <label className="field-label">Площадь</label>
-                    <input className="detail-input" placeholder="20 м²" value={roomSize} onChange={e => setRoomSize(e.target.value)} />
-                  </div>
-                  <div className="details-field">
-                    <label className="field-label">Высота потолка</label>
-                    <input className="detail-input" placeholder="2.8 м" value={ceilingHeight} onChange={e => setCeilingHeight(e.target.value)} />
-                  </div>
+              {/* ── Conflict warnings ── */}
+              {conflicts.length > 0 && (
+                <div className="conflict-box">
+                  <div className="conflict-title">⚠️ Возможные конфликты параметров</div>
+                  {conflicts.map((w, i) => (
+                    <div key={i} className="conflict-item">{w}</div>
+                  ))}
                 </div>
+              )}
 
-                {/* Wall color */}
+              {/* ── Tab switcher: Basic / Advanced ── */}
+              <div className="detail-tabs">
+                <button
+                  className={`detail-tab${detailTab === 'basic' ? ' active' : ''}`}
+                  onClick={() => setDetailTab('basic')}
+                >
+                  Основное
+                </button>
+                <button
+                  className={`detail-tab${detailTab === 'advanced' ? ' active' : ''}`}
+                  onClick={() => setDetailTab('advanced')}
+                >
+                  Детально
+                </button>
+              </div>
+
+              <div className="details-body">
+                {/* ════ BASIC TAB ════ */}
+                {detailTab === 'basic' && (
+                  <>
+                    {/* Wall color */}
+                    <ColorPicker
+                      label="Цвет стен"
+                      presets={WALL_COLORS_PRESET}
+                      customColor={wallCustom}
+                      onCustomChange={v => { setWallCustom(v); setWallPreset('') }}
+                      selectedPreset={wallPreset}
+                      onPresetClick={hex => { setWallPreset(hex); setWallCustom('') }}
+                    />
+
+                    {/* Wall finish */}
+                    <div>
+                      <label className="field-label">Вид отделки стен</label>
+                      <div className="detail-chips" style={{ marginTop: 6 }}>
+                        {WALL_FINISHES.map(f => (
+                          <button key={f.key} className={`dchip${wallFinish.includes(f.key) ? ' on' : ''}`}
+                            onClick={() => toggleArr(wallFinish, setWallFinish, f.key)}>{f.label}</button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Floor material */}
+                    <div>
+                      <label className="field-label">Материал пола</label>
+                      <div className="detail-chips" style={{ marginTop: 6 }}>
+                        {FLOOR_MATERIALS.map(f => (
+                          <button key={f.key} className={`dchip${floorMaterial === f.key ? ' on' : ''}`}
+                            onClick={() => setFloorMaterial(floorMaterial === f.key ? '' : f.key)}>{f.label}</button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Floor color */}
+                    <ColorPicker
+                      label="Цвет пола"
+                      presets={FLOOR_COLORS_PRESET}
+                      customColor={floorCustom}
+                      onCustomChange={v => { setFloorCustom(v); setFloorPreset('') }}
+                      selectedPreset={floorPreset}
+                      onPresetClick={hex => { setFloorPreset(hex); setFloorCustom('') }}
+                    />
+
+                    {/* Lighting */}
+                    <div>
+                      <label className="field-label">Освещение</label>
+                      <div className="detail-chips" style={{ marginTop: 6 }}>
+                        {LIGHTING_OPTIONS.map(l => (
+                          <button key={l.key} className={`dchip${lighting.includes(l.key) ? ' on' : ''}`}
+                            onClick={() => toggleArr(lighting, setLighting, l.key)}>{l.label}</button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Extra notes — in basic tab for prominence */}
+                    <div>
+                      <label className="field-label">Дополнительные пожелания</label>
+                      <textarea className="detail-textarea"
+                        placeholder="Например: рабочее место у окна, много света, место для растений..."
+                        value={extraNotes} onChange={e => setExtraNotes(e.target.value)} rows={3} />
+                    </div>
+                  </>
+                )}
+
+                {/* ════ ADVANCED TAB ════ */}
+                {detailTab === 'advanced' && (
+                  <>
+                    {/* Tile zones — only for relevant rooms */}
+                    {showTileZone ? (
+                      <div>
+                        <label className="field-label">Зоны кафеля / мрамора / керамогранита</label>
+                        <div className="detail-chips" style={{ marginTop: 6 }}>
+                          {TILE_ZONES.map(z => (
+                            <button key={z.key} className={`dchip${tilezone.includes(z.key) ? ' on' : ''}`}
+                              onClick={() => toggleArr(tilezone, setTilezone, z.key)}>{z.label}</button>
+                          ))}
+                        </div>
+                        <div style={{ marginTop: 12 }}>
+                          <ColorPicker
+                            label="Цвет кафеля"
+                            presets={TILE_COLORS_PRESET}
+                            customColor={tileCustom}
+                            onCustomChange={v => { setTileCustom(v); setTilePreset('') }}
+                            selectedPreset={tilePreset}
+                            onPresetClick={hex => { setTilePreset(hex); setTileCustom('') }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="adv-note">
+                        Зоны кафеля доступны для кухни, ванной и туалета. Выберите нужный тип помещения выше.
+                      </div>
+                    )}
+
+                    {/* Furniture */}
+                    <div>
+                      <label className="field-label">Мебель</label>
+                      <div className="adv-hint">Указывайте только предметы, которые уже есть на фото или заведомо помещаются в комнату</div>
+                      <div className="detail-chips" style={{ marginTop: 6 }}>
+                        {FURNITURE_OPTIONS.map(f => (
+                          <button key={f.key} className={`dchip${furniture.includes(f.key) ? ' on' : ''}`}
+                            onClick={() => toggleArr(furniture, setFurniture, f.key)}>{f.label}</button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Appliances */}
+                    <div>
+                      <label className="field-label">Бытовая техника</label>
+                      <div className="detail-chips" style={{ marginTop: 6 }}>
+                        {APPLIANCE_OPTIONS.map(a => (
+                          <button key={a.key} className={`dchip${appliances.includes(a.key) ? ' on' : ''}`}
+                            onClick={() => toggleArr(appliances, setAppliances, a.key)}>{a.label}</button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* ── Live prompt preview (both tabs) ── */}
+                {livePrompt && (
+                  <div className="prompt-preview">
+                    <button
+                      className="prompt-preview-toggle"
+                      onClick={() => setPromptPreviewOpen(o => !o)}
+                    >
+                      {promptPreviewOpen ? '▾' : '▸'} Промпт для генерации
+                    </button>
+                    {promptPreviewOpen && (
+                      <div className="prompt-text">{livePrompt}</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ── Optional detail toggle for preset styles ── */}
+          {!isMyStyle && (
+            <button className="details-toggle" onClick={() => setDetailsOpen(o => !o)}>
+              {detailsOpen ? '▾ Скрыть детали' : '▸ Дополнительные настройки'}
+            </button>
+          )}
+          {!isMyStyle && detailsOpen && (
+            <div className="details-block">
+              <div className="details-body">
                 <ColorPicker
                   label="Цвет стен"
                   presets={WALL_COLORS_PRESET}
@@ -556,30 +768,6 @@ export default function Home() {
                   selectedPreset={wallPreset}
                   onPresetClick={hex => { setWallPreset(hex); setWallCustom('') }}
                 />
-
-                {/* Wall finish */}
-                <div>
-                  <label className="field-label">Вид отделки стен</label>
-                  <div className="detail-chips" style={{ marginTop: 6 }}>
-                    {WALL_FINISHES.map(f => (
-                      <button key={f.key} className={`dchip${wallFinish.includes(f.key) ? ' on' : ''}`}
-                        onClick={() => toggleArr(wallFinish, setWallFinish, f.key)}>{f.label}</button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Floor material */}
-                <div>
-                  <label className="field-label">Материал пола</label>
-                  <div className="detail-chips" style={{ marginTop: 6 }}>
-                    {FLOOR_MATERIALS.map(f => (
-                      <button key={f.key} className={`dchip${floorMaterial === f.key ? ' on' : ''}`}
-                        onClick={() => setFloorMaterial(floorMaterial === f.key ? '' : f.key)}>{f.label}</button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Floor color */}
                 <ColorPicker
                   label="Цвет пола"
                   presets={FLOOR_COLORS_PRESET}
@@ -588,43 +776,6 @@ export default function Home() {
                   selectedPreset={floorPreset}
                   onPresetClick={hex => { setFloorPreset(hex); setFloorCustom('') }}
                 />
-
-                {/* Tile zones — only for kitchen/bathroom/toilet */}
-                {showTileZone && (
-                  <div>
-                    <label className="field-label">Зоны кафеля / мрамора / керамогранита</label>
-                    <div className="detail-chips" style={{ marginTop: 6 }}>
-                      {TILE_ZONES.map(z => (
-                        <button key={z.key} className={`dchip${tilezone.includes(z.key) ? ' on' : ''}`}
-                          onClick={() => toggleArr(tilezone, setTilezone, z.key)}>{z.label}</button>
-                      ))}
-                    </div>
-
-                    <div style={{ marginTop: 12 }}>
-                      <ColorPicker
-                        label="Цвет кафеля"
-                        presets={TILE_COLORS_PRESET}
-                        customColor={tileCustom}
-                        onCustomChange={v => { setTileCustom(v); setTilePreset('') }}
-                        selectedPreset={tilePreset}
-                        onPresetClick={hex => { setTilePreset(hex); setTileCustom('') }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Furniture */}
-                <div>
-                  <label className="field-label">Мебель</label>
-                  <div className="detail-chips" style={{ marginTop: 6 }}>
-                    {FURNITURE_OPTIONS.map(f => (
-                      <button key={f.key} className={`dchip${furniture.includes(f.key) ? ' on' : ''}`}
-                        onClick={() => toggleArr(furniture, setFurniture, f.key)}>{f.label}</button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Lighting */}
                 <div>
                   <label className="field-label">Освещение</label>
                   <div className="detail-chips" style={{ marginTop: 6 }}>
@@ -634,37 +785,11 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
-
-                {/* Appliances */}
-                <div>
-                  <label className="field-label">Бытовая техника</label>
-                  <div className="detail-chips" style={{ marginTop: 6 }}>
-                    {APPLIANCE_OPTIONS.map(a => (
-                      <button key={a.key} className={`dchip${appliances.includes(a.key) ? ' on' : ''}`}
-                        onClick={() => toggleArr(appliances, setAppliances, a.key)}>{a.label}</button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Extra notes */}
-                <div>
-                  <label className="field-label">Дополнительные пожелания</label>
-                  <textarea className="detail-textarea"
-                    placeholder="Например: рабочее место у окна, много света, место для растений..."
-                    value={extraNotes} onChange={e => setExtraNotes(e.target.value)} rows={3} />
-                </div>
-
-                {/* Prompt preview */}
-                {promptPreview && (
-                  <div className="prompt-preview">
-                    <div className="field-label" style={{ marginBottom: 4 }}>Промпт для генерации</div>
-                    <div className="prompt-text">{promptPreview}</div>
-                  </div>
-                )}
               </div>
             </div>
-          ) : null}
+          )}
 
+          {/* ── Status ── */}
           {status === 'error' && <div className="status-box error show">{statusMsg}</div>}
           {isLoading && (
             <div className="status-box loading show">
@@ -674,6 +799,7 @@ export default function Home() {
             </div>
           )}
 
+          {/* ── Result ── */}
           {status === 'done' && outputUrl && (
             <div className="result-wrap show">
               <div className="field-label">Результат — перетащите линию для сравнения</div>
@@ -703,9 +829,9 @@ export default function Home() {
         <h2 className="section-title">Прозрачные цены без сюрпризов</h2>
         <div className="pricing-grid">
           {[
-            { name: 'Старт',     price: '$19', period: 'в месяц', features: ['20 генераций', 'Все 10 стилей', 'HD качество', 'Коммерческое использование'], featured: false },
-            { name: 'Профи',     price: '$49', period: 'в месяц', features: ['100 генераций', 'Полная детализация', '8K качество', 'Цветовая палитра', 'Поддержка 24/7'], featured: true },
-            { name: 'Агентство', price: '$149',period: 'в месяц', features: ['Безлимит', 'API доступ', 'White-label', '5 рабочих мест', 'Персональный менеджер'], featured: false },
+            { name: 'Старт',     price: '$19',  period: 'в месяц', features: ['20 генераций', 'Все 10 стилей', 'HD качество', 'Коммерческое использование'], featured: false },
+            { name: 'Профи',     price: '$49',  period: 'в месяц', features: ['100 генераций', 'Полная детализация', '8K качество', 'Цветовая палитра', 'Поддержка 24/7'], featured: true },
+            { name: 'Агентство', price: '$149', period: 'в месяц', features: ['Безлимит', 'API доступ', 'White-label', '5 рабочих мест', 'Персональный менеджер'], featured: false },
           ].map(plan => (
             <div key={plan.name} className={`plan${plan.featured ? ' featured' : ''}`}>
               {plan.featured && <div className="plan-badge">Популярный</div>}

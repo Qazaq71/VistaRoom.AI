@@ -741,3 +741,137 @@ footer {
   color: var(--muted);
   line-height: 1.5;
 }
+
+/* ── Detail tabs (Basic / Advanced) ── */
+.detail-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 0.5px solid var(--border);
+  margin: 0 -16px;
+  padding: 0 16px;
+}
+.detail-tab {
+  padding: 10px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+  margin-bottom: -0.5px;
+}
+.detail-tab:hover { color: var(--ink); }
+.detail-tab.active {
+  color: var(--warm);
+  border-bottom-color: var(--warm);
+}
+
+/* ── Strength slider: recommended zone overlay ── */
+.slider-track-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+.slider-track-wrap .slider {
+  width: 100%;
+  position: relative;
+  z-index: 2;
+}
+.slider-rec-zone {
+  position: absolute;
+  height: 6px;
+  background: rgba(200,169,110,0.22);
+  border: 1px solid rgba(200,169,110,0.45);
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 1;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* ── Strength hint label ── */
+.strength-hint {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.02em;
+}
+.strength-hint.good {
+  background: #f0fdf4;
+  color: var(--success);
+  border: 0.5px solid #86efac;
+}
+.strength-hint.warn {
+  background: var(--warm-light);
+  color: var(--warm-d);
+  border: 0.5px solid rgba(200,169,110,0.5);
+}
+
+/* ── Conflict warning box ── */
+.conflict-box {
+  margin: 12px 16px 0;
+  background: #fffbeb;
+  border: 0.5px solid #fbbf24;
+  border-radius: var(--r);
+  padding: 10px 13px;
+}
+.conflict-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: #92400e;
+  margin-bottom: 6px;
+}
+.conflict-item {
+  font-size: 11px;
+  color: #78350f;
+  line-height: 1.5;
+  padding-left: 10px;
+  position: relative;
+}
+.conflict-item::before {
+  content: '·';
+  position: absolute;
+  left: 2px;
+}
+
+/* ── Prompt preview toggle ── */
+.prompt-preview-toggle {
+  background: none;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color .15s;
+}
+.prompt-preview-toggle:hover { color: var(--ink); }
+
+/* ── Advanced tab note ── */
+.adv-note {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+  padding: 10px 12px;
+  background: var(--cream);
+  border-radius: var(--r);
+  border: 0.5px solid var(--border);
+}
+.adv-hint {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-top: 4px;
+  margin-bottom: 2px;
+}

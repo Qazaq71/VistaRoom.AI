@@ -136,7 +136,6 @@ const FLOOR_EN: Record<string, string> = {
   linoleum:      'vinyl linoleum floor covering',
 }
 
-// Tile zone EN templates — {C} = color, {ZONE} = zone restriction label
 const TILE_EN: Record<string, string> = {
   kitchen_backsplash: '{C} subway tile kitchen backsplash',
   kitchen_floor:      '{C} porcelain tile kitchen floor',
@@ -148,7 +147,6 @@ const TILE_EN: Record<string, string> = {
   tub_surround:       '{C} ceramic tile panels around the bathtub',
 }
 
-// Is this tile zone a backsplash (needs stricter spatial isolation)?
 const IS_BACKSPLASH: Record<string, boolean> = {
   kitchen_backsplash: true,
 }
@@ -196,7 +194,17 @@ const FURN_EN: Record<string, string> = {
   shower_cabin: 'shower cabin',
 }
 
-// ─── Hex → color name ────────────────────────────────────────────────────────
+// ─── Hex → dual description (name + hex code for model accuracy) ─────────────
+// Returns both a human-readable color name AND the raw hex value.
+// Diffusion models (SDXL, Flux) understand hex codes directly and this
+// gives much more precise color matching than names alone.
+
+function hexToColorDescription(hex: string): string {
+  if (!hex || hex.length < 7) return ''
+  const name = hexToColorName(hex)
+  // Return "color-name (hex #XXXXXX)" — model uses whichever signal is stronger
+  return name ? `${name} (hex ${hex.toUpperCase()})` : `hex ${hex.toUpperCase()}`
+}
 
 function hexToColorName(hex: string): string {
   if (!hex || hex.length < 7) return ''
@@ -244,16 +252,69 @@ function hexToColorName(hex: string): string {
   return br > 160 ? 'rose pink' : 'crimson red'
 }
 
+// ─── Conflict detector ────────────────────────────────────────────────────────
+
+/**
+ * Returns a list of human-readable conflict warnings for the given details.
+ * Used by the UI to warn users before generating.
+ */
+export function detectConflicts(
+  roomKey: string,
+  details: Partial<RoomDetails>
+): string[] {
+  const warnings: string[] = []
+
+  // Brick wall + pastel/light color — model will be confused
+  if (details.wallFinish?.includes('brick') && details.wallColorHex) {
+    const name = hexToColorName(details.wallColorHex)
+    const lightColors = ['pure white','off-white','light grey','soft pink','peach','golden yellow','yellow','lime green','mint green','turquoise','sky blue','lavender','orchid pink','rose pink']
+    if (lightColors.includes(name)) {
+      warnings.push(`Кирпич + ${name}: модель может проигнорировать цвет, так как кирпич уже имеет свой цвет`)
+    }
+  }
+
+  // Marble wall + color — marble has its own veining, color override rarely works
+  if (details.wallFinish?.includes('marble') && details.wallColorHex) {
+    const name = hexToColorName(details.wallColorHex)
+    if (name && !['pure white','off-white','light grey'].includes(name)) {
+      warnings.push(`Мрамор + ${name}: мраморные панели имеют собственный рисунок, цвет может не применяться точно`)
+    }
+  }
+
+  // Backsplash selected but room is not kitchen
+  const kitchenTileZones = ['kitchen_backsplash','kitchen_floor']
+  const bathTileZones = ['bath_walls','bath_floor','shower','tub_surround']
+  const toiletTileZones = ['toilet_walls','toilet_floor']
+
+  if (details.tilezone?.some(z => kitchenTileZones.includes(z)) && roomKey !== 'kitchen') {
+    warnings.push(`Кухонный фартук / пол кухни выбраны, но тип помещения — не кухня`)
+  }
+  if (details.tilezone?.some(z => bathTileZones.includes(z)) && roomKey !== 'bathroom') {
+    warnings.push(`Зоны ванной выбраны, но тип помещения — не ванная`)
+  }
+  if (details.tilezone?.some(z => toiletTileZones.includes(z)) && roomKey !== 'toilet') {
+    warnings.push(`Зоны туалета выбраны, но тип помещения — не туалет`)
+  }
+
+  // Multiple wall finishes — model may blend them unpredictably
+  if ((details.wallFinish?.length ?? 0) > 2) {
+    warnings.push(`Выбрано ${details.wallFinish!.length} видов отделки стен — модель может смешать их непредсказуемо, рекомендуется 1–2`)
+  }
+
+  return warnings
+}
+
 // ─── Main export ─────────────────────────────────────────────────────────────
 
 /**
  * Builds a strictly zone-isolated prompt for interior image generation.
  * Returns { positive, negative } so the caller can pass both to the API.
  *
- * Usage:
- *   const { positive, negative } = buildEditPrompt(roomKey, styleKey, details)
- *   // For backward-compat callers that expect a plain string:
- *   const prompt = buildEditPrompt(roomKey, styleKey, details) as unknown as string
+ * Key improvements:
+ * - Colors passed as "name (hex #XXXXXX)" for maximum model accuracy
+ * - Backsplash section consolidated from 3 blocks into 1 (reduces token bloat)
+ * - Size/ceiling omitted from prompt (they don't affect img2img output)
+ * - extraNotes placed right after header for higher attention weight
  */
 export function buildEditPrompt(
   roomKey:  string,
@@ -264,7 +325,7 @@ export function buildEditPrompt(
   const room      = ROOM_NAMES[roomKey] ?? 'interior'
   const isMyStyle = styleKey === 'my_style'
 
-  // ── Preset styles: unchanged behaviour, wrapped in new return shape ────────
+  // ── Preset styles ─────────────────────────────────────────────────────────
   if (!isMyStyle) {
     const sk = styleKey || 'minimalist'
     const positive = [
@@ -273,8 +334,7 @@ export function buildEditPrompt(
       STYLE_WALL_DEFAULT[sk] || '',
       STYLE_FLOOR_DEFAULT[sk]|| '',
       'keep all existing windows and doors in their exact original positions',
-      'preserve all window openings exactly as in the original photo',
-      'preserve all door openings exactly as in the original photo',
+      'preserve all window and door openings exactly as in the original photo',
       'do not add or remove any windows or doors',
       'photorealistic', 'hyperrealistic', '8k resolution',
       'professional interior photography', 'sharp focus',
@@ -286,9 +346,15 @@ export function buildEditPrompt(
 
   // ── my_style: fully structured, zone-isolated prompt ──────────────────────
 
-  const wallColor  = hexToColorName(details?.wallColorHex  || '')
-  const floorColor = hexToColorName(details?.floorColorHex || '')
-  const tileColor  = hexToColorName(details?.tileColorHex  || '')
+  // Use dual description (name + hex) for accurate color rendering
+  const wallColorDesc  = hexToColorDescription(details?.wallColorHex  || '')
+  const floorColorDesc = hexToColorDescription(details?.floorColorHex || '')
+  const tileColorDesc  = hexToColorDescription(details?.tileColorHex  || '')
+
+  // Keep plain name for negative prompt (shorter tokens)
+  const wallColorName  = hexToColorName(details?.wallColorHex  || '')
+  const floorColorName = hexToColorName(details?.floorColorHex || '')
+  const tileColorName  = hexToColorName(details?.tileColorHex  || '')
 
   // Resolve wall finish descriptions and short names for negative prompt
   const wallFinishDescs:  string[] = []
@@ -300,8 +366,8 @@ export function buildEditPrompt(
       const short = WALL_FINISH_SHORT[k]
       if (desc) {
         wallFinishDescs.push(
-          wallColor
-            ? desc.replace('{WC}', wallColor)
+          wallColorDesc
+            ? desc.replace('{WC}', wallColorDesc)
             : desc.replace('{WC} ', '')
         )
       }
@@ -309,10 +375,11 @@ export function buildEditPrompt(
     }
   }
 
-  // Resolve tile zones — separate backsplash zones from other tile zones
+  // Resolve tile zones — separate backsplash from other tiles
   const backsplashDescs: string[] = []
   const otherTileDescs:  string[] = []
-  const tileColorWord = tileColor || 'white'
+  const tileColorWord = tileColorDesc || 'white'
+  const tileColorShort = tileColorName || 'white'
 
   if (details?.tilezone?.length) {
     for (const k of details.tilezone) {
@@ -334,102 +401,64 @@ export function buildEditPrompt(
   const sections: string[] = []
 
   // [0] Header
-  sections.push(
-    `Professional interior design photography of a ${room}, custom style.`
-  )
+  sections.push(`Professional interior design photography of a ${room}, custom style.`)
 
-  // [0b] STRUCTURAL PRESERVATION — must appear early, before any surface zones
+  // [0b] User notes — placed early for high attention weight
+  // (extraNotes are most important to honor, so they come before zone instructions)
+  if (details?.extraNotes) {
+    sections.push(
+      `DESIGN INTENT: ${details.extraNotes.replace(/[^\x00-\x7F]/g,'').trim()}.`
+    )
+  }
+
+  // [0c] STRUCTURAL PRESERVATION
   sections.push(
-    `STRUCTURAL ELEMENTS: preserve ALL existing windows and doors EXACTLY as they appear in the original photo. ` +
-    `Window openings must remain in the same position, same size, and same shape. ` +
-    `Door openings must remain in the same position, same size, and same shape. ` +
-    `Do NOT add new windows. Do NOT remove any windows. Do NOT block or cover any windows. ` +
-    `Do NOT add new doors. Do NOT remove any doors. Do NOT block or cover any doors. ` +
-    `The room layout and architectural openings are FIXED and must not change.`
+    `FIXED STRUCTURE: preserve ALL existing windows and doors exactly as in the original photo — ` +
+    `same position, size and shape. Do not add, remove, block or move any windows or doors.`
   )
 
   // [1] WALLS ZONE
   if (wallFinishDescs.length) {
     sections.push(
-      `WALLS ZONE: ${wallFinishDescs.join(' and ')}, ` +
-      `applied ONLY to vertical wall surfaces. ` +
-      `Do NOT apply this wall material to the ceiling. ` +
-      `Do NOT apply this wall material to the floor. ` +
-      `Do NOT apply this wall material to the backsplash area.`
+      `WALLS: ${wallFinishDescs.join(' and ')}, ` +
+      `on vertical wall surfaces only. Not on ceiling, not on floor, not on backsplash.`
     )
-  } else if (wallColor) {
+  } else if (wallColorDesc) {
     sections.push(
-      `WALLS ZONE: all vertical wall surfaces painted ${wallColor}. ` +
-      `No other material or texture on the walls. ` +
-      `Ceiling is NOT ${wallColor}.`
+      `WALLS: all vertical wall surfaces painted ${wallColorDesc}. ` +
+      `Ceiling is NOT this color.`
     )
   } else {
-    sections.push(`WALLS ZONE: clean neutral walls.`)
+    sections.push(`WALLS: clean neutral walls.`)
   }
 
-  // [2] CEILING ZONE — always explicit to prevent contamination
-  sections.push(
-    `CEILING ZONE: smooth plain white painted ceiling. ` +
-    `Absolutely NO wall material, NO wall texture, NO wall color on the ceiling. ` +
-    `Ceiling must look completely different from the walls.`
-  )
+  // [2] CEILING ZONE
+  sections.push(`CEILING: smooth plain white painted ceiling, no wall material on ceiling.`)
 
   // [3] FLOOR ZONE
   if (details?.floorMaterial) {
     const floorDesc = FLOOR_EN[details.floorMaterial]
     if (floorDesc) {
-      const full = floorColor ? `${floorColor} ${floorDesc}` : floorDesc
-      sections.push(
-        `FLOOR ZONE: ${full}. ` +
-        `This material covers ONLY the horizontal floor surface, not the walls.`
-      )
+      const full = floorColorDesc ? `${floorColorDesc} ${floorDesc}` : floorDesc
+      sections.push(`FLOOR: ${full}. Covers only the horizontal floor surface.`)
     }
-  } else if (floorColor) {
-    sections.push(
-      `FLOOR ZONE: floor in ${floorColor} color. ` +
-      `Floor surface only — not applied to walls or ceiling.`
-    )
+  } else if (floorColorDesc) {
+    sections.push(`FLOOR: floor surface in ${floorColorDesc} color.`)
   }
 
-  // [4] BACKSPLASH ZONE (kitchen only, highly localized)
-  // Strategy: repeat the backsplash instruction THREE times in different phrasings.
-  // Diffusion models are token-frequency-sensitive — repetition raises attention weight.
-  // We also add an explicit "override" guard so the wall finish doesn't bleed in.
+  // [4] BACKSPLASH ZONE — consolidated single instruction (was 3 redundant blocks)
   if (backsplashDescs.length) {
-    const bsColor = tileColorWord
-
-    // 4a. Primary instruction — spatial anchor
     sections.push(
-      `KITCHEN BACKSPLASH ZONE: the area between the kitchen countertop and upper cabinets ` +
-      `is covered with ${bsColor} subway tiles. ` +
-      `This is a mandatory design element. The backsplash MUST be visible and rendered as ${bsColor} tiles. ` +
-      `The wall finish (${wallFinishShorts.join(', ') || 'wall material'}) does NOT appear in the backsplash zone — ` +
-      `the backsplash overrides the wall in this area.`
-    )
-
-    // 4b. Reinforcement — color emphasis
-    sections.push(
-      `BACKSPLASH COLOR OVERRIDE: the kitchen backsplash strip is strictly ${bsColor}. ` +
-      `Color of backsplash tiles: ${bsColor}. ` +
-      `The backsplash is clearly ${bsColor}, not white, not grey, not the same as the wall. ` +
-      `It creates a strong visual contrast against the surrounding wall finish.`
-    )
-
-    // 4c. Spatial isolation — prevent tile spread
-    sections.push(
-      `BACKSPLASH BOUNDARIES: ${bsColor} tiles exist ONLY in the backsplash strip. ` +
-      `Do NOT spread ${bsColor} tiles onto the main walls beyond the backsplash zone. ` +
-      `Do NOT extend ${bsColor} tiles to the ceiling. ` +
-      `Do NOT place ${bsColor} tiles on the floor. ` +
-      `The backsplash is a separate, isolated surface element.`
+      `KITCHEN BACKSPLASH: the strip between countertop and upper cabinets is covered with ` +
+      `${tileColorWord} subway tiles. This zone is mandatory and overrides the wall finish. ` +
+      `Backsplash tiles stay ONLY in this strip — not on main walls, not on ceiling, not on floor.`
     )
   }
 
   // [5] OTHER TILE ZONES
   if (otherTileDescs.length) {
     sections.push(
-      `TILE ZONES: ${otherTileDescs.join('; ')}. ` +
-      `Each tile zone is confined strictly to its designated surface.`
+      `TILE ZONES: ${otherTileDescs.join('; ')}. Each zone confined to its surface.`
     )
   }
 
@@ -448,23 +477,13 @@ export function buildEditPrompt(
     sections.push(`APPLIANCES: ${appliancesList.join(', ')}.`)
   }
 
-  // [9] ZONE ISOLATION RULE (repeated at end for emphasis)
+  // [9] ZONE ISOLATION RULE
   sections.push(
-    `ZONE ISOLATION RULE: each material and finish is strictly confined to its designated zone. ` +
-    `Wall materials stay on walls only. ` +
-    `Ceiling is white and plain. ` +
-    `Floor material stays on the floor only. ` +
-    `Backsplash tiles stay in the backsplash zone only. ` +
-    `CRITICAL: all windows and doors from the original photo remain in their exact positions — ` +
-    `do not remove, block, move, resize, or add any windows or doors.`
+    `ZONE RULE: wall finish on walls only, floor material on floor only, ceiling stays white. ` +
+    `Windows and doors unchanged from original photo.`
   )
 
-  // [10] Optional room dimensions / notes
-  if (details?.size)          sections.push(`Room size: ${details.size.replace(/[^\x00-\x7F]/g,'').trim()}.`)
-  if (details?.ceilingHeight) sections.push(`Ceiling height: ${details.ceilingHeight.replace(/[^\x00-\x7F]/g,'').trim()}.`)
-  if (details?.extraNotes)    sections.push(details.extraNotes.replace(/[^\x00-\x7F]/g,'').trim())
-
-  // [11] Quality tail
+  // [10] Quality tail
   sections.push(
     `High-end architectural rendering, realistic textures, sharp details, ` +
     `8k resolution, professional studio lighting, photorealistic, hyperrealistic.`
@@ -486,41 +505,29 @@ export function buildEditPrompt(
   }
 
   // Prevent wall color from appearing on wrong surfaces
-  if (wallColor) {
+  if (wallColorName) {
     negParts.push(
-      `${wallColor} ceiling`,
-      `${wallColor} floor`,
+      `${wallColorName} ceiling`,
+      `${wallColorName} floor`,
     )
   }
 
-  // Prevent wall finish from covering the backsplash zone
+  // Backsplash negative tokens (consolidated)
   if (backsplashDescs.length) {
     for (const short of wallFinishShorts) {
-      negParts.push(
-        `${short} in backsplash area`,
-        `${short} between countertop and cabinets`,
-      )
+      negParts.push(`${short} in backsplash area`)
     }
     negParts.push(
       `no backsplash`,
       `missing backsplash`,
       `backsplash same as wall`,
-      `wall covering entire kitchen wall with no backsplash break`,
-      `wallpaper covering backsplash zone`,
     )
-  }
-
-  // Prevent tile/backsplash color from bleeding onto walls/ceiling
-  if (tileColor && backsplashDescs.length) {
-    negParts.push(
-      `${tileColor} walls`,
-      `${tileColor} ceiling`,
-      `${tileColor} floor`,
-      `backsplash tiles on main walls`,
-      `tile pattern on ceiling`,
-      `white backsplash`,
-      `grey backsplash`,
-    )
+    if (tileColorShort) {
+      negParts.push(
+        `${tileColorShort} on main walls`,
+        `${tileColorShort} on ceiling`,
+      )
+    }
   }
 
   // Prevent floor material from appearing on walls
@@ -539,7 +546,6 @@ export function buildEditPrompt(
 
 // ─── Static negative prompt parts ────────────────────────────────────────────
 
-/** Base negative tokens always included regardless of user selections */
 const NEGATIVE_PROMPT_BASE_PARTS: string[] = [
   'cartoon', 'anime', 'sketch', 'painting', 'watercolor',
   'blurry', 'low quality', 'distorted', 'deformed',
@@ -556,7 +562,6 @@ const NEGATIVE_PROMPT_BASE_PARTS: string[] = [
   'material bleeding', 'wrong zone materials',
 ]
 
-/** Backward-compat static export (for callers that reference NEGATIVE_PROMPT directly) */
 export const NEGATIVE_PROMPT = NEGATIVE_PROMPT_BASE_PARTS.join(', ')
 
 const NEGATIVE_PROMPT_BASE = NEGATIVE_PROMPT
