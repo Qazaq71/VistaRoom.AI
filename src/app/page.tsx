@@ -995,23 +995,74 @@ export default function Home() {
 
       <section className="pricing-section" id="pricing">
         <div className="section-eyebrow">Тарифы</div>
-        <h2 className="section-title">Прозрачные цены без сюрпризов</h2>
+        <h2 className="section-title">Дизайнер берёт от $500 за проект.<br />Мы — от $9 в месяц.</h2>
+        <p className="section-sub">Годовая подписка — 2 месяца в подарок</p>
         <div className="pricing-grid">
           {[
-            { name: 'Старт',     price: '$19',  period: 'в месяц', features: ['20 генераций в месяц', 'Все 10 стилей', 'Режим «Мой стиль»', 'Скачивание результата'], featured: false },
-            { name: 'Профи',     price: '$49',  period: 'в месяц', features: ['100 генераций в месяц', 'Все 10 стилей', 'Режим «Мой стиль»', 'Скачивание без водяного знака', 'История генераций'], featured: true },
-            { name: 'Агентство', price: '$149', period: 'в месяц', features: ['500 генераций в месяц', 'Все 10 стилей', 'Режим «Мой стиль»', 'Скачивание без водяного знака', 'История генераций', 'До 5 пользователей', 'Коммерческое использование'], featured: false },
+            {
+              name: 'Старт',
+              price: '$12',
+              priceYear: '$10',
+              period: 'в месяц',
+              sub: 'Для домашнего использования',
+              features: [
+                '30 генераций в месяц',
+                'Все 10 стилей дизайна',
+                'Режим «Мой стиль»',
+                'Скачивание результата',
+              ],
+              featured: false,
+              badge: null,
+            },
+            {
+              name: 'Профи',
+              price: '$34',
+              priceYear: '$28',
+              period: 'в месяц',
+              sub: 'Для дизайнеров и риелторов',
+              features: [
+                '200 генераций в месяц',
+                'Все 10 стилей дизайна',
+                'Режим «Мой стиль»',
+                'Без водяного знака',
+                'История генераций',
+                'Приоритетная генерация',
+              ],
+              featured: true,
+              badge: 'Популярный',
+            },
+            {
+              name: 'Агентство',
+              price: '$99',
+              priceYear: '$82',
+              period: 'в месяц',
+              sub: 'Для команд и агентств',
+              features: [
+                '600 генераций в месяц',
+                'Все 10 стилей дизайна',
+                'Режим «Мой стиль»',
+                'Без водяного знака',
+                'История генераций',
+                'До 5 пользователей',
+                'Коммерческое использование',
+                'Приоритетная поддержка',
+              ],
+              featured: false,
+              badge: 'Лучшая ценность',
+            },
           ].map(plan => (
             <div key={plan.name} className={`plan${plan.featured ? ' featured' : ''}`}>
-              {plan.featured && <div className="plan-badge">Популярный</div>}
+              {plan.badge && <div className="plan-badge">{plan.badge}</div>}
               <div className="plan-name">{plan.name}</div>
+              <div className="plan-sub-name">{plan.sub}</div>
               <div className="plan-price">{plan.price}</div>
-              <div className="plan-period">{plan.period}</div>
+              <div className="plan-period">{plan.period} &nbsp;·&nbsp; <span className="plan-year">{plan.priceYear}/мес при оплате за год</span></div>
               <ul className="plan-features">{plan.features.map(f => <li key={f}>{f}</li>)}</ul>
               <button className="plan-btn">Начать</button>
             </div>
           ))}
         </div>
+        <p className="pricing-footer-note">Все планы включают 3 бесплатные генерации без регистрации. Отмена подписки в любой момент.</p>
       </section>
 
       <footer>
