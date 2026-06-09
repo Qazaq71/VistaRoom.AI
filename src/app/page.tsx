@@ -622,7 +622,7 @@ export default function Home() {
           <a href="#generate" className="btn-primary">Попробовать бесплатно</a>
           <div className="hero-stats">
             <div><div className="stat-num">10</div><div className="stat-label">Стилей дизайна</div></div>
-            <div><div className="stat-num">8K</div><div className="stat-label">Разрешение</div></div>
+            <div><div className="stat-num">3</div><div className="stat-label">Бесплатно</div></div>
             <div><div className="stat-num">30 сек</div><div className="stat-label">Генерация</div></div>
           </div>
         </div>
