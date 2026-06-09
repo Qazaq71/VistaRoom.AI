@@ -1,1 +1,29 @@
+import { NextRequest, NextResponse } from 'next/server'
+
+export async function GET(req: NextRequest) {
+  try {
+    const url = req.nextUrl.searchParams.get('url')
+    if (!url || !url.startsWith('https://')) {
+      return new NextResponse('Invalid URL', { status: 400 })
+    }
+    // Only allow Replicate CDN
+    const allowed = ['replicate.delivery', 'pbxt.cdn.pocketbase.io', 'replicate.com']
+    const host = new URL(url).hostname
+    if (!allowed.some(d => host.endsWith(d))) {
+      return new NextResponse('Forbidden', { status: 403 })
+    }
+
+    const res  = await fetch(url)
+    const blob = await res.arrayBuffer()
+
+    return new NextResponse(blob, {
+      headers: {
+        'Content-Type': res.headers.get('content-type') ?? 'image/jpeg',
+        'Cache-Control': 'public, max-age=86400',
+      },
+    })
+  } catch {
+    return new NextResponse('Proxy error', { status: 500 })
+  }
+}
 
