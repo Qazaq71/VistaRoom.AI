@@ -995,7 +995,7 @@ export default function Home() {
 
       <section className="pricing-section" id="pricing">
         <div className="section-eyebrow">Тарифы</div>
-        <h2 className="section-title">Дизайнер берёт от $500 за проект.<br />Мы — от $9 в месяц.</h2>
+        <h2 className="section-title">Дизайнер берёт от $500 за проект.<br />Мы — от $12 в месяц.</h2>
         <p className="section-sub">Годовая подписка — 2 месяца в подарок</p>
         <div className="pricing-grid">
           {[
