@@ -85,11 +85,13 @@ export async function POST(req: NextRequest) {
 
     const isMyStyle = style === 'my_style'
 
-    // prompt_strength=1.0 tells the inpainting pipeline to fully redraw the room
-    // The MLSD ControlNet still preserves straight-line geometry (walls/windows/doors)
-    // but the furniture, which has curved lines, is NOT preserved by MLSD
-    const promptStrength   = 1.0
-    const guidanceScale    = isMyStyle ? 15 : 12
+    // prompt_strength controls how much the model deviates from the source image.
+    // 1.0 = full redraw — MLSD should preserve geometry but in practice windows move.
+    // 0.8 = strong redesign (changes materials, style, furniture) while keeping
+    //       the room's structural geometry (walls, windows, doors) intact.
+    // 0.75 for preset styles = slightly more conservative, better window preservation.
+    const promptStrength    = isMyStyle ? 0.8 : 0.75
+    const guidanceScale     = isMyStyle ? 15 : 12
     const numInferenceSteps = isMyStyle ? 50 : 40
 
     const prediction = await replicate.predictions.create({
