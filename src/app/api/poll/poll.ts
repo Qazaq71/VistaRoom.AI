@@ -6,18 +6,7 @@ const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! })
 
 const NO_WATERMARK_PLANS = new Set(['agency'])
 
-// ── Watermark via pure sharp primitives — zero font/librsvg dependency ────────
-//
-// Strategy: build the badge as a raw RGBA pixel buffer using sharp.
-// 1. Create a white semi-transparent rounded-rectangle PNG (the pill background)
-// 2. Create each letter of "VistaRoom-AI" as a tiny white-on-transparent PNG
-//    using a hand-coded 5×7 pixel-font bitmap — no system fonts needed.
-// 3. Composite letters side by side onto the pill, then composite onto photo.
-//
-// 5×7 pixel font — each letter is a 5-wide × 7-tall bitmask (row-major, MSB left)
-// Only the characters we need: V i s t a R o m - A I
-// ─────────────────────────────────────────────────────────────────────────────
-
+// ── 5×7 pixel-font bitmaps — zero font/SVG dependency ────────────────────────
 const FONT5X7: Record<string, number[]> = {
   'V': [0b10001,0b10001,0b10001,0b01010,0b01010,0b00100,0b00100],
   'i': [0b00100,0b00000,0b00100,0b00100,0b00100,0b00100,0b00100],
@@ -32,103 +21,113 @@ const FONT5X7: Record<string, number[]> = {
   'I': [0b01110,0b00100,0b00100,0b00100,0b00100,0b00100,0b01110],
 }
 
-// Render "VistaRoom-AI" to a raw RGBA Buffer at given scale
-// scale=1 → each pixel = 1px (5×7 per char), scale=3 → 15×21 per char
-function renderTextBuffer(text: string, scale: number): { data: Buffer; width: number; height: number } {
+// Render text to raw RGBA Buffer — returns pixels + dimensions
+function renderTextRGBA(text: string, scale: number) {
   const CW = 5, CH = 7
-  const gap = 1                         // pixels between letters
+  const gap  = scale
   const charW = CW * scale
   const charH = CH * scale
-  const totalW = text.length * (charW + gap * scale) - gap * scale
+  const totalW = text.length * (charW + gap) - gap
   const totalH = charH
-  const pixels = Buffer.alloc(totalW * totalH * 4, 0) // RGBA all transparent
+  const pixels = Buffer.alloc(totalW * totalH * 4, 0)
 
   let cx = 0
   for (const ch of text) {
     const rows = FONT5X7[ch] ?? FONT5X7['i']
     for (let row = 0; row < CH; row++) {
       for (let col = 0; col < CW; col++) {
-        const bit = (rows[row] >> (CW - 1 - col)) & 1
-        if (!bit) continue
-        // Scale up: fill scale×scale block
+        if (!((rows[row] >> (CW - 1 - col)) & 1)) continue
         for (let sy = 0; sy < scale; sy++) {
           for (let sx = 0; sx < scale; sx++) {
             const px = cx + col * scale + sx
             const py = row * scale + sy
             const idx = (py * totalW + px) * 4
-            pixels[idx]     = 255  // R
-            pixels[idx + 1] = 255  // G
-            pixels[idx + 2] = 255  // B
-            pixels[idx + 3] = 230  // A
+            pixels[idx]     = 255
+            pixels[idx + 1] = 255
+            pixels[idx + 2] = 255
+            pixels[idx + 3] = 230
           }
         }
       }
     }
-    cx += charW + gap * scale
+    cx += charW + gap
   }
-
-  return { data: pixels, width: totalW, height: totalH }
+  return { pixels, width: totalW, height: totalH }
 }
 
-async function buildWatermark(imgW: number, imgH: number): Promise<Buffer> {
+// Build pill background as raw RGBA — rounded rectangle, no SVG
+function renderPillRGBA(w: number, h: number, rx: number) {
+  const pixels = Buffer.alloc(w * h * 4, 0)
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      // Check if inside rounded rect
+      const inCornerTL = x < rx      && y < rx      && (x - rx) ** 2 + (y - rx) ** 2 > rx * rx
+      const inCornerTR = x >= w - rx && y < rx      && (x - (w - rx)) ** 2 + (y - rx) ** 2 > rx * rx
+      const inCornerBL = x < rx      && y >= h - rx && (x - rx) ** 2 + (y - (h - rx)) ** 2 > rx * rx
+      const inCornerBR = x >= w - rx && y >= h - rx && (x - (w - rx)) ** 2 + (y - (h - rx)) ** 2 > rx * rx
+      if (inCornerTL || inCornerTR || inCornerBL || inCornerBR) continue
+      const idx = (y * w + x) * 4
+      pixels[idx]     = 0
+      pixels[idx + 1] = 0
+      pixels[idx + 2] = 0
+      pixels[idx + 3] = 140  // ~55% opacity
+    }
+  }
+  return pixels
+}
+
+async function buildWatermarkPng(imgW: number, imgH: number): Promise<Buffer> {
   const text  = 'VistaRoom-AI'
-  // Scale the pixel font proportionally to image size
-  const scale = Math.max(2, Math.round(imgW / 120))
+  const scale = Math.max(2, Math.round(imgW / 130))
 
-  const { data: textData, width: textW, height: textH } = renderTextBuffer(text, scale)
+  const { pixels: textPixels, width: textW, height: textH } = renderTextRGBA(text, scale)
 
-  const padX   = Math.round(scale * 4)
-  const padY   = Math.round(scale * 3)
+  const padX   = scale * 4
+  const padY   = scale * 3
   const badgeW = textW + padX * 2
   const badgeH = textH + padY * 2
+  const rx     = Math.round(badgeH / 2)
   const margin = Math.round(imgW * 0.025)
 
-  // Build pill background: semi-transparent dark rounded rect
-  const rx = Math.round(badgeH / 2)
-  const pillSvg = Buffer.from(
-    `<svg width="${badgeW}" height="${badgeH}" xmlns="http://www.w3.org/2000/svg">` +
-    `<rect x="0" y="0" width="${badgeW}" height="${badgeH}" rx="${rx}" ry="${rx}" fill="rgba(0,0,0,0.55)"/>` +
-    `</svg>`
-  )
+  // Pill background as raw RGBA
+  const pillPixels = renderPillRGBA(badgeW, badgeH, rx)
 
-  // Composite: pill background + pixel-font text on top
-  const badge = await sharp(pillSvg)
-    .composite([{
-      input: {
-        raw: { width: textW, height: textH, channels: 4 },
-        // @ts-ignore — sharp accepts Buffer for raw input
-      },
-      // We pass the raw pixel buffer via a workaround:
-      // create a PNG from raw pixels first, then composite
-    }])
-    .png()
-    .toBuffer()
-    .catch(() => sharp(pillSvg).png().toBuffer()) // fallback: pill only
+  // Composite text onto pill by direct pixel write
+  for (let ty = 0; ty < textH; ty++) {
+    for (let tx = 0; tx < textW; tx++) {
+      const srcIdx = (ty * textW + tx) * 4
+      const dstX   = tx + padX
+      const dstY   = ty + padY
+      if (dstX >= badgeW || dstY >= badgeH) continue
+      const dstIdx = (dstY * badgeW + dstX) * 4
+      const srcA   = textPixels[srcIdx + 3] / 255
+      if (srcA === 0) continue
+      // Alpha composite text over pill
+      pillPixels[dstIdx]     = Math.round(textPixels[srcIdx]     * srcA + pillPixels[dstIdx]     * (1 - srcA))
+      pillPixels[dstIdx + 1] = Math.round(textPixels[srcIdx + 1] * srcA + pillPixels[dstIdx + 1] * (1 - srcA))
+      pillPixels[dstIdx + 2] = Math.round(textPixels[srcIdx + 2] * srcA + pillPixels[dstIdx + 2] * (1 - srcA))
+      pillPixels[dstIdx + 3] = Math.min(255, pillPixels[dstIdx + 3] + Math.round(textPixels[srcIdx + 3] * srcA))
+    }
+  }
 
-  // Actually build text PNG from raw pixels
-  const textPng = await sharp(textData, {
-    raw: { width: textW, height: textH, channels: 4 }
+  // Build badge PNG from merged pixels
+  const badgePng = await sharp(pillPixels, {
+    raw: { width: badgeW, height: badgeH, channels: 4 }
   }).png().toBuffer()
 
-  // Pill + text
-  const badgeFinal = await sharp(pillSvg)
-    .composite([{ input: textPng, left: padX, top: padY }])
-    .png()
-    .toBuffer()
-
-  // Position in bottom-right of full image
-  const fullOverlay = await sharp({
+  // Embed badge into full transparent image at bottom-right
+  const fullPng = await sharp({
     create: { width: imgW, height: imgH, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } }
   })
     .composite([{
-      input: badgeFinal,
+      input: badgePng,
       left:  imgW - badgeW - margin,
       top:   imgH - badgeH - margin,
     }])
     .png()
     .toBuffer()
 
-  return fullOverlay
+  return fullPng
 }
 
 async function applyWatermark(imageUrl: string): Promise<string> {
@@ -140,7 +139,7 @@ async function applyWatermark(imageUrl: string): Promise<string> {
   const w        = metadata.width  ?? 768
   const h        = metadata.height ?? 768
 
-  const overlay = await buildWatermark(w, h)
+  const overlay = await buildWatermarkPng(w, h)
 
   const result = await img
     .composite([{ input: overlay, blend: 'over' }])
@@ -165,10 +164,10 @@ export async function GET(req: NextRequest) {
 
     if (prediction.status !== 'succeeded') {
       return NextResponse.json({
-        id:     prediction.id,
-        status: prediction.status,
+        id:        prediction.id,
+        status:    prediction.status,
         outputUrl: null,
-        error:  prediction.error ?? null,
+        error:     prediction.error ?? null,
       })
     }
 
@@ -186,10 +185,10 @@ export async function GET(req: NextRequest) {
       : rawUrl
 
     return NextResponse.json({
-      id:     prediction.id,
-      status: 'succeeded',
+      id:        prediction.id,
+      status:    'succeeded',
       outputUrl,
-      error:  null,
+      error:     null,
     })
 
   } catch (err: unknown) {
