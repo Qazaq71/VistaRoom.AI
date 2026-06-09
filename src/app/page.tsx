@@ -532,7 +532,7 @@ export default function Home() {
   return (
     <>
       <nav className="nav">
-        <div className="logo">Space<span className="logo-accent">AI</span></div>
+        <div className="logo">VistaRoom<span className="logo-accent">-AI</span></div>
         <a href="#pricing" className="nav-cta">Тарифы</a>
       </nav>
 
@@ -937,8 +937,8 @@ export default function Home() {
       </section>
 
       <footer>
-        <div className="logo">Space<span className="logo-accent">AI</span></div>
-        <div className="footer-copy">© {new Date().getFullYear()} SpaceAI. Все права защищены.</div>
+        <div className="logo">VistaRoom<span className="logo-accent">-AI</span></div>
+        <div className="footer-copy">© {new Date().getFullYear()} VistaRoom-AI. Все права защищены.</div>
       </footer>
     </>
   )

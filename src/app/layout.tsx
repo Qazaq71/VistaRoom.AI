@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'SpaceAI - AI Interior Design',
+  title: 'VistaRoom-AI - AI Interior Design',
   description: 'Transform your room with AI interior design in 30 seconds.',
 }
 
