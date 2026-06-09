@@ -502,7 +502,7 @@ export default function Home() {
         if (data.status === 'succeeded' && data.outputUrl) {
           clearInterval(pollRef.current!)
           // Apply watermark client-side via Canvas — no server dependency
-          const watermarked = plan === 'agency'
+          const watermarked = (plan === 'profi' || plan === 'agency')
             ? data.outputUrl
             : await addWatermark(data.outputUrl)
           setOutputUrl(watermarked); setStatus('done')
@@ -999,8 +999,8 @@ export default function Home() {
         <div className="pricing-grid">
           {[
             { name: 'Старт',     price: '$19',  period: 'в месяц', features: ['20 генераций в месяц', 'Все 10 стилей', 'Режим «Мой стиль»', 'Скачивание результата'], featured: false },
-            { name: 'Профи',     price: '$49',  period: 'в месяц', features: ['100 генераций в месяц', 'Все 10 стилей', 'Режим «Мой стиль»', 'Скачивание результата', 'История генераций'], featured: true },
-            { name: 'Агентство', price: '$149', period: 'в месяц', features: ['500 генераций в месяц', 'Все 10 стилей', 'Режим «Мой стиль»', 'Скачивание результата', 'История генераций', 'До 5 пользователей', 'Коммерческое использование'], featured: false },
+            { name: 'Профи',     price: '$49',  period: 'в месяц', features: ['100 генераций в месяц', 'Все 10 стилей', 'Режим «Мой стиль»', 'Скачивание без водяного знака', 'История генераций'], featured: true },
+            { name: 'Агентство', price: '$149', period: 'в месяц', features: ['500 генераций в месяц', 'Все 10 стилей', 'Режим «Мой стиль»', 'Скачивание без водяного знака', 'История генераций', 'До 5 пользователей', 'Коммерческое использование'], featured: false },
           ].map(plan => (
             <div key={plan.name} className={`plan${plan.featured ? ' featured' : ''}`}>
               {plan.featured && <div className="plan-badge">Популярный</div>}
