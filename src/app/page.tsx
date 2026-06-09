@@ -300,61 +300,65 @@ function StepHeader({ step, current, label, done, onClick }: {
 }
 
 // ── Client-side watermark via Canvas ─────────────────────────────────────────
-// Draws "VistaRoom-AI" pill badge in bottom-right corner of the image.
-// Returns a data URL (base64 JPEG). Falls back to original URL on any error.
 async function addWatermark(imageUrl: string): Promise<string> {
-  return new Promise(resolve => {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => {
-      try {
-        const canvas  = document.createElement('canvas')
-        canvas.width  = img.width
-        canvas.height = img.height
-        const ctx = canvas.getContext('2d')!
-        ctx.drawImage(img, 0, 0)
+  try {
+    // Fetch image through our own proxy to avoid CORS issues with Replicate CDN
+    const res    = await fetch(`/api/proxy?url=${encodeURIComponent(imageUrl)}`)
+    const blob   = await res.blob()
+    const objUrl = URL.createObjectURL(blob)
 
-        const text     = 'VistaRoom-AI'
-        const fontSize = Math.max(13, Math.round(img.width * 0.034))
-        ctx.font       = `600 ${fontSize}px -apple-system, Arial, sans-serif`
+    return new Promise(resolve => {
+      const img = new Image()
+      img.onload = () => {
+        try {
+          const canvas  = document.createElement('canvas')
+          canvas.width  = img.width
+          canvas.height = img.height
+          const ctx = canvas.getContext('2d')!
+          ctx.drawImage(img, 0, 0)
+          URL.revokeObjectURL(objUrl)
 
-        const textW   = ctx.measureText(text).width
-        const padX    = fontSize * 0.7
-        const padY    = fontSize * 0.45
-        const badgeW  = textW + padX * 2
-        const badgeH  = fontSize + padY * 2
-        const margin  = img.width * 0.025
-        const rx      = badgeH / 2
+          const text     = 'VistaRoom-AI'
+          const fontSize = Math.max(13, Math.round(img.width * 0.034))
+          ctx.font       = `600 ${fontSize}px Arial, sans-serif`
 
-        const bx = img.width  - badgeW - margin
-        const by = img.height - badgeH - margin
+          const textW  = ctx.measureText(text).width
+          const padX   = fontSize * 0.7
+          const padY   = fontSize * 0.45
+          const badgeW = textW + padX * 2
+          const badgeH = fontSize + padY * 2
+          const margin = img.width * 0.025
+          const rx     = badgeH / 2
+          const bx     = img.width  - badgeW - margin
+          const by     = img.height - badgeH - margin
 
-        // Draw pill background
-        ctx.beginPath()
-        ctx.moveTo(bx + rx, by)
-        ctx.lineTo(bx + badgeW - rx, by)
-        ctx.arcTo(bx + badgeW, by, bx + badgeW, by + rx, rx)
-        ctx.lineTo(bx + badgeW, by + badgeH - rx)
-        ctx.arcTo(bx + badgeW, by + badgeH, bx + badgeW - rx, by + badgeH, rx)
-        ctx.lineTo(bx + rx, by + badgeH)
-        ctx.arcTo(bx, by + badgeH, bx, by + badgeH - rx, rx)
-        ctx.lineTo(bx, by + rx)
-        ctx.arcTo(bx, by, bx + rx, by, rx)
-        ctx.closePath()
-        ctx.fillStyle = 'rgba(0,0,0,0.55)'
-        ctx.fill()
+          ctx.beginPath()
+          ctx.moveTo(bx + rx, by)
+          ctx.lineTo(bx + badgeW - rx, by)
+          ctx.arcTo(bx + badgeW, by,          bx + badgeW, by + rx,          rx)
+          ctx.lineTo(bx + badgeW, by + badgeH - rx)
+          ctx.arcTo(bx + badgeW, by + badgeH, bx + badgeW - rx, by + badgeH, rx)
+          ctx.lineTo(bx + rx,    by + badgeH)
+          ctx.arcTo(bx,          by + badgeH, bx, by + badgeH - rx,          rx)
+          ctx.lineTo(bx,         by + rx)
+          ctx.arcTo(bx,          by,          bx + rx, by,                   rx)
+          ctx.closePath()
+          ctx.fillStyle = 'rgba(0,0,0,0.55)'
+          ctx.fill()
 
-        // Draw text
-        ctx.fillStyle    = 'rgba(255,255,255,0.92)'
-        ctx.textBaseline = 'middle'
-        ctx.fillText(text, bx + padX, by + badgeH / 2)
+          ctx.fillStyle    = 'rgba(255,255,255,0.92)'
+          ctx.textBaseline = 'middle'
+          ctx.fillText(text, bx + padX, by + badgeH / 2)
 
-        resolve(canvas.toDataURL('image/jpeg', 0.88))
-      } catch { resolve(imageUrl) }
-    }
-    img.onerror = () => resolve(imageUrl)
-    img.src = imageUrl
-  })
+          resolve(canvas.toDataURL('image/jpeg', 0.88))
+        } catch { resolve(objUrl) }
+      }
+      img.onerror = () => resolve(imageUrl)
+      img.src = objUrl
+    })
+  } catch {
+    return imageUrl
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
