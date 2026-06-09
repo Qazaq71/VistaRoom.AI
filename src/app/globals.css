@@ -989,3 +989,88 @@ footer {
 .prompt-preview-toggle:hover { color: var(--ink); }
 .prompt-text { font-size: 11px; color: var(--muted); line-height: 1.6; font-family: monospace; word-break: break-word; margin-top: 6px; }
 .adv-hint { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+/* ── Style chip with hover preview tooltip ── */
+.style-chip-wrap {
+  position: relative;
+}
+
+/* Tooltip — hidden by default, shown on hover */
+.style-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  background: var(--ink);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* Arrow pointing down */
+.style-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid var(--ink);
+}
+
+.style-chip-wrap:hover .style-tooltip {
+  display: block;
+}
+
+/* Clip to panel if tooltip goes off-screen left/right */
+.style-chip-wrap:first-child .style-tooltip,
+.style-chip-wrap:nth-child(2) .style-tooltip {
+  left: 0;
+  transform: none;
+}
+.style-chip-wrap:first-child .style-tooltip::after,
+.style-chip-wrap:nth-child(2) .style-tooltip::after {
+  left: 24px;
+  transform: none;
+}
+.style-chip-wrap:last-child .style-tooltip,
+.style-chip-wrap:nth-last-child(2) .style-tooltip {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+.style-chip-wrap:last-child .style-tooltip::after,
+.style-chip-wrap:nth-last-child(2) .style-tooltip::after {
+  left: auto;
+  right: 24px;
+  transform: none;
+}
+
+.style-tooltip-img {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  display: block;
+}
+
+.style-tooltip-body {
+  padding: 10px 12px 12px;
+}
+
+.style-tooltip-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.style-tooltip-desc {
+  font-size: 11px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.5;
+}
