@@ -408,12 +408,22 @@ export default function Home() {
     setOutputUrl(null); setStatus('idle')
   }, [])
 
+  // User plan — in production this comes from auth/session
+  // For now: read from localStorage or default to 'free' (watermarked)
+  // Set to 'agency' to disable watermark
+  const [userPlan] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('vistaroom_plan') ?? 'free'
+    }
+    return 'free'
+  })
+
   const clearImage = () => {
     setImageFile(null); setImagePreview(null); setOutputUrl(null); setStatus('idle')
     if (fileRef.current) fileRef.current.value = ''
   }
 
-  const pollPrediction = useCallback((id: string) => {
+  const pollPrediction = useCallback((id: string, plan: string) => {
     let attempts = 0
     pollRef.current = setInterval(async () => {
       attempts++
@@ -423,7 +433,7 @@ export default function Home() {
         return
       }
       try {
-        const res  = await fetch(`/api/poll?id=${id}`)
+        const res  = await fetch(`/api/poll?id=${id}&plan=${plan}`)
         const data = await res.json()
         if (data.status === 'succeeded' && data.outputUrl) {
           clearInterval(pollRef.current!)
@@ -467,11 +477,11 @@ export default function Home() {
       if (!res.ok) { setStatus('error'); setStatusMsg(data.error || 'Ошибка сервера'); return }
       setRemaining(data.remaining)
       setStatus('processing'); setStatusMsg('Генерирую дизайн...')
-      pollPrediction(data.predictionId)
+      pollPrediction(data.predictionId, userPlan)
     } catch { setStatus('error'); setStatusMsg('Нет соединения с сервером.') }
   }, [imageFile, room, style, isMyStyle, wallColorHex, wallFinish,
       floorMaterial, floorColorHex, tilezone, tileColorHex,
-      furniture, lighting, appliances, extraNotes, pollPrediction])
+      furniture, lighting, appliances, extraNotes, userPlan, pollPrediction])
 
   const download = async () => {
     if (!outputUrl) return
@@ -920,9 +930,9 @@ export default function Home() {
         <h2 className="section-title">Прозрачные цены без сюрпризов</h2>
         <div className="pricing-grid">
           {[
-            { name: 'Старт',     price: '$19',  period: 'в месяц', features: ['20 генераций', 'Все 10 стилей', 'HD качество', 'Коммерческое использование'], featured: false },
-            { name: 'Профи',     price: '$49',  period: 'в месяц', features: ['100 генераций', 'Полная детализация', '8K качество', 'Цветовая палитра', 'Поддержка 24/7'], featured: true },
-            { name: 'Агентство', price: '$149', period: 'в месяц', features: ['Безлимит', 'API доступ', 'White-label', '5 рабочих мест', 'Персональный менеджер'], featured: false },
+            { name: 'Старт',     price: '$19',  period: 'в месяц', features: ['20 генераций в месяц', 'Все 10 стилей', 'Режим «Мой стиль»', 'Скачивание результата'], featured: false },
+            { name: 'Профи',     price: '$49',  period: 'в месяц', features: ['100 генераций в месяц', 'Все 10 стилей', 'Режим «Мой стиль»', 'Скачивание результата', 'История генераций'], featured: true },
+            { name: 'Агентство', price: '$149', period: 'в месяц', features: ['500 генераций в месяц', 'Все 10 стилей', 'Режим «Мой стиль»', 'Скачивание результата', 'История генераций', 'До 5 пользователей', 'Коммерческое использование'], featured: false },
           ].map(plan => (
             <div key={plan.name} className={`plan${plan.featured ? ' featured' : ''}`}>
               {plan.featured && <div className="plan-badge">Популярный</div>}
