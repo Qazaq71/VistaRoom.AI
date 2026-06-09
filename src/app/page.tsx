@@ -8,13 +8,13 @@ import { buildEditPrompt, detectConflicts, type RoomDetails } from '@/lib/prompt
 const STYLE_DISPLAY: Record<string, { label: string; emoji: string; preview?: string; desc?: string }> = {
   my_style:      { label: 'Мой стиль',       emoji: '🎨', desc: 'Настройте всё сами: материалы, цвета, освещение' },
   minimalist:    { label: 'Минимализм',      emoji: '🤍', desc: 'Белые стены, чистые линии, нейтральные тона',     preview: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=75&fit=crop' },
-  loft:          { label: 'Лофт',            emoji: '🏭', desc: 'Кирпич, металл, открытые трубы, Edison-лампы',   preview: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=400&q=75&fit=crop' },
+  loft:          { label: 'Лофт',            emoji: '🏭', desc: 'Кирпич, металл, открытые трубы, Edison-лампы',   preview: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=75&fit=crop&crop=left' },
   scandinavian:  { label: 'Скандинавский',   emoji: '🌿', desc: 'Светлое дерево, уют, натуральные ткани',         preview: 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=400&q=75&fit=crop' },
   luxury:        { label: 'Люкс',            emoji: '✨', desc: 'Золото, хрусталь, бархат, мраморные поверхности', preview: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=400&q=75&fit=crop' },
-  japandi:       { label: 'Japandi',         emoji: '⛩️', desc: 'Японский дзен + скандинавская функциональность', preview: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=400&q=75&fit=crop' },
-  biophilic:     { label: 'Биофилик',        emoji: '🍃', desc: 'Много растений, ратан, дерево, живая природа',   preview: 'https://images.unsplash.com/photo-1545239351-ef35f43d514b?w=400&q=75&fit=crop' },
+  japandi:       { label: 'Japandi',         emoji: '⛩️', desc: 'Татами, сёдзи, дерево, покой и тишина',         preview: 'https://images.unsplash.com/photo-1668436591522-e7abb38a4498?w=400&q=75&fit=crop' },
+  biophilic:     { label: 'Биофилик',        emoji: '🍃', desc: 'Много растений, ратан, дерево, живая природа',   preview: 'https://images.unsplash.com/photo-1493606278519-11aa9f86e40a?w=400&q=75&fit=crop' },
   artdeco:       { label: 'Арт-деко',        emoji: '🔶', desc: 'Геометрия, латунь, бархат, гламур 1930-х',       preview: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&q=75&fit=crop' },
-  mediterranean: { label: 'Средиземноморье', emoji: '🏛️', desc: 'Арки, белая штукатурка, керамика, тепло',       preview: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=75&fit=crop' },
+  mediterranean: { label: 'Средиземноморье', emoji: '🏛️', desc: 'Арки, белая штукатурка, керамика, тепло',       preview: 'https://images.unsplash.com/photo-1600121848594-d8644e57abab?w=400&q=75&fit=crop' },
   cyberpunk:     { label: 'Киберпанк',       emoji: '🌆', desc: 'Неон, тёмные поверхности, футуристичный стиль',  preview: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400&q=75&fit=crop' },
 }
 
