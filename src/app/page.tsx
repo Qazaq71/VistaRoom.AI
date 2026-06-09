@@ -475,6 +475,8 @@ export default function Home() {
   // User plan — in production this comes from auth/session
   // For now: read from localStorage or default to 'free' (watermarked)
   // Set to 'agency' to disable watermark
+  const [billingYearly, setBillingYearly] = useState(false)
+
   const [userPlan] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('vistaroom_plan') ?? 'free'
@@ -996,13 +998,29 @@ export default function Home() {
       <section className="pricing-section" id="pricing">
         <div className="section-eyebrow">Тарифы</div>
         <h2 className="section-title">Дизайнер берёт от $500 за проект.<br />Мы — от $12 в месяц.</h2>
-        <p className="section-sub">Годовая подписка — 2 месяца в подарок</p>
+
+        {/* Billing toggle */}
+        <div className="billing-toggle">
+          <span className={!billingYearly ? 'toggle-label active' : 'toggle-label'}>Месяц</span>
+          <button
+            className={`toggle-switch${billingYearly ? ' on' : ''}`}
+            onClick={() => setBillingYearly(b => !b)}
+            aria-label="Переключить период оплаты"
+          >
+            <span className="toggle-knob" />
+          </button>
+          <span className={billingYearly ? 'toggle-label active' : 'toggle-label'}>
+            Год <span className="toggle-save">−2 месяца бесплатно</span>
+          </span>
+        </div>
+
         <div className="pricing-grid">
           {[
             {
               name: 'Старт',
               price: '$12',
               priceYear: '$10',
+              saveYear: '$24',
               period: 'в месяц',
               sub: 'Для домашнего использования',
               features: [
@@ -1018,6 +1036,7 @@ export default function Home() {
               name: 'Профи',
               price: '$34',
               priceYear: '$28',
+              saveYear: '$72',
               period: 'в месяц',
               sub: 'Для дизайнеров и риелторов',
               features: [
@@ -1035,6 +1054,7 @@ export default function Home() {
               name: 'Агентство',
               price: '$99',
               priceYear: '$82',
+              saveYear: '$204',
               period: 'в месяц',
               sub: 'Для команд и агентств',
               features: [
@@ -1055,10 +1075,20 @@ export default function Home() {
               {plan.badge && <div className="plan-badge">{plan.badge}</div>}
               <div className="plan-name">{plan.name}</div>
               <div className="plan-sub-name">{plan.sub}</div>
-              <div className="plan-price">{plan.price}</div>
-              <div className="plan-period">{plan.period} &nbsp;·&nbsp; <span className="plan-year">{plan.priceYear}/мес при оплате за год</span></div>
+              <div className="plan-price">
+                {billingYearly ? plan.priceYear : plan.price}
+                {billingYearly && <span className="plan-price-old">{plan.price}</span>}
+              </div>
+              <div className="plan-period">
+                {billingYearly
+                  ? <><span className="plan-save-badge">Экономия {plan.saveYear}/год</span></>
+                  : <>{plan.period}</>
+                }
+              </div>
               <ul className="plan-features">{plan.features.map(f => <li key={f}>{f}</li>)}</ul>
-              <button className="plan-btn">Начать</button>
+              <button className="plan-btn">
+                {billingYearly ? 'Оплатить за год' : 'Начать'}
+              </button>
             </div>
           ))}
         </div>

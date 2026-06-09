@@ -1094,3 +1094,94 @@ footer {
   color: rgba(255,255,255,0.65);
   line-height: 1.4;
 }
+
+/* ─── Billing toggle ─────────────────────────────────────────────────────── */
+.billing-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 20px 0 36px;
+}
+
+.toggle-label {
+  font-size: 15px;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.toggle-label.active {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.toggle-save {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--warm);
+  background: rgba(210,140,100,0.12);
+  border-radius: 20px;
+  padding: 2px 8px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: #d1d5db;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.25s;
+  flex-shrink: 0;
+}
+
+.toggle-switch.on {
+  background: var(--warm);
+}
+
+.toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.25s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  display: block;
+}
+
+.toggle-switch.on .toggle-knob {
+  transform: translateX(20px);
+}
+
+/* ─── Pricing card adjustments for yearly ───────────────────────────────── */
+.plan-price {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.plan-price-old {
+  font-size: 16px;
+  color: var(--muted);
+  text-decoration: line-through;
+  font-weight: 400;
+}
+
+.plan-save-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--warm);
+  background: rgba(210,140,100,0.12);
+  border-radius: 20px;
+  padding: 3px 10px;
+}
