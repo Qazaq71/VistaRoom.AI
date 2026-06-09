@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useMemo } from 'react'
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { buildEditPrompt, detectConflicts, type RoomDetails } from '@/lib/prompts'
 
 // ─── Static data ──────────────────────────────────────────────────────────────
@@ -484,6 +484,49 @@ export default function Home() {
 
   const isLoading    = status === 'uploading' || status === 'processing'
   const showTileZone = TILE_ROOMS.includes(room)
+
+  // Tooltip positioning — fixed coords so tooltip never clips off-screen on mobile
+  useEffect(() => {
+    const TOOLTIP_W = 180
+    const MARGIN    = 8  // min gap from screen edge
+
+    function position(wrap: HTMLElement) {
+      const tip = wrap.querySelector<HTMLElement>('.style-tooltip')
+      if (!tip) return
+
+      const onEnter = () => {
+        const rect    = wrap.getBoundingClientRect()
+        const vw      = window.innerWidth
+        // Preferred: centered above the chip
+        let left = rect.left + rect.width / 2 - TOOLTIP_W / 2
+        // Clamp to screen edges
+        left = Math.max(MARGIN, Math.min(left, vw - TOOLTIP_W - MARGIN))
+        const top = rect.top - tip.offsetHeight - 10
+        // If not enough room above, show below
+        const finalTop = top < MARGIN
+          ? rect.bottom + 10
+          : top
+        tip.style.left = left + 'px'
+        tip.style.top  = finalTop + 'px'
+        // Arrow: point at chip center
+        const chipCenterX   = rect.left + rect.width / 2
+        const arrowLeft     = chipCenterX - left
+        const arrowLeftClamped = Math.max(12, Math.min(arrowLeft, TOOLTIP_W - 12))
+        tip.style.setProperty('--arrow-left', arrowLeftClamped + 'px')
+      }
+
+      wrap.addEventListener('mouseenter', onEnter)
+      wrap.addEventListener('touchstart', onEnter, { passive: true })
+      return () => {
+        wrap.removeEventListener('mouseenter', onEnter)
+        wrap.removeEventListener('touchstart', onEnter)
+      }
+    }
+
+    const wraps = Array.from(document.querySelectorAll<HTMLElement>('.style-chip-wrap'))
+    const cleanups = wraps.map(position).filter(Boolean) as (() => void)[]
+    return () => cleanups.forEach(fn => fn())
+  }, [])
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (

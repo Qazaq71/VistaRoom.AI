@@ -1042,28 +1042,25 @@ footer {
   position: relative;
 }
 
-/* Tooltip — hidden by default, shown on hover */
+/* Tooltip — hidden by default */
 .style-tooltip {
   display: none;
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: 200px;
+  position: fixed;
+  width: 180px;
   background: var(--ink);
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  z-index: 999;
   pointer-events: none;
 }
 
-/* Arrow pointing down */
+/* Arrow pointing down — JS sets --arrow-left on the tooltip element */
 .style-tooltip::after {
   content: '';
   position: absolute;
   bottom: -6px;
-  left: 50%;
+  left: var(--arrow-left, 50%);
   transform: translateX(-50%);
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
@@ -1074,50 +1071,26 @@ footer {
   display: block;
 }
 
-/* Clip to panel if tooltip goes off-screen left/right */
-.style-chip-wrap:first-child .style-tooltip,
-.style-chip-wrap:nth-child(2) .style-tooltip {
-  left: 0;
-  transform: none;
-}
-.style-chip-wrap:first-child .style-tooltip::after,
-.style-chip-wrap:nth-child(2) .style-tooltip::after {
-  left: 24px;
-  transform: none;
-}
-.style-chip-wrap:last-child .style-tooltip,
-.style-chip-wrap:nth-last-child(2) .style-tooltip {
-  left: auto;
-  right: 0;
-  transform: none;
-}
-.style-chip-wrap:last-child .style-tooltip::after,
-.style-chip-wrap:nth-last-child(2) .style-tooltip::after {
-  left: auto;
-  right: 24px;
-  transform: none;
-}
-
 .style-tooltip-img {
   width: 100%;
-  height: 130px;
+  height: 120px;
   object-fit: cover;
   display: block;
 }
 
 .style-tooltip-body {
-  padding: 10px 12px 12px;
+  padding: 8px 10px 10px;
 }
 
 .style-tooltip-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: #fff;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .style-tooltip-desc {
-  font-size: 11px;
+  font-size: 10px;
   color: rgba(255,255,255,0.65);
-  line-height: 1.5;
+  line-height: 1.4;
 }
