@@ -559,46 +559,55 @@ export default function Home() {
           {/* Style */}
           <div>
             <div className="field-label">Стиль</div>
+
+            {/* 9 preset styles — compact 3×3 grid */}
             <div className="style-grid">
-              {Object.entries(STYLE_DISPLAY).map(([k, s]) => (
-                <div key={k} className="style-chip-wrap">
-                  <button
-                    className={`style-chip${style === k ? ' active' : ''}${k === 'my_style' ? ' my-style-chip' : ''}`}
-                    onClick={() => {
-                      setStyle(k)
-                      if (k !== 'my_style') {
+              {Object.entries(STYLE_DISPLAY)
+                .filter(([k]) => k !== 'my_style')
+                .map(([k, s]) => (
+                  <div key={k} className="style-chip-wrap">
+                    <button
+                      className={`style-chip${style === k ? ' active' : ''}`}
+                      onClick={() => {
+                        setStyle(k)
                         setWallFinish([]); setWallColorHex(''); setWallFinishKey(''); setSchemeId('')
                         setFloorMaterial(''); setFloorColorHex(''); setFloorMaterialKey('')
                         setTilezone([]); setTileColorHex('#FFFFFF')
                         setFurniture([]); setLighting([]); setAppliances([])
                         setExtraNotes('')
-                      }
-                    }}>
-                    <span className="em">{s.emoji}</span>{s.label}
-                    {k === 'my_style' && <span className="my-style-badge">Свои параметры</span>}
-                  </button>
+                      }}>
+                      <span className="em">{s.emoji}</span>{s.label}
+                    </button>
 
-                  {/* Tooltip preview — shown on hover */}
-                  {(s.preview || s.desc) && (
-                    <div className="style-tooltip">
-                      {s.preview && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={s.preview}
-                          alt={s.label}
-                          className="style-tooltip-img"
-                          loading="lazy"
-                          onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
-                        />
-                      )}
-                      <div className="style-tooltip-body">
-                        <div className="style-tooltip-title">{s.emoji} {s.label}</div>
-                        {s.desc && <div className="style-tooltip-desc">{s.desc}</div>}
+                    {(s.preview || s.desc) && (
+                      <div className="style-tooltip">
+                        {s.preview && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={s.preview} alt={s.label} className="style-tooltip-img"
+                            loading="lazy"
+                            onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                        )}
+                        <div className="style-tooltip-body">
+                          <div className="style-tooltip-title">{s.emoji} {s.label}</div>
+                          {s.desc && <div className="style-tooltip-desc">{s.desc}</div>}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    )}
+                  </div>
+                ))}
+            </div>
+
+            {/* My Style — full-width button below the grid */}
+            <div className="my-style-chip-wrap">
+              <button
+                className={`my-style-btn${style === 'my_style' ? ' active' : ''}`}
+                onClick={() => setStyle('my_style')}>
+                <span className="my-style-btn-left">
+                  <span className="my-style-btn-emoji">🎨</span>
+                  <span className="my-style-btn-label">Мой стиль</span>
+                </span>
+                <span className="my-style-btn-badge">Настройте всё сами</span>
+              </button>
             </div>
           </div>
 

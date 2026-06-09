@@ -224,24 +224,90 @@ h1 em { font-style: italic; color: var(--warm); }
 .style-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 7px;
+  gap: 5px;
 }
 .style-chip {
-  padding: 10px 6px;
+  padding: 8px 4px 7px;
   border: 0.5px solid var(--border);
-  border-radius: var(--r);
+  border-radius: 6px;
   background: var(--paper);
   font-family: 'DM Sans', sans-serif;
-  font-size: 11px;
+  font-size: 10px;
   cursor: pointer;
   transition: all .15s;
   text-align: center;
   line-height: 1.3;
   color: var(--ink);
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
 }
-.style-chip:hover { border-color: var(--warm); }
-.style-chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-.style-chip .em { font-size: 17px; display: block; margin-bottom: 3px; }
+.style-chip:hover { border-color: var(--warm); background: var(--warm-light); }
+.style-chip.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+.style-chip .em {
+  font-size: 18px;
+  line-height: 1;
+  display: block;
+}
+
+/* ── My Style full-width button ── */
+.my-style-chip-wrap {
+  margin-top: 5px;
+}
+.my-style-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 14px;
+  border: 1px solid var(--warm);
+  border-radius: 6px;
+  background: var(--paper);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+}
+.my-style-btn:hover { background: var(--warm-light); }
+.my-style-btn.active {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.my-style-btn-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.my-style-btn-emoji { font-size: 16px; line-height: 1; }
+.my-style-btn-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.my-style-btn.active .my-style-btn-label { color: var(--paper); }
+.my-style-btn-badge {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--warm);
+  background: var(--warm-light);
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 0.5px solid rgba(200,169,110,0.4);
+}
+.my-style-btn.active .my-style-btn-badge {
+  color: var(--ink);
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(255,255,255,0.3);
+}
 
 /* ── Slider ── */
 .slider-wrap { display: flex; align-items: center; gap: 12px; }
@@ -687,26 +753,7 @@ footer {
 .ba-label-after { right: 12px; }
 
 /* ── "Мой стиль" — специальная кнопка стиля ── */
-.my-style-chip {
-  border-color: var(--warm) !important;
-  position: relative;
-}
-.my-style-chip.active {
-  background: linear-gradient(135deg, var(--warm) 0%, var(--warm-d) 100%) !important;
-  border-color: var(--warm-d) !important;
-}
-.my-style-badge {
-  display: block;
-  font-size: 8px;
-  color: var(--warm);
-  margin-top: 2px;
-  letter-spacing: 0.03em;
-  font-weight: 500;
-  text-transform: uppercase;
-}
-.my-style-chip.active .my-style-badge {
-  color: rgba(255,255,255,0.75);
-}
+/* my-style-chip styles moved to my-style-btn above */
 
 /* ── Блок детализации для "Мой стиль" ── */
 .my-style-details {
