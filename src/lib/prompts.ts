@@ -351,8 +351,12 @@ export function buildEditPrompt(
       STYLE_BASE[sk]          || STYLE_BASE.minimalist,
       STYLE_WALL_DEFAULT[sk]  || '',
       STYLE_FLOOR_DEFAULT[sk] || '',
-      'keep all existing windows and doors in their exact original positions',
-      'do not add or remove any windows or doors',
+      'ALL windows and doors MUST remain in their EXACT original positions from the source photo',
+      'window openings are FIXED — same size, same shape, same location on the wall',
+      'door openings are FIXED — same size, same shape, same location',
+      'do NOT remove any window', 'do NOT add any window', 'do NOT resize any window',
+      'do NOT remove any door', 'do NOT block any opening',
+      'the architectural structure of the room is UNCHANGED',
       'photorealistic', 'hyperrealistic', '8k resolution',
       'professional interior photography', 'sharp focus',
       'realistic materials and textures', 'perfect lighting',
@@ -423,10 +427,14 @@ export function buildEditPrompt(
   // [0] Header
   sections.push(`Professional interior design photography of a ${room}, custom style.`)
 
-  // [0b] Structural preservation
+  // [0b] Structural preservation — repeated and reinforced
   sections.push(
-    `FIXED STRUCTURE: preserve ALL existing windows and doors exactly as in original photo — ` +
-    `same position, size and shape. Do not add, remove, block or move any windows or doors.`
+    `CRITICAL STRUCTURAL RULE: ALL windows and doors from the original photo MUST be preserved EXACTLY. ` +
+    `Every window opening stays in the same position, same size, same shape on the wall. ` +
+    `Every door opening stays in the same position, same size, same shape. ` +
+    `Do NOT remove any window. Do NOT add any window. Do NOT resize or relocate any window. ` +
+    `Do NOT remove any door. Do NOT block any door or window opening. ` +
+    `The room geometry and all architectural openings are FIXED and absolutely unchanged.`
   )
 
   // [1] WALLS
@@ -501,16 +509,18 @@ export function buildEditPrompt(
   // [9] ZONE ISOLATION RULE
   sections.push(
     `ZONE RULE: wall finish on walls only. Ceiling plain white. Floor material on floor only. ` +
-    `Backsplash tiles only in backsplash strip. Windows and doors unchanged.`
+    `Backsplash tiles only in backsplash strip. ` +
+    `REMINDER: all windows and doors are UNCHANGED from original photo — same position, same size.`
   )
 
   // [10] Notes
   if (details?.extraNotes) sections.push(details.extraNotes.replace(/[^\x00-\x7F]/g,'').trim())
 
-  // [11] Quality
+  // [11] Quality + final window reminder
   sections.push(
     `High-end architectural rendering, realistic textures, sharp details, ` +
-    `8k resolution, professional studio lighting, photorealistic, hyperrealistic.`
+    `8k resolution, professional studio lighting, photorealistic, hyperrealistic. ` +
+    `All windows visible and in original positions.`
   )
 
   const positive = sections.join(' ')
@@ -562,9 +572,21 @@ const NEGATIVE_PROMPT_BASE_PARTS: string[] = [
   'cartoon', 'anime', 'sketch', 'painting', 'watercolor',
   'blurry', 'low quality', 'distorted', 'deformed',
   'watermark', 'text', 'logo', 'ugly',
-  'window removed', 'missing window', 'blocked window', 'covered window',
-  'door removed', 'missing door', 'blocked door',
-  'wall where window was', 'structural changes',
+  // Window preservation — comprehensive
+  'window removed', 'missing window', 'no window', 'window gone',
+  'blocked window', 'covered window', 'bricked up window',
+  'wall where window was', 'window replaced by wall',
+  'window moved', 'window resized', 'window relocated',
+  'smaller window', 'larger window', 'extra window', 'added window',
+  'different window position', 'window in wrong place',
+  // Door preservation
+  'door removed', 'missing door', 'no door', 'door gone',
+  'blocked door', 'door replaced by wall', 'wall where door was',
+  'door moved', 'door resized',
+  // General structural
+  'structural changes', 'architectural changes', 'room layout changed',
+  'walls moved', 'room restructured', 'different room shape',
+  // Quality
   'unrealistic', 'plastic look', 'oversaturated',
   'mixed materials', 'tiling errors', 'inconsistent surfaces',
   'material bleeding', 'wrong zone materials',
