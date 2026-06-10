@@ -570,12 +570,50 @@ export default function Home() {
   // Set to 'agency' to disable watermark
   const [billingYearly, setBillingYearly] = useState(false)
 
-  const [userPlan] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('vistaroom_plan') ?? 'free'
+  const [userPlan, setUserPlan] = useState<Plan>('free')
+  const [historyItems, setHistoryItems] = useState<Array<{
+    id: string
+    createdAt: string
+    sourceImage: string
+    generatedImage: string
+    style: string
+    room: string
+  }>>([])
+
+  const canViewHistory = userPlan === 'profi' || userPlan === 'agency'
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const storedPlan = (localStorage.getItem('vistaroom_plan') || 'free') as Plan
+    setUserPlan(storedPlan)
+
+    try {
+      const raw = localStorage.getItem('vistaroom_history')
+      if (raw) setHistoryItems(JSON.parse(raw))
+    } catch {
+      // ignore invalid stored history
     }
-    return 'free'
-  })
+  }, [])
+
+  const updateUserPlan = useCallback((plan: Plan) => {
+    setUserPlan(plan)
+    if (typeof window !== 'undefined') localStorage.setItem('vistaroom_plan', plan)
+  }, [])
+
+  const saveHistory = useCallback((entry: {
+    id: string
+    createdAt: string
+    sourceImage: string
+    generatedImage: string
+    style: string
+    room: string
+  }) => {
+    setHistoryItems(prev => {
+      const next = [entry, ...prev].slice(0, 20)
+      if (typeof window !== 'undefined') localStorage.setItem('vistaroom_history', JSON.stringify(next))
+      return next
+    })
+  }, [])
 
   const clearImage = () => {
     setImageFile(null); setImagePreview(null); setOutputUrl(null); setStatus('idle')
@@ -601,6 +639,15 @@ export default function Home() {
             ? data.outputUrl
             : await addWatermark(data.outputUrl)
           setOutputUrl(watermarked); setStatus('done')
+
+          saveHistory({
+            id: id,
+            createdAt: new Date().toISOString(),
+            sourceImage: imagePreview ?? '',
+            generatedImage: watermarked,
+            style: isMyStyle ? 'Мой стиль' : STYLE_DISPLAY[style]?.label ?? style,
+            room: ROOM_LABELS[room] ?? room,
+          })
         } else if (data.status === 'failed') {
           clearInterval(pollRef.current!)
           setStatus('error'); setStatusMsg(data.error || 'Генерация не удалась.')
@@ -609,7 +656,7 @@ export default function Home() {
         }
       } catch { /* continue */ }
     }, 2000)
-  }, [])
+  }, [saveHistory, imagePreview, isMyStyle, style, room])
 
   const generate = useCallback(async () => {
     if (!imageFile) { setStatus('error'); setStatusMsg('Загрузите фотографию помещения'); return }
@@ -726,6 +773,19 @@ export default function Home() {
           <div>
             <div className="panel-heading">Создайте дизайн</div>
             <div className="panel-sub">Первые 3 генерации бесплатно</div>
+            <div className="plan-switcher">
+              <span>Тестовый тариф:</span>
+              {(['free','profi','agency'] as Plan[]).map(plan => (
+                <button
+                  key={plan}
+                  type="button"
+                  className={`plan-switch${userPlan === plan ? ' active' : ''}`}
+                  onClick={() => updateUserPlan(plan)}
+                >
+                  {plan === 'free' ? 'Free' : plan === 'profi' ? 'Профи' : 'Агентство'}
+                </button>
+              ))}
+            </div>
           </div>
 
           {remaining !== null && (
@@ -1086,6 +1146,44 @@ export default function Home() {
               : <>✦ Сгенерировать дизайн</>}
           </button>
         </div>
+      </section>
+
+      <section className="history-section">
+        <div className="section-eyebrow">Моя история</div>
+        <h2 className="section-title">Моя история генераций</h2>
+        <div className="history-note">
+          {canViewHistory
+            ? 'Каждая успешная генерация сохраняется автоматически. Нажмите на карточку, чтобы открыть результат в новом окне.'
+            : 'Доступ к истории открыт только в тарифах Профи и Агентство. Выберите тестовый тариф выше.'}
+        </div>
+
+        {canViewHistory ? (
+          historyItems.length > 0 ? (
+            <div className="history-grid">
+              {historyItems.map(item => (
+                <button key={item.id} type="button" className="history-card"
+                  onClick={() => window.open(item.generatedImage, '_blank')}>
+                  <div className="history-thumb">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={item.generatedImage} alt={`Генерация ${item.style}`} />
+                  </div>
+                  <div className="history-meta">
+                    <div className="history-style">{item.style}</div>
+                    <div className="history-room">{item.room}</div>
+                    <div className="history-date">{new Date(item.createdAt).toLocaleString('ru-RU', {
+                      day: 'numeric', month: 'long', year: 'numeric',
+                      hour: '2-digit', minute: '2-digit',
+                    })}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="history-empty">История пока пуста — сгенерируйте первое изображение.</div>
+          )
+        ) : (
+          <div className="history-locked">Страница истории будет доступна после выбора тарифа Профи или Агентство.</div>
+        )}
       </section>
 
       <section className="pricing-section" id="pricing">
