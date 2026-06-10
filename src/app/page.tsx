@@ -20,6 +20,14 @@ const STYLE_DISPLAY: Record<string, { label: string; emoji: string; preview?: st
 
 type Plan = 'free' | 'profi' | 'agency'
 
+type HistoryItem = {
+  id: string
+  createdAt: string
+  generatedImage: string
+  style: string
+  room: string
+}
+
 const ROOM_LABELS: Record<string, string> = {
   living: 'Гостиная', bedroom: 'Спальня', kitchen: 'Кухня',
   bathroom: 'Ванная', toilet: 'Туалет', office: 'Офис',
@@ -316,7 +324,8 @@ async function addWatermark(imageUrl: string): Promise<string> {
           const canvas  = document.createElement('canvas')
           canvas.width  = img.width
           canvas.height = img.height
-          const ctx = canvas.getContext('2d')!
+          const ctx = canvas.getContext('2d')
+          if (!ctx) throw new Error('Canvas context unavailable')
           ctx.drawImage(img, 0, 0)
           URL.revokeObjectURL(objUrl)
 
@@ -355,7 +364,10 @@ async function addWatermark(imageUrl: string): Promise<string> {
           resolve(canvas.toDataURL('image/jpeg', 0.88))
         } catch { resolve(objUrl) }
       }
-      img.onerror = () => resolve(imageUrl)
+      img.onerror = () => {
+        URL.revokeObjectURL(objUrl)
+        resolve(imageUrl)
+      }
       img.src = objUrl
     })
   } catch {
@@ -480,25 +492,23 @@ export default function Home() {
   const [billingYearly, setBillingYearly] = useState(false)
 
   const [userPlan, setUserPlan] = useState<Plan>('free')
-  const [historyItems, setHistoryItems] = useState<Array<{
-    id: string
-    createdAt: string
-    sourceImage: string
-    generatedImage: string
-    style: string
-    room: string
-  }>>([])
+  const [historyItems, setHistoryItems] = useState<HistoryItem[]>([])
 
-  const canViewHistory = true // В тестовом режиме история доступна на всех тарифах
+  const isTestMode = process.env.NODE_ENV !== 'production'
+  const canViewHistory = isTestMode || userPlan !== 'free'
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const storedPlan = (localStorage.getItem('vistaroom_plan') || 'free') as Plan
-    setUserPlan(storedPlan)
+    try {
+      const storedPlan = localStorage.getItem('vistaroom_plan')
+      setUserPlan(storedPlan === 'profi' || storedPlan === 'agency' ? storedPlan as Plan : 'free')
+    } catch {
+      setUserPlan('free')
+    }
 
     try {
       const raw = localStorage.getItem('vistaroom_history')
-      if (raw) setHistoryItems(JSON.parse(raw))
+      if (raw) setHistoryItems(JSON.parse(raw) as HistoryItem[])
     } catch {
       // ignore invalid stored history
     }
@@ -506,20 +516,25 @@ export default function Home() {
 
   const updateUserPlan = useCallback((plan: Plan) => {
     setUserPlan(plan)
-    if (typeof window !== 'undefined') localStorage.setItem('vistaroom_plan', plan)
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('vistaroom_plan', plan)
+      } catch {
+        // ignore unavailable storage
+      }
+    }
   }, [])
 
-  const saveHistory = useCallback((entry: {
-    id: string
-    createdAt: string
-    sourceImage: string
-    generatedImage: string
-    style: string
-    room: string
-  }) => {
+  const saveHistory = useCallback((entry: HistoryItem) => {
     setHistoryItems(prev => {
-      const next = [entry, ...prev].slice(0, 20)
-      if (typeof window !== 'undefined') localStorage.setItem('vistaroom_history', JSON.stringify(next))
+      const next = [entry, ...prev].slice(0, 5)
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('vistaroom_history', JSON.stringify(next))
+        } catch (error) {
+          console.warn('Не удалось сохранить историю генераций в localStorage', error)
+        }
+      }
       return next
     })
   }, [])
@@ -552,7 +567,6 @@ export default function Home() {
           saveHistory({
             id: id,
             createdAt: new Date().toISOString(),
-            sourceImage: imagePreview ?? '',
             generatedImage: watermarked,
             style: isMyStyle ? 'Мой стиль' : STYLE_DISPLAY[style]?.label ?? style,
             room: ROOM_LABELS[room] ?? room,
