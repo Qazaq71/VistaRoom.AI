@@ -580,7 +580,7 @@ export default function Home() {
     room: string
   }>>([])
 
-  const canViewHistory = userPlan === 'profi' || userPlan === 'agency'
+  const canViewHistory = true // В тестовом режиме история доступна на всех тарифах
 
   useEffect(() => {
     if (typeof window === 'undefined') return
