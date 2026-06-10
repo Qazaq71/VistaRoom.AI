@@ -109,7 +109,8 @@ const STYLE_DISPLAY: Record<string, { label: string; emoji: string; preview?: st
   wine_cellar:       { label: 'Винный погреб',       emoji: '🍷', desc: 'Арочный каменный потолок, деревянные стеллажи, янтарный свет' },
   home_cinema:       { label: 'Домашний кинотеатр',  emoji: '🎬', desc: 'Тёмные акустические панели, бархатные кресла, звёздный потолок' },
 }
-}
+
+type Plan = 'free' | 'profi' | 'agency'
 
 const ROOM_LABELS: Record<string, string> = {
   living: 'Гостиная', bedroom: 'Спальня', kitchen: 'Кухня',
@@ -773,6 +774,7 @@ export default function Home() {
           <div>
             <div className="panel-heading">Создайте дизайн</div>
             <div className="panel-sub">Первые 3 генерации бесплатно</div>
+            <a href="#history" className="history-link">Перейти к истории генераций</a>
             <div className="plan-switcher">
               <span>Тестовый тариф:</span>
               {(['free','profi','agency'] as Plan[]).map(plan => (
@@ -1148,7 +1150,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="history-section">
+      <section className="history-section" id="history">
         <div className="section-eyebrow">Моя история</div>
         <h2 className="section-title">Моя история генераций</h2>
         <div className="history-note">
