@@ -375,11 +375,11 @@ export function buildEditPrompt(
   const floorHex = details?.floorColorHex ? details.floorColorHex.toUpperCase() : ''
   const tileHex  = details?.tileColorHex  ? details.tileColorHex.toUpperCase()  : ''
 
-  // Combined color description: "light green, hex #81C784"
+  // Combined color description: "light green, exact hex #81C784"
   // Comma-separated — no parentheses which confuse the tokenizer
-  const wallColorDesc  = wallColorName  && wallHex  ? `${wallColorName}, hex ${wallHex}`  : wallColorName  || ''
-  const floorColorDesc = floorColorName && floorHex ? `${floorColorName}, hex ${floorHex}` : floorColorName || ''
-  const tileColorDesc  = tileColorName  && tileHex  ? `${tileColorName}, hex ${tileHex}`  : tileColorName  || ''
+  const wallColorDesc  = wallColorName  && wallHex  ? `${wallColorName}, exact hex ${wallHex}`  : wallColorName  || ''
+  const floorColorDesc = floorColorName && floorHex ? `${floorColorName}, exact hex ${floorHex}` : floorColorName || ''
+  const tileColorDesc  = tileColorName  && tileHex  ? `${tileColorName}, exact hex ${tileHex}`  : tileColorName  || ''
 
   // Wall finish descriptions — color comes AFTER material name
   const wallFinishDescs:  string[] = []
@@ -441,11 +441,11 @@ export function buildEditPrompt(
   if (wallFinishDescs.length) {
     sections.push(
       `WALLS: ${wallFinishDescs.join(' and ')}, ` +
-      `applied to vertical wall surfaces only. Not on ceiling. Not on floor. Not on backsplash.`
+      `applied to vertical wall surfaces only. Use the exact selected wall color. Not on ceiling. Not on floor. Not on backsplash.`
     )
   } else if (wallColorDesc) {
     sections.push(
-      `WALLS: all vertical wall surfaces painted ${wallColorDesc}. Ceiling is NOT this color.`
+      `WALLS: all vertical wall surfaces painted ${wallColorDesc}. Use the exact selected wall color. Ceiling is NOT this color.`
     )
   } else {
     sections.push(`WALLS: clean neutral walls.`)
@@ -461,11 +461,11 @@ export function buildEditPrompt(
   if (details?.floorMaterial) {
     const floorDesc = FLOOR_EN[details.floorMaterial]
     if (floorDesc) {
-      const full = floorColorDesc ? `${floorColorDesc} ${floorDesc}` : floorDesc
-      sections.push(`FLOOR: ${full}. Floor surface only, not on walls.`)
+      const full = floorColorDesc ? `${floorDesc}, floor color: ${floorColorDesc}` : floorDesc
+      sections.push(`FLOOR: ${full}. Floor surface only, not on walls. Use the exact selected floor color.`)
     }
   } else if (floorColorDesc) {
-    sections.push(`FLOOR: floor surface in ${floorColorDesc}.`)
+    sections.push(`FLOOR: floor surface in ${floorColorDesc}. Use the exact selected floor color.`)
   }
 
   // [4] BACKSPLASH — FIX: explicit color repeated 3x, hex included, "visible" enforced
@@ -510,6 +510,7 @@ export function buildEditPrompt(
   sections.push(
     `ZONE RULE: wall finish on walls only. Ceiling plain white. Floor material on floor only. ` +
     `Backsplash tiles only in backsplash strip. ` +
+    `Use the selected palette colors exactly; do not substitute alternate wall or floor colors. ` +
     `REMINDER: all windows and doors are UNCHANGED from original photo — same position, same size.`
   )
 
@@ -572,6 +573,9 @@ const NEGATIVE_PROMPT_BASE_PARTS: string[] = [
   'cartoon', 'anime', 'sketch', 'painting', 'watercolor',
   'blurry', 'low quality', 'distorted', 'deformed',
   'watermark', 'text', 'logo', 'ugly',
+  // Color accuracy
+  'wrong wall color', 'wrong floor color', 'incorrect wall color', 'incorrect floor color',
+  'wrong paint color', 'wrong tile color', 'color mismatch',
   // Window preservation — comprehensive
   'window removed', 'missing window', 'no window', 'window gone',
   'blocked window', 'covered window', 'bricked up window',

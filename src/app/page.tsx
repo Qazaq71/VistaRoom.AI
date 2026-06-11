@@ -81,7 +81,7 @@ const COLOR_SCHEMES = [
     id: 'neutral',
     label: 'Нейтральный',
     desc: 'Белый + светлый паркет',
-    swatches: ['#F5F5F5', '#D4B896'],
+    swatches: ['#FFFFFF', '#D4B896'],
     wallFinish: 'paint', wallColorHex: '#FFFFFF',
     floorMaterial: 'light_parquet', floorColorHex: '#D4B896',
   },
@@ -105,7 +105,7 @@ const COLOR_SCHEMES = [
     id: 'sage_green',
     label: 'Зелёный сейдж',
     desc: 'Зелёные стены + дуб',
-    swatches: ['#81C784', '#C8A87A'],
+    swatches: ['#81C784', '#D4B896'],
     wallFinish: 'paint', wallColorHex: '#81C784',
     floorMaterial: 'light_parquet', floorColorHex: '#D4B896',
   },
@@ -420,10 +420,12 @@ export default function Home() {
     setSchemeId(scheme.id)
     setWallFinish([scheme.wallFinish])
     setWallColorHex(scheme.wallColorHex)
-    setWallFinishKey(scheme.id + '_wall')
+    const wallCard = WALL_CARDS.find(c => c.key === scheme.wallFinish && c.colorHex === scheme.wallColorHex)
+    setWallFinishKey(wallCard ? (wallCard.id || wallCard.key) : scheme.wallFinish)
     setFloorMaterial(scheme.floorMaterial)
     setFloorColorHex(scheme.floorColorHex)
-    setFloorMaterialKey(scheme.id + '_floor')
+    const floorCard = FLOOR_CARDS.find(c => c.key === scheme.floorMaterial && c.colorHex === scheme.floorColorHex)
+    setFloorMaterialKey(floorCard ? (floorCard.id || floorCard.key) : scheme.floorMaterial)
   }, [])
 
   // Apply a wall card
