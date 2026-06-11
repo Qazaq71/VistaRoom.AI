@@ -20,14 +20,6 @@ const STYLE_DISPLAY: Record<string, { label: string; emoji: string; preview?: st
 
 type Plan = 'free' | 'profi' | 'agency'
 
-type HistoryItem = {
-  id: string
-  createdAt: string
-  generatedImage: string
-  style: string
-  room: string
-}
-
 const ROOM_LABELS: Record<string, string> = {
   living: 'Гостиная', bedroom: 'Спальня', kitchen: 'Кухня',
   bathroom: 'Ванная', toilet: 'Туалет', office: 'Офис',
@@ -492,10 +484,6 @@ export default function Home() {
   const [billingYearly, setBillingYearly] = useState(false)
 
   const [userPlan, setUserPlan] = useState<Plan>('free')
-  const [historyItems, setHistoryItems] = useState<HistoryItem[]>([])
-
-  const isTestMode = process.env.NODE_ENV !== 'production'
-  const canViewHistory = isTestMode || userPlan !== 'free'
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -504,13 +492,6 @@ export default function Home() {
       setUserPlan(storedPlan === 'profi' || storedPlan === 'agency' ? storedPlan as Plan : 'free')
     } catch {
       setUserPlan('free')
-    }
-
-    try {
-      const raw = localStorage.getItem('vistaroom_history')
-      if (raw) setHistoryItems(JSON.parse(raw) as HistoryItem[])
-    } catch {
-      // ignore invalid stored history
     }
   }, [])
 
@@ -523,20 +504,6 @@ export default function Home() {
         // ignore unavailable storage
       }
     }
-  }, [])
-
-  const saveHistory = useCallback((entry: HistoryItem) => {
-    setHistoryItems(prev => {
-      const next = [entry, ...prev].slice(0, 5)
-      if (typeof window !== 'undefined') {
-        try {
-          localStorage.setItem('vistaroom_history', JSON.stringify(next))
-        } catch (error) {
-          console.warn('Не удалось сохранить историю генераций в localStorage', error)
-        }
-      }
-      return next
-    })
   }, [])
 
   const clearImage = () => {
@@ -563,14 +530,6 @@ export default function Home() {
             ? data.outputUrl
             : await addWatermark(data.outputUrl)
           setOutputUrl(watermarked); setStatus('done')
-
-          saveHistory({
-            id: id,
-            createdAt: new Date().toISOString(),
-            generatedImage: watermarked,
-            style: isMyStyle ? 'Мой стиль' : STYLE_DISPLAY[style]?.label ?? style,
-            room: ROOM_LABELS[room] ?? room,
-          })
         } else if (data.status === 'failed') {
           clearInterval(pollRef.current!)
           setStatus('error'); setStatusMsg(data.error || 'Генерация не удалась.')
@@ -579,7 +538,7 @@ export default function Home() {
         }
       } catch { /* continue */ }
     }, 2000)
-  }, [saveHistory, imagePreview, isMyStyle, style, room])
+}, [imagePreview, isMyStyle, style, room])
 
   const generate = useCallback(async () => {
     if (!imageFile) { setStatus('error'); setStatusMsg('Загрузите фотографию помещения'); return }
@@ -696,7 +655,6 @@ export default function Home() {
           <div>
             <div className="panel-heading">Создайте дизайн</div>
             <div className="panel-sub">Первые 3 генерации бесплатно</div>
-            <a href="#history" className="history-link">Перейти к истории генераций</a>
             <div className="plan-switcher">
               <span>Тестовый тариф:</span>
               {(['free','profi','agency'] as Plan[]).map(plan => (
@@ -1072,44 +1030,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="history-section" id="history">
-        <div className="section-eyebrow">Моя история</div>
-        <h2 className="section-title">Моя история генераций</h2>
-        <div className="history-note">
-          {canViewHistory
-            ? 'Каждая успешная генерация сохраняется автоматически. Нажмите на карточку, чтобы открыть результат в новом окне.'
-            : 'Доступ к истории открыт только в тарифах Профи и Агентство. Выберите тестовый тариф выше.'}
-        </div>
-
-        {canViewHistory ? (
-          historyItems.length > 0 ? (
-            <div className="history-grid">
-              {historyItems.map(item => (
-                <button key={item.id} type="button" className="history-card"
-                  onClick={() => window.open(item.generatedImage, '_blank')}>
-                  <div className="history-thumb">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={item.generatedImage} alt={`Генерация ${item.style}`} />
-                  </div>
-                  <div className="history-meta">
-                    <div className="history-style">{item.style}</div>
-                    <div className="history-room">{item.room}</div>
-                    <div className="history-date">{new Date(item.createdAt).toLocaleString('ru-RU', {
-                      day: 'numeric', month: 'long', year: 'numeric',
-                      hour: '2-digit', minute: '2-digit',
-                    })}</div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="history-empty">История пока пуста — сгенерируйте первое изображение.</div>
-          )
-        ) : (
-          <div className="history-locked">Страница истории будет доступна после выбора тарифа Профи или Агентство.</div>
-        )}
-      </section>
-
       <section className="pricing-section" id="pricing">
         <div className="section-eyebrow">Тарифы</div>
         <h2 className="section-title">Дизайнер берёт от $500 за проект.<br />Мы — от $12 в месяц.</h2>
@@ -1159,7 +1079,6 @@ export default function Home() {
                 'Все 10 стилей дизайна',
                 'Режим «Мой стиль»',
                 'Без водяного знака',
-                'История генераций',
                 'Приоритетная генерация',
               ],
               featured: true,
@@ -1177,7 +1096,6 @@ export default function Home() {
                 'Все 10 стилей дизайна',
                 'Режим «Мой стиль»',
                 'Без водяного знака',
-                'История генераций',
                 'До 5 пользователей',
                 'Коммерческое использование',
                 'Приоритетная поддержка',
