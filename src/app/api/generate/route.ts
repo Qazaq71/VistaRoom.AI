@@ -92,8 +92,8 @@ export async function POST(req: NextRequest) {
     //       the room's structural geometry (walls, windows, doors) intact.
     // 0.75 for preset styles = slightly more conservative, better window preservation.
     const promptStrength    = isMyStyle ? 0.8 : 0.75
-    const guidanceScale     = isMyStyle ? 15 : 12
-    const numInferenceSteps = isMyStyle ? 50 : 40
+    const guidanceScale     = isMyStyle ? 8.0 : 7.5
+    const numInferenceSteps = 50 
 
     const prediction = await replicate.predictions.create({
       version: INTERIOR_MODEL,
