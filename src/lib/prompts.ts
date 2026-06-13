@@ -581,7 +581,8 @@ const NEGATIVE_PROMPT_BASE_PARTS: string[] = [
   'cartoon', 'anime', 'sketch', 'painting', 'watercolor',
   'blurry', 'soft focus', 'out of focus', 'low quality', 'low resolution',
   'grainy', 'noisy', 'distorted', 'deformed',
-  'watermark', 'text', 'logo', 'ugly','duplicated objects','cluttered shelves',
+  'watermark', 'text', 'logo', 'ugly', 'duplicated objects', 'cluttered shelves',
+  'fused objects', 'deformed light fixtures', 'cropped furniture', 'cut off objects', 'chairs out of frame',
   // Color accuracy
   'wrong wall color', 'wrong floor color', 'incorrect wall color', 'incorrect floor color',
   'wrong paint color', 'wrong tile color', 'color mismatch',
