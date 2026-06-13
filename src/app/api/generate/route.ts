@@ -12,10 +12,9 @@ const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! })
 const INTERIOR_MODEL = '76604baddc85b1b4616e1c6475eca080da339c8875bd4996705440484a6eac38'
 
 async function compressImage(buffer: Buffer): Promise<string> {
-  const compressed = await sharp(buffer)
-    .resize(1280, 1280, { fit: 'inside', withoutEnlargement: true })
+      .resize(1280, 1280, { fit: 'inside', withoutEnlargement: true })
     .jpeg({ quality: 95 })
-    .toBuffer()
+
   return `data:image/jpeg;base64,${compressed.toString('base64')}`
 }
 
