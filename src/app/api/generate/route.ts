@@ -13,8 +13,8 @@ const INTERIOR_MODEL = '76604baddc85b1b4616e1c6475eca080da339c8875bd499670544048
 
 async function compressImage(buffer: Buffer): Promise<string> {
   const compressed = await sharp(buffer)
-    .resize(768, 768, { fit: 'inside', withoutEnlargement: true })
-    .jpeg({ quality: 85 })
+    .resize(1280, 1280, { fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 95 })
     .toBuffer()
   return `data:image/jpeg;base64,${compressed.toString('base64')}`
 }

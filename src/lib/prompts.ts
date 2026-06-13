@@ -358,8 +358,10 @@ export function buildEditPrompt(
       'do NOT remove any door', 'do NOT block any opening',
       'the architectural structure of the room is UNCHANGED',
       'photorealistic', 'hyperrealistic', '8k resolution',
-      'professional interior photography', 'sharp focus',
-      'realistic materials and textures', 'perfect lighting',
+      'professional interior photography', 'magazine editorial quality', 'luxury lifestyle photography',
+      'soft natural lighting', 'cinematic lighting', 'sharp focus',
+      'ultra-detailed', 'high definition textures', 'HDR lighting', 'real camera lens',
+      'realistic materials and textures', 'perfect lighting', 'subtle shadows', 'realistic reflections',
     ].filter(Boolean).join(', ')
     return { positive, negative: NEGATIVE_PROMPT_BASE }
   }
@@ -520,7 +522,10 @@ export function buildEditPrompt(
   // [11] Quality + final window reminder
   sections.push(
     `High-end architectural rendering, realistic textures, sharp details, ` +
-    `8k resolution, professional studio lighting, photorealistic, hyperrealistic. ` +
+    `8k resolution, professional studio lighting, magazine editorial quality, ` +
+    `luxury lifestyle photography, soft natural lighting, cinematic lighting, ` +
+    `photorealistic, hyperrealistic, ultra-detailed, high definition textures, ` +
+    `HDR lighting, real camera lens, subtle shadows, realistic reflections. ` +
     `All windows visible and in original positions.`
   )
 
@@ -571,7 +576,8 @@ export function buildEditPrompt(
 
 const NEGATIVE_PROMPT_BASE_PARTS: string[] = [
   'cartoon', 'anime', 'sketch', 'painting', 'watercolor',
-  'blurry', 'low quality', 'distorted', 'deformed',
+  'blurry', 'soft focus', 'out of focus', 'low quality', 'low resolution',
+  'grainy', 'noisy', 'distorted', 'deformed',
   'watermark', 'text', 'logo', 'ugly',
   // Color accuracy
   'wrong wall color', 'wrong floor color', 'incorrect wall color', 'incorrect floor color',
