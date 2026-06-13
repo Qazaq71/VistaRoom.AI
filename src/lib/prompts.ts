@@ -362,6 +362,7 @@ export function buildEditPrompt(
       'soft natural lighting', 'cinematic lighting', 'sharp focus',
       'ultra-detailed', 'high definition textures', 'HDR lighting', 'real camera lens',
       'realistic materials and textures', 'perfect lighting', 'subtle shadows', 'realistic reflections',
+      'vibrant color grading', 'crisp studio lighting', 'high contrast', 'perfect straight geometry', 'sharp volumetric lighting', 'professional interior photography', 'award-winning architectural design', 'clean crisp focus',
     ].filter(Boolean).join(', ')
     return { positive, negative: NEGATIVE_PROMPT_BASE }
   }
@@ -525,7 +526,9 @@ export function buildEditPrompt(
     `8k resolution, professional studio lighting, magazine editorial quality, ` +
     `luxury lifestyle photography, soft natural lighting, cinematic lighting, ` +
     `photorealistic, hyperrealistic, ultra-detailed, high definition textures, ` +
-    `HDR lighting, real camera lens, subtle shadows, realistic reflections. ` +
+    `HDR lighting, real camera lens, subtle shadows, realistic reflections, ` +
+    `vibrant color grading, crisp studio lighting, high contrast, perfect straight geometry, ` +
+    `sharp volumetric lighting, professional interior photography, award-winning architectural design, clean crisp focus. ` +
     `All windows visible and in original positions.`
   )
 
@@ -600,6 +603,8 @@ const NEGATIVE_PROMPT_BASE_PARTS: string[] = [
   'unrealistic', 'plastic look', 'oversaturated',
   'mixed materials', 'tiling errors', 'inconsistent surfaces',
   'material bleeding', 'wrong zone materials',
+  'deformed structures', 'crooked lines', 'extra legs', 'warped furniture', 'ugly',
+  'low-contrast', 'dull colors', 'dark moody shadows', 'blurry details', 'poor reflections',
 ]
 
 export const NEGATIVE_PROMPT = NEGATIVE_PROMPT_BASE_PARTS.join(', ')
