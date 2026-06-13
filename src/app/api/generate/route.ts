@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
     // 0.8 = strong redesign (changes materials, style, furniture) while keeping
     //       the room's structural geometry (walls, windows, doors) intact.
     // 0.75 for preset styles = slightly more conservative, better window preservation.
-    const promptStrength    = isMyStyle ? 0.8 : 0.75
+    const promptStrength    = isMyStyle ? 0.7 : 0.65
     const guidanceScale     = isMyStyle ? 11.0 : 10.0
     const numInferenceSteps = 50 
 
