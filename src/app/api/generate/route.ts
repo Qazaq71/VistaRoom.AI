@@ -6,10 +6,42 @@ import { buildEditPrompt, RoomDetails } from '@/lib/prompts'
 
 const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! })
 
-// adirik/interior-design — MLSD + segmentation ControlNet pipeline
-// Preserves walls/floors/windows/doors, removes furniture, respects text prompt colors
-// $0.0073/run, ~8 seconds, 2.1M runs
-const INTERIOR_MODEL = '76604baddc85b1b4616e1c6475eca080da339c8875bd4996705440484a6eac38'
+// lucataco/interior-design — SDXL img2img + ControlNet depth
+// Preserves geometry without segmentation color locking, so text prompt can control wall/floor/tile color.
+const INTERIOR_MODEL = 'lucataco/interior-design:14bc4d6264de799e1936e66a711adfda02e8e7dd4e7e5f6c7fc46d90d4e1a2c3'
+
+function buildColorPrefix(details: Partial<RoomDetails>, style: string): string {
+  if (style !== 'my_style') return ''
+  const parts: string[] = []
+
+  const wallHex  = details.wallColorHex?.toUpperCase()
+  const floorHex = details.floorColorHex?.toUpperCase()
+  const tileHex  = details.tileColorHex?.toUpperCase()
+
+  if (wallHex) {
+    parts.push(
+      `walls painted ${wallHex}`,
+      `wall color ${wallHex}`,
+      `${wallHex} colored walls`
+    )
+  }
+  if (floorHex) {
+    parts.push(
+      `floor color ${floorHex}`,
+      `${floorHex} floor`,
+      `flooring in color ${floorHex}`
+    )
+  }
+  if (tileHex) {
+    parts.push(
+      `backsplash tiles ${tileHex}`,
+      `${tileHex} kitchen backsplash`,
+      `tile color ${tileHex}`
+    )
+  }
+
+  return parts.length ? parts.join(', ') + ', ' : ''
+}
 
 async function compressImage(buffer: Buffer): Promise<string> {
   const compressed = await sharp(buffer)
@@ -69,29 +101,17 @@ export async function POST(req: NextRequest) {
     const dataUri = await compressImage(buffer)
 
     const { positive, negative } = buildEditPrompt(room, style, details)
-    const prompt       = toAscii(positive)
+    const colorPrefix = buildColorPrefix(details, style)
+    const prompt       = toAscii(colorPrefix + positive)
     const negPrompt    = toAscii(negative)
-
-    // adirik/interior-design API parameters:
-    // - image: base64 data URI of the room photo
-    // - prompt: describes the desired interior design
-    // - negative_prompt: what to avoid
-    // - prompt_strength: how strongly to follow the prompt (0-1)
-    //   1.0 = full redesign following prompt, furniture removed
-    //   0.7 = moderate redesign, some original elements may persist
-    //   For "Мой стиль" we want maximum redesign = 1.0
-    //   For preset styles we want high redesign = 0.9
-    // - num_inference_steps: quality steps (default 50)
-    // - guidance_scale: how closely to follow prompt (default 15)
 
     const isMyStyle = style === 'my_style'
 
     // prompt_strength controls how much the model deviates from the source image.
-    // 1.0 = full redesign following prompt and source image structure.
-    // For "Мой стиль" we want a strong redesign so colors and materials are applied.
-    const promptStrength    = isMyStyle ? 0.92 : 0.68
-    const guidanceScale     = isMyStyle ? 9.5 : 10.0
-    const numInferenceSteps = 50 
+    // For "Мой стиль" we want maximum color/material control without losing geometry.
+    const promptStrength    = isMyStyle ? 0.95 : 0.68
+    const guidanceScale     = isMyStyle ? 12.0 : 10.0
+    const numInferenceSteps = 50
 
     const prediction = await replicate.predictions.create({
       version: INTERIOR_MODEL,
@@ -102,6 +122,7 @@ export async function POST(req: NextRequest) {
         prompt_strength:      promptStrength,
         num_inference_steps:  numInferenceSteps,
         guidance_scale:       guidanceScale,
+        scheduler:            'DPMSolverMultistep',
       },
     })
 

@@ -519,6 +519,26 @@ export function buildEditPrompt(
     `REMINDER: all windows and doors are UNCHANGED from original photo — same position, same size.`
   )
 
+  // [9b] COLOR OVERRIDE — replace original source colors with selected palette.
+  if (wallColorDesc) {
+    sections.push(
+      `COLOR OVERRIDE: The original wall color from the source photo is REPLACED. ` +
+      `New wall color is ${wallColorDesc}. Ignore the original wall pigment entirely.`
+    )
+  }
+  if (floorColorDesc) {
+    sections.push(
+      `COLOR OVERRIDE: The original floor color from the source photo is REPLACED. ` +
+      `New floor color is ${floorColorDesc}. Ignore the original floor pigment entirely.`
+    )
+  }
+  if (tileColorDesc) {
+    sections.push(
+      `COLOR OVERRIDE: The original backsplash color from the source photo is REPLACED. ` +
+      `New backsplash color is ${tileColorDesc}. Ignore the original tile pigment entirely.`
+    )
+  }
+
   // [10] Notes
   if (details?.extraNotes) sections.push(details.extraNotes.replace(/[^\x00-\x7F]/g,'').trim())
 
@@ -588,11 +608,15 @@ const NEGATIVE_PROMPT_BASE_PARTS: string[] = [
   // Color accuracy
   'wrong wall color', 'wrong floor color', 'incorrect wall color', 'incorrect floor color',
   'wrong paint color', 'wrong tile color', 'color mismatch',
+  'original wall color', 'original floor color', 'original tile color',
+  'keep original colors', 'preserve original colors',
+  'same color as original', 'unchanged surface color',
+  'source image colors', 'photo original colors',
   'brown walls', 'red walls', 'dark red walls', 'mahogany walls',
   'wood colored walls', 'warm colored walls', 'beige walls',
   'original wall color', 'brown floor', 'light floor', 'beige floor',
   'red backsplash', 'beige backsplash', 'brown backsplash',
-  'original colors', 'keep original colors',
+  'original backsplash color', 'original colors', 'keep original colors',
   // Window preservation — comprehensive
   'window removed', 'missing window', 'no window', 'window gone',
   'blocked window', 'covered window', 'bricked up window',
