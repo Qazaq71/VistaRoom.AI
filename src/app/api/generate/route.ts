@@ -9,6 +9,29 @@ const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! })
 // lucataco/interior-design — SDXL img2img + ControlNet depth
 // Preserves geometry without segmentation color locking, so text prompt can control wall/floor/tile color.
 const INTERIOR_MODEL = 'lucataco/interior-design:14bc4d6264de799e1936e66a711adfda02e8e7dd4e7e5f6c7fc46d90d4e1a2c3'
+const INTERIOR_MODEL_FALLBACK = '76604baddc85b1b4616e1c6475eca080da339c8875bd4996705440484a6eac38'
+
+function isInvalidReplicateVersionError(err: unknown): boolean {
+  if (typeof err === 'object' && err !== null) {
+    const anyErr = err as any
+    if (anyErr.status === 422) return true
+    if (typeof anyErr.message === 'string' && anyErr.message.includes('Invalid version or not permitted')) return true
+    if (typeof anyErr.title === 'string' && anyErr.title.includes('Invalid version or not permitted')) return true
+  }
+  return false
+}
+
+async function createPredictionWithFallback(input: Record<string, unknown>) {
+  try {
+    return await replicate.predictions.create({ version: INTERIOR_MODEL, input })
+  } catch (err: unknown) {
+    if (isInvalidReplicateVersionError(err)) {
+      console.warn('Replicate model version invalid or unavailable, falling back to adirik/interior-design')
+      return await replicate.predictions.create({ version: INTERIOR_MODEL_FALLBACK, input })
+    }
+    throw err
+  }
+}
 
 function buildColorPrefix(details: Partial<RoomDetails>, style: string): string {
   if (style !== 'my_style') return ''
@@ -113,17 +136,14 @@ export async function POST(req: NextRequest) {
     const guidanceScale     = isMyStyle ? 12.0 : 10.0
     const numInferenceSteps = 50
 
-    const prediction = await replicate.predictions.create({
-      version: INTERIOR_MODEL,
-      input: {
-        image:                dataUri,
-        prompt:               prompt,
-        negative_prompt:      negPrompt,
-        prompt_strength:      promptStrength,
-        num_inference_steps:  numInferenceSteps,
-        guidance_scale:       guidanceScale,
-        scheduler:            'DPMSolverMultistep',
-      },
+    const prediction = await createPredictionWithFallback({
+      image:                dataUri,
+      prompt:               prompt,
+      negative_prompt:      negPrompt,
+      prompt_strength:      promptStrength,
+      num_inference_steps:  numInferenceSteps,
+      guidance_scale:       guidanceScale,
+      scheduler:            'DPMSolverMultistep',
     })
 
     return NextResponse.json({
