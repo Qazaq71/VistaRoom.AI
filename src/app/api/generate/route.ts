@@ -87,12 +87,10 @@ export async function POST(req: NextRequest) {
     const isMyStyle = style === 'my_style'
 
     // prompt_strength controls how much the model deviates from the source image.
-    // 1.0 = full redraw — MLSD should preserve geometry but in practice windows move.
-    // 0.8 = strong redesign (changes materials, style, furniture) while keeping
-    //       the room's structural geometry (walls, windows, doors) intact.
-    // 0.75 for preset styles = slightly more conservative, better window preservation.
-    const promptStrength    = isMyStyle ? 0.73 : 0.68
-    const guidanceScale     = isMyStyle ? 11.0 : 10.0
+    // 1.0 = full redesign following prompt and source image structure.
+    // For "Мой стиль" we want a strong redesign so colors and materials are applied.
+    const promptStrength    = isMyStyle ? 0.92 : 0.68
+    const guidanceScale     = isMyStyle ? 9.5 : 10.0
     const numInferenceSteps = 50 
 
     const prediction = await replicate.predictions.create({

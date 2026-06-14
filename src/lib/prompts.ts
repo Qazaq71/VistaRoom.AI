@@ -444,11 +444,13 @@ export function buildEditPrompt(
   if (wallFinishDescs.length) {
     sections.push(
       `WALLS: ${wallFinishDescs.join(' and ')}, ` +
-      `applied to vertical wall surfaces only. Use the exact selected wall color. Not on ceiling. Not on floor. Not on backsplash.`
+      `applied to vertical wall surfaces only. Use the exact selected wall color. Not on ceiling. Not on floor. Not on backsplash. ` +
+      `The walls are ${wallColorName}. NOT brown, NOT red, NOT wood color, NOT original color. The wall color MUST be ${wallColorName}.`
     )
   } else if (wallColorDesc) {
     sections.push(
-      `WALLS: all vertical wall surfaces painted ${wallColorDesc}. Use the exact selected wall color. Ceiling is NOT this color.`
+      `WALLS: all vertical wall surfaces painted ${wallColorDesc}. Use the exact selected wall color. Ceiling is NOT this color. ` +
+      `The walls are ${wallColorName}. NOT brown, NOT red, NOT wood color, NOT original color. The wall color MUST be ${wallColorName}.`
     )
   } else {
     sections.push(`WALLS: clean neutral walls.`)
@@ -465,10 +467,10 @@ export function buildEditPrompt(
     const floorDesc = FLOOR_EN[details.floorMaterial]
     if (floorDesc) {
       const full = floorColorDesc ? `${floorDesc}, floor color: ${floorColorDesc}` : floorDesc
-      sections.push(`FLOOR: ${full}. Floor surface only, not on walls. Use the exact selected floor color.`)
+      sections.push(`FLOOR: ${full}. Floor surface only, not on walls. Use the exact selected floor color. NOT brown floor, NOT light floor, NOT original floor color. The floor color MUST be ${floorColorName}.`)
     }
   } else if (floorColorDesc) {
-    sections.push(`FLOOR: floor surface in ${floorColorDesc}. Use the exact selected floor color.`)
+    sections.push(`FLOOR: floor surface in ${floorColorDesc}. Use the exact selected floor color. NOT brown floor, NOT light floor, NOT original floor color. The floor color MUST be ${floorColorName}.`)
   }
 
   // [4] BACKSPLASH — FIX: explicit color repeated 3x, hex included, "visible" enforced
@@ -586,6 +588,11 @@ const NEGATIVE_PROMPT_BASE_PARTS: string[] = [
   // Color accuracy
   'wrong wall color', 'wrong floor color', 'incorrect wall color', 'incorrect floor color',
   'wrong paint color', 'wrong tile color', 'color mismatch',
+  'brown walls', 'red walls', 'dark red walls', 'mahogany walls',
+  'wood colored walls', 'warm colored walls', 'beige walls',
+  'original wall color', 'brown floor', 'light floor', 'beige floor',
+  'red backsplash', 'beige backsplash', 'brown backsplash',
+  'original colors', 'keep original colors',
   // Window preservation — comprehensive
   'window removed', 'missing window', 'no window', 'window gone',
   'blocked window', 'covered window', 'bricked up window',
