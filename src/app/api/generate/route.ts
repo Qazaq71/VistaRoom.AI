@@ -21,6 +21,16 @@ function isInvalidReplicateVersionError(err: unknown): boolean {
   return false
 }
 
+function isReplicateRateLimitError(err: unknown): boolean {
+  if (typeof err === 'object' && err !== null) {
+    const anyErr = err as any
+    if (anyErr.status === 429) return true
+    if (typeof anyErr.detail === 'string' && anyErr.detail.toLowerCase().includes('request was throttled')) return true
+    if (typeof anyErr.message === 'string' && anyErr.message.toLowerCase().includes('too many requests')) return true
+  }
+  return false
+}
+
 async function createPredictionWithFallback(input: Record<string, unknown>) {
   try {
     return await replicate.predictions.create({ version: INTERIOR_MODEL, input })
@@ -154,6 +164,19 @@ export async function POST(req: NextRequest) {
       promptUsed:   prompt,
     })
   } catch (err: unknown) {
+    if (isReplicateRateLimitError(err)) {
+      const anyErr = err as any
+      const retryAfter = anyErr.retry_after ?? anyErr.retryAfter ?? 10
+      return NextResponse.json(
+        {
+          error: 'Replicate rate limit exceeded. Try again after a short delay.',
+          code: 'RATE_LIMIT_REPLICATE',
+          retry_after: retryAfter,
+        },
+        { status: 429 }
+      )
+    }
+
     const msg = err instanceof Error ? err.message : 'Internal server error'
     return NextResponse.json({ error: msg }, { status: 500 })
   }
