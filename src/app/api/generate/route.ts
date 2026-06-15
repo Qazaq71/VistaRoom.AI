@@ -101,19 +101,16 @@ export async function POST(req: NextRequest) {
     const colorPrefix = buildColorPrefix(details, style)
     const prompt      = toAscii(colorPrefix + positive)
 
-    const isMyStyle = style === 'my_style'
-
     const prediction = await replicate.predictions.create({
-      version: 'a204b0094e8deec1b25f1eb69b6fe3e45acf4c35f98da4da5c2f5e26c6c16af0',
+      model: 'xlabs-ai/flux-dev-controlnet',
       input: {
-        image:               dataUri,
+        control_image:       dataUri,
         prompt:              prompt,
         control_type:        'depth',
-        controlnet_strength: 0.85,
-        prompt_strength:     isMyStyle ? 0.80 : 0.65,
-        num_inference_steps: 28,
+        controlnet_strength: 0.7,
+        steps:               28,
         guidance:            3.5,
-        output_format:       'jpg',
+        output_format:       'webp',
         output_quality:      90,
       },
     })
