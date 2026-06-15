@@ -6,7 +6,6 @@ import { buildEditPrompt, RoomDetails } from '@/lib/prompts'
 
 const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! })
 
-const INTERIOR_MODEL = 'black-forest-labs/flux-fill-pro'
 
 function buildColorPrefix(details: Partial<RoomDetails>, style: string): string {
   if (style !== 'my_style') return ''
@@ -105,14 +104,16 @@ export async function POST(req: NextRequest) {
     const isMyStyle = style === 'my_style'
 
     const prediction = await replicate.predictions.create({
-      model: INTERIOR_MODEL,
+      model: 'black-forest-labs/flux-dev',
       input: {
-        image:           dataUri,
-        prompt:          prompt,
-        prompt_strength: isMyStyle ? 0.95 : 0.75,
-        num_outputs:     1,
-        output_format:   'jpg',
-        output_quality:  95,
+        image:               dataUri,
+        prompt:              prompt,
+        prompt_strength:     isMyStyle ? 0.90 : 0.75,
+        num_outputs:         1,
+        num_inference_steps: 28,
+        guidance:            3.5,
+        output_format:       'jpg',
+        output_quality:      90,
       },
     })
 
