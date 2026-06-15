@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
         prompt:          prompt,
         prompt_strength: isMyStyle ? 0.95 : 0.75,
         num_outputs:     1,
-        output_format:   'jpeg',
+        output_format:   'jpg',
         output_quality:  95,
       },
     })
