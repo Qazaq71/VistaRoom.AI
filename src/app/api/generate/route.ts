@@ -6,7 +6,7 @@ import { buildEditPrompt, RoomDetails } from '@/lib/prompts'
 
 const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! })
 
-const INTERIOR_MODEL = '4836eb257a4fb8b87bac9eacbef9292ee8e1a497398ab96207067403a4be2daf'
+const INTERIOR_MODEL = 'black-forest-labs/flux-fill-pro'
 
 function buildColorPrefix(details: Partial<RoomDetails>, style: string): string {
   if (style !== 'my_style') return ''
@@ -98,27 +98,21 @@ export async function POST(req: NextRequest) {
     const compressedBuffer = await compressImage(buffer)
     const dataUri = `data:image/jpeg;base64,${compressedBuffer.toString('base64')}`
 
-    const { positive, negative } = buildEditPrompt(room, style, details)
+    const { positive } = buildEditPrompt(room, style, details)
     const colorPrefix = buildColorPrefix(details, style)
-    const prompt       = toAscii(colorPrefix + positive)
-    const negPrompt    = toAscii(negative)
+    const prompt      = toAscii(colorPrefix + positive)
 
     const isMyStyle = style === 'my_style'
 
-    const promptStrength    = isMyStyle ? 0.95 : 0.68
-    const guidanceScale     = isMyStyle ? 12.0 : 10.0
-    const numInferenceSteps = 50
-
     const prediction = await replicate.predictions.create({
-      version: INTERIOR_MODEL,
+      model: INTERIOR_MODEL,
       input: {
-        image:                dataUri,
-        prompt:               prompt,
-        negative_prompt:      negPrompt,
-        prompt_strength:      promptStrength,
-        num_inference_steps:  numInferenceSteps,
-        guidance_scale:       guidanceScale,
-        scheduler:            'DPMSolverMultistep',
+        image:           dataUri,
+        prompt:          prompt,
+        prompt_strength: isMyStyle ? 0.95 : 0.75,
+        num_outputs:     1,
+        output_format:   'jpeg',
+        output_quality:  95,
       },
     })
 
