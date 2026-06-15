@@ -6,7 +6,7 @@ import { buildEditPrompt, RoomDetails } from '@/lib/prompts'
 
 const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! })
 
-
+const INTERIOR_MODEL = '4836eb257a4fb8b87bac9eacbef9292ee8e1a497398ab96207067403a4be2daf'
 
 function buildColorPrefix(details: Partial<RoomDetails>, style: string): string {
   if (style !== 'my_style') return ''
@@ -96,31 +96,7 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await imageFile.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     const compressedBuffer = await compressImage(buffer)
-
-    let imageValue: string
-    try {
-      const uploadForm = new FormData()
-      uploadForm.append(
-        'content',
-        new Blob([Uint8Array.from(compressedBuffer)], { type: 'image/jpeg' }),
-        'image.jpg'
-      )
-      const uploadResponse = await fetch(
-        'https://dreambooth-api-experimental.replicate.com/v1/upload/image.jpg',
-        {
-          method: 'POST',
-          headers: { Authorization: `Token ${process.env.REPLICATE_API_TOKEN}` },
-          body: uploadForm,
-        }
-      )
-      if (!uploadResponse.ok) throw new Error(`Upload failed: ${uploadResponse.status}`)
-      const uploadData = await uploadResponse.json() as { serving_url?: string; urls?: { get: string } }
-      const url = uploadData.serving_url ?? uploadData.urls?.get
-      if (!url) throw new Error('No URL in upload response')
-      imageValue = url
-    } catch {
-      imageValue = compressedBuffer.toString('base64')
-    }
+    const dataUri = `data:image/jpeg;base64,${compressedBuffer.toString('base64')}`
 
     const { positive, negative } = buildEditPrompt(room, style, details)
     const colorPrefix = buildColorPrefix(details, style)
@@ -134,9 +110,9 @@ export async function POST(req: NextRequest) {
     const numInferenceSteps = 50
 
     const prediction = await replicate.predictions.create({
-      model: 'adirik/interior-design',
+      version: INTERIOR_MODEL,
       input: {
-        image:                imageValue,
+        image:                dataUri,
         prompt:               prompt,
         negative_prompt:      negPrompt,
         prompt_strength:      promptStrength,
