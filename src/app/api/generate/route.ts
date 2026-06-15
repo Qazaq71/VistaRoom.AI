@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import Replicate from 'replicate'
 import sharp from 'sharp'
 import { getRateLimit } from '@/lib/rateLimit'
@@ -17,16 +17,6 @@ function isInvalidReplicateVersionError(err: unknown): boolean {
     if (anyErr.status === 422) return true
     if (typeof anyErr.message === 'string' && anyErr.message.includes('Invalid version or not permitted')) return true
     if (typeof anyErr.title === 'string' && anyErr.title.includes('Invalid version or not permitted')) return true
-  }
-  return false
-}
-
-function isReplicateRateLimitError(err: unknown): boolean {
-  if (typeof err === 'object' && err !== null) {
-    const anyErr = err as any
-    if (anyErr.status === 429) return true
-    if (typeof anyErr.detail === 'string' && anyErr.detail.toLowerCase().includes('request was throttled')) return true
-    if (typeof anyErr.message === 'string' && anyErr.message.toLowerCase().includes('too many requests')) return true
   }
   return false
 }
@@ -140,20 +130,21 @@ export async function POST(req: NextRequest) {
 
     const isMyStyle = style === 'my_style'
 
-    // prompt_strength controls how much the model deviates from the source image.
-    // For "Мой стиль" we want maximum color/material control without losing geometry.
     const promptStrength    = isMyStyle ? 0.95 : 0.68
     const guidanceScale     = isMyStyle ? 12.0 : 10.0
     const numInferenceSteps = 50
 
-    const prediction = await createPredictionWithFallback({
-      image:                dataUri,
-      prompt:               prompt,
-      negative_prompt:      negPrompt,
-      prompt_strength:      promptStrength,
-      num_inference_steps:  numInferenceSteps,
-      guidance_scale:       guidanceScale,
-      scheduler:            'DPMSolverMultistep',
+    const prediction = await replicate.predictions.create({
+      version: INTERIOR_MODEL,
+      input: {
+        image:                dataUri,
+        prompt:               prompt,
+        negative_prompt:      negPrompt,
+        prompt_strength:      promptStrength,
+        num_inference_steps:  numInferenceSteps,
+        guidance_scale:       guidanceScale,
+        scheduler:            'DPMSolverMultistep',
+      },
     })
 
     return NextResponse.json({
@@ -164,19 +155,6 @@ export async function POST(req: NextRequest) {
       promptUsed:   prompt,
     })
   } catch (err: unknown) {
-    if (isReplicateRateLimitError(err)) {
-      const anyErr = err as any
-      const retryAfter = anyErr.retry_after ?? anyErr.retryAfter ?? 10
-      return NextResponse.json(
-        {
-          error: 'Replicate rate limit exceeded. Try again after a short delay.',
-          code: 'RATE_LIMIT_REPLICATE',
-          retry_after: retryAfter,
-        },
-        { status: 429 }
-      )
-    }
-
     const msg = err instanceof Error ? err.message : 'Internal server error'
     return NextResponse.json({ error: msg }, { status: 500 })
   }
