@@ -507,20 +507,10 @@ export function buildEditPrompt(
       roomExtra,
 
       // Сохранение геометрии
-      'CRITICAL RULE 1 — WINDOWS: ALL windows MUST remain fully visible and unobstructed. Window openings are FIXED — same position, same size, same shape on the wall. Do NOT cover, block, obscure or remove any window with furniture, artwork, curtains, shelves, plants, panels or any wall decoration. Windows must show light or view through them.',
-      'CRITICAL RULE 2 — FURNITURE COLOR: ALL existing furniture, cabinets, and built-in elements MUST be recolored or replaced to match the chosen interior style. Do NOT keep original furniture colors if they clash with the style palette. Kitchen cabinets, sofas, wardrobes, shelving units — all must harmonize with the selected style.',
-      'CRITICAL RULE 3 — DOORS: ALL door openings are FIXED — same position, same size, same shape. Do NOT remove, block or relocate any door.',
-      'CRITICAL RULE 4 — GEOMETRY: Room geometry, wall layout, camera angle and perspective are UNCHANGED from the source photo. Do NOT restructure the room or change the viewpoint.',
-      'CRITICAL RULE 5 — FIXED ELEMENTS: Radiators, built-in appliances (refrigerator, stove, oven, washing machine), plumbing fixtures (sink, toilet, bathtub) remain in their original positions. Only their visual style may be updated to match the design.',
+      'keep original room geometry, windows unobstructed, recolor furniture to match style',
 
       // Качество
-      'photorealistic, hyperrealistic, 8k resolution',
-      'professional interior photography, magazine editorial quality',
-      'luxury lifestyle photography, soft natural lighting, cinematic lighting',
-      'sharp focus, ultra-detailed, high definition textures, HDR lighting',
-      'realistic materials and textures, subtle shadows, realistic reflections',
-      'vibrant color grading, high contrast, perfect straight geometry',
-      'award-winning architectural design, clean crisp focus',
+      'photorealistic, 8k, professional interior photography, sharp focus, HDR lighting',
     ].filter(Boolean).join(' ')
     // Style-specific negative additions (only for new styles; empty for legacy styles)
     const negExtra = STYLE_NEGATIVE_EXTRA[sk] ?? ''
