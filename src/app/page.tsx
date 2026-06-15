@@ -553,7 +553,7 @@ export default function Home() {
     let attempts = 0
     pollRef.current = setInterval(async () => {
       attempts++
-      if (attempts > 90) {
+      if (attempts > 36) {
         clearInterval(pollRef.current!)
         setStatus('error'); setStatusMsg('Превышено время ожидания. Попробуйте снова.')
         return
@@ -575,7 +575,7 @@ export default function Home() {
           setStatusMsg(`Генерирую дизайн... (${Math.min(attempts * 2, 60)} сек)`)
         }
       } catch { /* continue */ }
-    }, 2000)
+    }, 5000)
 }, [imagePreview, isMyStyle, style, room])
 
   const generate = useCallback(async () => {

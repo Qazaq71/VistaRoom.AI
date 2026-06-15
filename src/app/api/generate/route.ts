@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
 
-export const maxDuration = 60
-import { put } from '@vercel/blob'
+export const maxDuration = 10
 import { getRateLimit } from '@/lib/rateLimit'
 import { buildEditPrompt, RoomDetails } from '@/lib/prompts'
 
@@ -102,12 +101,7 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer)
     const compressedBuffer = await compressImage(buffer)
 
-    // Upload to Vercel Blob to obtain a public URL for ModelsLab
-    const { url: imageUrl } = await put(
-      `interior/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`,
-      compressedBuffer,
-      { access: 'public', contentType: 'image/jpeg' }
-    )
+    const imageUrl = `data:image/jpeg;base64,${compressedBuffer.toString('base64')}`
 
     const { positive, negative } = buildEditPrompt(room, style, details)
     const colorPrefix = buildColorPrefix(details, style)
