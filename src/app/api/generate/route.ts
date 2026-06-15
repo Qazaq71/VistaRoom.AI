@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
     const negPrompt = toAscii(negative)
     const isMyStyle = style === 'my_style'
 
-    const mlRes = await fetch('https://modelslab.com/api/v6/interior/make_interior', {
+    const mlRes = await fetch('https://modelslab.com/api/v6/interior/make', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
