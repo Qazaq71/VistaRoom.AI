@@ -673,7 +673,7 @@ export default function Home() {
     const wraps = Array.from(document.querySelectorAll<HTMLElement>('.style-chip-wrap'))
     const cleanups = wraps.map(position).filter(Boolean) as (() => void)[]
     return () => cleanups.forEach(fn => fn())
-  }, [])
+  }, [collapsedCats, styleFilter, styleSearch])
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
@@ -690,7 +690,7 @@ export default function Home() {
           <p className="hero-desc">Загрузите фото, опишите параметры комнаты и получите гиперреалистичный дизайн в любом стиле. Без дизайнера, без согласований.</p>
           <a href="#generate" className="btn-primary">Попробовать бесплатно</a>
           <div className="hero-stats">
-            <div><div className="stat-num">10</div><div className="stat-label">Стилей дизайна</div></div>
+            <div><div className="stat-num">20+</div><div className="stat-label">Стилей дизайна</div></div>
             <div><div className="stat-num">3</div><div className="stat-label">Бесплатно</div></div>
             <div><div className="stat-num">30 сек</div><div className="stat-label">Генерация</div></div>
           </div>
@@ -840,7 +840,7 @@ export default function Home() {
                                   {s.preview && (
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img src={s.preview} alt={s.label} className="style-tooltip-img"
-                                      loading="lazy"
+                      loading="eager"
                                       onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
                                   )}
                                   <div className="style-tooltip-body">
