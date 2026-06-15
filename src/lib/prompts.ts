@@ -492,25 +492,35 @@ export function buildEditPrompt(
     const sk = styleKey || 'minimalist'
     // Room-specific extra descriptor (only defined for new styles; empty for legacy styles)
     const roomExtra = STYLE_ROOM_EXTRA[sk]?.[roomKey] ?? ''
+    const wallDesc  = STYLE_WALL_DEFAULT[sk]  || ''
+    const floorDesc = STYLE_FLOOR_DEFAULT[sk] || ''
+    const styleDesc = STYLE_BASE[sk] || STYLE_BASE.minimalist
+
     const positive = [
-      room,
-      STYLE_BASE[sk]          || STYLE_BASE.minimalist,
-      STYLE_WALL_DEFAULT[sk]  || '',
-      STYLE_FLOOR_DEFAULT[sk] || '',
+      `Professional interior design photography of a ${room}`,
+      styleDesc,
+
+      // Явные команды замены поверхностей
+      wallDesc  ? `WALLS: REPLACE all wall surfaces with ${wallDesc}. The original wall color and material is completely replaced.` : '',
+      floorDesc ? `FLOOR: REPLACE the entire floor with ${floorDesc}. The original floor is completely replaced.` : '',
+
       roomExtra,
-      'ALL windows and doors MUST remain in their EXACT original positions from the source photo',
-      'window openings are FIXED — same size, same shape, same location on the wall',
-      'door openings are FIXED — same size, same shape, same location',
-      'do NOT remove any window', 'do NOT add any window', 'do NOT resize any window',
-      'do NOT remove any door', 'do NOT block any opening',
-      'the architectural structure of the room is UNCHANGED',
-      'photorealistic', 'hyperrealistic', '8k resolution',
-      'professional interior photography', 'magazine editorial quality', 'luxury lifestyle photography',
-      'soft natural lighting', 'cinematic lighting', 'sharp focus',
-      'ultra-detailed', 'high definition textures', 'HDR lighting', 'real camera lens',
-      'realistic materials and textures', 'perfect lighting', 'subtle shadows', 'realistic reflections',
-      'vibrant color grading', 'crisp studio lighting', 'high contrast', 'perfect straight geometry', 'sharp volumetric lighting', 'professional interior photography', 'award-winning architectural design', 'clean crisp focus',
-    ].filter(Boolean).join(', ')
+
+      // Сохранение геометрии
+      'CRITICAL: ALL windows and doors MUST remain in their EXACT original positions, size and shape from the source photo.',
+      'Do NOT remove, resize, relocate or add any windows or doors.',
+      'The room geometry, camera angle and perspective are UNCHANGED from the source photo.',
+      'Radiators and fixed wall fixtures are preserved in original positions.',
+
+      // Качество
+      'photorealistic, hyperrealistic, 8k resolution',
+      'professional interior photography, magazine editorial quality',
+      'luxury lifestyle photography, soft natural lighting, cinematic lighting',
+      'sharp focus, ultra-detailed, high definition textures, HDR lighting',
+      'realistic materials and textures, subtle shadows, realistic reflections',
+      'vibrant color grading, high contrast, perfect straight geometry',
+      'award-winning architectural design, clean crisp focus',
+    ].filter(Boolean).join(' ')
     // Style-specific negative additions (only for new styles; empty for legacy styles)
     const negExtra = STYLE_NEGATIVE_EXTRA[sk] ?? ''
     const negative = negExtra
