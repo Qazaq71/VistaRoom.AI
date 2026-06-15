@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
+import { put } from '@vercel/blob'
 
 export const maxDuration = 10
 import { getRateLimit } from '@/lib/rateLimit'
@@ -40,7 +41,7 @@ function buildColorPrefix(details: Partial<RoomDetails>, style: string): string 
 
 async function compressImage(buffer: Buffer): Promise<Buffer> {
   return await sharp(buffer)
-    .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
+    .resize(768, 768, { fit: 'inside', withoutEnlargement: true })
     .jpeg({ quality: 90 })
     .toBuffer()
 }
@@ -101,7 +102,11 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer)
     const compressedBuffer = await compressImage(buffer)
 
-    const imageUrl = `data:image/jpeg;base64,${compressedBuffer.toString('base64')}`
+    const { url: imageUrl } = await put(
+      `interior/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`,
+      compressedBuffer,
+      { access: 'public', contentType: 'image/jpeg' }
+    )
 
     const { positive, negative } = buildEditPrompt(room, style, details)
     const colorPrefix = buildColorPrefix(details, style)
