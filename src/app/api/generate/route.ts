@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
+
+export const maxDuration = 60
 import { put } from '@vercel/blob'
 import { getRateLimit } from '@/lib/rateLimit'
 import { buildEditPrompt, RoomDetails } from '@/lib/prompts'
