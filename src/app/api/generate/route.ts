@@ -121,9 +121,31 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await imageFile.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     const compressedBuffer = await compressImage(buffer)
-    const blob = new Blob([Uint8Array.from(compressedBuffer)], { type: 'image/jpeg' })
-    const uploadedFile = await replicate.files.create(blob)
-    const imageUrl = uploadedFile.urls.get
+
+    let imageValue: string
+    try {
+      const uploadForm = new FormData()
+      uploadForm.append(
+        'content',
+        new Blob([Uint8Array.from(compressedBuffer)], { type: 'image/jpeg' }),
+        'image.jpg'
+      )
+      const uploadResponse = await fetch(
+        'https://dreambooth-api-experimental.replicate.com/v1/upload/image.jpg',
+        {
+          method: 'POST',
+          headers: { Authorization: `Token ${process.env.REPLICATE_API_TOKEN}` },
+          body: uploadForm,
+        }
+      )
+      if (!uploadResponse.ok) throw new Error(`Upload failed: ${uploadResponse.status}`)
+      const uploadData = await uploadResponse.json() as { serving_url?: string; urls?: { get: string } }
+      const url = uploadData.serving_url ?? uploadData.urls?.get
+      if (!url) throw new Error('No URL in upload response')
+      imageValue = url
+    } catch {
+      imageValue = compressedBuffer.toString('base64')
+    }
 
     const { positive, negative } = buildEditPrompt(room, style, details)
     const colorPrefix = buildColorPrefix(details, style)
@@ -139,7 +161,7 @@ export async function POST(req: NextRequest) {
     const prediction = await replicate.predictions.create({
       version: INTERIOR_MODEL,
       input: {
-        image:                imageUrl,
+        image:                imageValue,
         prompt:               prompt,
         negative_prompt:      negPrompt,
         prompt_strength:      promptStrength,
