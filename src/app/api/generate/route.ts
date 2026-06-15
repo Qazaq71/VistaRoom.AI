@@ -104,12 +104,13 @@ export async function POST(req: NextRequest) {
     const isMyStyle = style === 'my_style'
 
     const prediction = await replicate.predictions.create({
-      model: 'black-forest-labs/flux-dev',
+      version: 'a204b0094e8deec1b25f1eb69b6fe3e45acf4c35f98da4da5c2f5e26c6c16af0',
       input: {
         image:               dataUri,
         prompt:              prompt,
-        prompt_strength:     isMyStyle ? 0.90 : 0.75,
-        num_outputs:         1,
+        control_type:        'depth',
+        controlnet_strength: 0.85,
+        prompt_strength:     isMyStyle ? 0.80 : 0.65,
         num_inference_steps: 28,
         guidance:            3.5,
         output_format:       'jpg',
