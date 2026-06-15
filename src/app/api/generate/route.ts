@@ -66,12 +66,11 @@ function buildColorPrefix(details: Partial<RoomDetails>, style: string): string 
   return parts.length ? parts.join(', ') + ', ' : ''
 }
 
-async function compressImage(buffer: Buffer): Promise<string> {
-  const compressed = await sharp(buffer)
+async function compressImage(buffer: Buffer): Promise<Buffer> {
+  return await sharp(buffer)
     .resize(1280, 1280, { fit: 'inside', withoutEnlargement: true })
     .jpeg({ quality: 95 })
     .toBuffer()
-  return `data:image/jpeg;base64,${compressed.toString('base64')}`
 }
 
 
@@ -121,7 +120,10 @@ export async function POST(req: NextRequest) {
 
     const arrayBuffer = await imageFile.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
-    const dataUri = await compressImage(buffer)
+    const compressedBuffer = await compressImage(buffer)
+    const blob = new Blob([compressedBuffer], { type: 'image/jpeg' })
+    const uploadedFile = await replicate.files.create(blob)
+    const imageUrl = uploadedFile.urls.get
 
     const { positive, negative } = buildEditPrompt(room, style, details)
     const colorPrefix = buildColorPrefix(details, style)
@@ -137,7 +139,7 @@ export async function POST(req: NextRequest) {
     const prediction = await replicate.predictions.create({
       version: INTERIOR_MODEL,
       input: {
-        image:                dataUri,
+        image:                imageUrl,
         prompt:               prompt,
         negative_prompt:      negPrompt,
         prompt_strength:      promptStrength,
