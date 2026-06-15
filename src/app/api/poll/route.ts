@@ -1,23 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Replicate from 'replicate'
-
-const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! })
 
 export async function GET(req: NextRequest) {
   try {
     const id = req.nextUrl.searchParams.get('id')
-    if (!id || !/^[a-z0-9]{20,}$/.test(id)) {
+    if (!id || !/^\d{1,20}$/.test(id)) {
       return NextResponse.json({ error: 'Invalid prediction ID' }, { status: 400 })
     }
-    const prediction = await replicate.predictions.get(id)
-    const outputUrl = prediction.status === 'succeeded'
-      ? (Array.isArray(prediction.output) ? prediction.output[0] : prediction.output)
-      : null
+
+    const mlRes = await fetch(
+      `https://modelslab.com/api/v6/interior/fetch/${id}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: process.env.MODELSLAB_API_KEY }),
+      }
+    )
+
+    const mlData = await mlRes.json() as {
+      status: string
+      output?: string[]
+      message?: string
+    }
+
+    const outputUrl = mlData.output?.[0] ?? null
+    const status = mlData.status === 'success'
+      ? 'succeeded'
+      : mlData.status === 'error'
+        ? 'failed'
+        : 'processing'
+
     return NextResponse.json({
-      id: prediction.id,
-      status: prediction.status,
+      id,
+      status,
       outputUrl,
-      error: prediction.error ?? null,
+      error: mlData.status === 'error' ? (mlData.message ?? 'Generation failed') : null,
     })
   } catch (err: unknown) {
     console.error('[/api/poll]', err)

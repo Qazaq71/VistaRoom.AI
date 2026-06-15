@@ -1,11 +1,8 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
-import Replicate from 'replicate'
+import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
+import { put } from '@vercel/blob'
 import { getRateLimit } from '@/lib/rateLimit'
 import { buildEditPrompt, RoomDetails } from '@/lib/prompts'
-
-const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! })
-
 
 function buildColorPrefix(details: Partial<RoomDetails>, style: string): string {
   if (style !== 'my_style') return ''
@@ -42,14 +39,21 @@ function buildColorPrefix(details: Partial<RoomDetails>, style: string): string 
 
 async function compressImage(buffer: Buffer): Promise<Buffer> {
   return await sharp(buffer)
-    .resize(1280, 1280, { fit: 'inside', withoutEnlargement: true })
-    .jpeg({ quality: 95 })
+    .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 90 })
     .toBuffer()
 }
 
-
 function toAscii(text: string): string {
   return text.replace(/[^\x00-\x7F]/g, '').replace(/\s+/g, ' ').trim()
+}
+
+type ModelsLabResponse = {
+  status: string
+  id?: number | string
+  output?: string[]
+  future_links?: string[]
+  message?: string
 }
 
 export async function POST(req: NextRequest) {
@@ -95,29 +99,52 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await imageFile.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     const compressedBuffer = await compressImage(buffer)
-    const dataUri = `data:image/jpeg;base64,${compressedBuffer.toString('base64')}`
 
-    const { positive } = buildEditPrompt(room, style, details)
+    // Upload to Vercel Blob to obtain a public URL for ModelsLab
+    const { url: imageUrl } = await put(
+      `interior/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`,
+      compressedBuffer,
+      { access: 'public', contentType: 'image/jpeg' }
+    )
+
+    const { positive, negative } = buildEditPrompt(room, style, details)
     const colorPrefix = buildColorPrefix(details, style)
-    const prompt      = toAscii(colorPrefix + positive)
+    const prompt    = toAscii(colorPrefix + positive)
+    const negPrompt = toAscii(negative)
+    const isMyStyle = style === 'my_style'
 
-    const prediction = await replicate.predictions.create({
-      model: 'xlabs-ai/flux-dev-controlnet',
-      input: {
-        control_image:       dataUri,
-        prompt:              prompt,
-        control_type:        'depth',
-        controlnet_strength: 0.7,
-        steps:               28,
-        guidance:            3.5,
-        output_format:       'webp',
-        output_quality:      90,
-      },
+    const mlRes = await fetch('https://modelslab.com/api/v6/interior/make', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        key:                 process.env.MODELSLAB_API_KEY,
+        prompt,
+        negative_prompt:     negPrompt,
+        init_image:          imageUrl,
+        strength:            isMyStyle ? 7 : 5,
+        guidance_scale:      12,
+        num_inference_steps: 31,
+        enhance_prompt:      'no',
+        width:               '512',
+        height:              '512',
+      }),
     })
 
+    const mlData = await mlRes.json() as ModelsLabResponse
+
+    if (mlData.status === 'error') {
+      return NextResponse.json(
+        { error: mlData.message ?? 'ModelsLab error' },
+        { status: 500 }
+      )
+    }
+
+    const outputUrl = mlData.output?.[0] ?? null
+
     return NextResponse.json({
-      predictionId: prediction.id,
-      status:       prediction.status,
+      predictionId: String(mlData.id ?? ''),
+      outputUrl,
+      status:       mlData.status === 'success' ? 'succeeded' : 'processing',
       remaining,
       limit,
       promptUsed:   prompt,

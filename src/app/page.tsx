@@ -570,8 +570,15 @@ export default function Home() {
       const data = await res.json()
       if (!res.ok) { setStatus('error'); setStatusMsg(data.error || 'Ошибка сервера'); return }
       setRemaining(data.remaining)
-      setStatus('processing'); setStatusMsg('Генерирую дизайн...')
-      pollPrediction(data.predictionId, userPlan)
+      if (data.outputUrl) {
+        const watermarked = (userPlan === 'profi' || userPlan === 'agency')
+          ? data.outputUrl
+          : await addWatermark(data.outputUrl)
+        setOutputUrl(watermarked); setStatus('done')
+      } else {
+        setStatus('processing'); setStatusMsg('Генерирую дизайн...')
+        pollPrediction(data.predictionId, userPlan)
+      }
     } catch { setStatus('error'); setStatusMsg('Нет соединения с сервером.') }
   }, [imageFile, room, style, isMyStyle, wallColorHex, wallFinish,
       floorMaterial, floorColorHex, tilezone, tileColorHex,
