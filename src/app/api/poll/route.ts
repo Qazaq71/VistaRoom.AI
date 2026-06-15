@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     }
 
     const mlRes = await fetch(
-      `https://modelslab.com/api/v6/interior/fetch/${id}`,
+      `https://modelslab.com/api/v1/enterprise/interior/fetch/${id}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
