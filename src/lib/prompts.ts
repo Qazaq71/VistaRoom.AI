@@ -467,10 +467,20 @@ export function buildEditPrompt(
     const floorDesc = FLOOR_EN[details.floorMaterial]
     if (floorDesc) {
       const full = floorColorDesc ? `${floorDesc}, floor color: ${floorColorDesc}` : floorDesc
-      sections.push(`FLOOR: ${full}. Floor surface only, not on walls. Use the exact selected floor color. NOT brown floor, NOT light floor, NOT original floor color. The floor color MUST be ${floorColorName}.`)
+      sections.push(
+        `FLOOR: REPLACE the entire floor with ${full}. ` +
+        `Floor surface only, not on walls. ` +
+        `The original floor is completely replaced. ` +
+        `Do NOT keep any part of the original floor.`
+      )
     }
   } else if (floorColorDesc) {
-    sections.push(`FLOOR: floor surface in ${floorColorDesc}. Use the exact selected floor color. NOT brown floor, NOT light floor, NOT original floor color. The floor color MUST be ${floorColorName}.`)
+    sections.push(
+      `FLOOR: REPLACE the entire floor surface with ${floorColorDesc}. ` +
+      `The floor color is ${floorColorName}. ` +
+      `Paint over the original floor completely. ` +
+      `NOT the original floor color. The floor MUST be ${floorColorName}.`
+    )
   }
 
   // [4] BACKSPLASH — FIX: explicit color repeated 3x, hex included, "visible" enforced
@@ -528,8 +538,10 @@ export function buildEditPrompt(
   }
   if (floorColorDesc) {
     sections.push(
-      `COLOR OVERRIDE: The original floor color from the source photo is REPLACED. ` +
-      `New floor color is ${floorColorDesc}. Ignore the original floor pigment entirely.`
+      `COLOR OVERRIDE: The original floor is COMPLETELY REPLACED. ` +
+      `New floor is ${floorColorDesc}. ` +
+      `The entire visible floor area must be ${floorColorName}. ` +
+      `No original floor color remains anywhere.`
     )
   }
   if (tileColorDesc) {
