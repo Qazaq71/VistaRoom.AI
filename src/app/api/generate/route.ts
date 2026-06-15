@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await imageFile.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     const compressedBuffer = await compressImage(buffer)
-    const blob = new Blob([compressedBuffer], { type: 'image/jpeg' })
+    const blob = new Blob([Uint8Array.from(compressedBuffer)], { type: 'image/jpeg' })
     const uploadedFile = await replicate.files.create(blob)
     const imageUrl = uploadedFile.urls.get
 
