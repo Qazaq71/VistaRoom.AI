@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
         prompt,
         negative_prompt:     negPrompt,
         init_image:          imageUrl,
-        strength:            isMyStyle ? 7 : 5,
+        strength:            isMyStyle ? 0.85 : 0.6,
         guidance_scale:      12,
         num_inference_steps: 31,
         enhance_prompt:      'no',
