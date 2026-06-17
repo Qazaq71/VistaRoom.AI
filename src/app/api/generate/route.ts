@@ -32,6 +32,9 @@ type ModelsLabResponse = {
   id?: number | string
   output?: string[]
   message?: string
+  fetch_result?: string
+  future_links?: string[]
+  eta?: number
 }
 
 export async function POST(req: NextRequest) {
@@ -100,6 +103,7 @@ export async function POST(req: NextRequest) {
     })
 
     const mlData = await mlRes.json() as ModelsLabResponse
+    console.log('[ModelsLab raw response]', JSON.stringify(mlData))
 
     if (mlData.status === 'error') {
       return NextResponse.json({ error: mlData.message ?? 'Generation error' }, { status: 500 })
@@ -107,6 +111,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       predictionId: String(mlData.id ?? ''),
+      fetchResultUrl: mlData.fetch_result ?? null,
       outputUrl: mlData.output?.[0] ?? null,
       status: mlData.status === 'success' ? 'succeeded' : 'processing',
       remaining,
