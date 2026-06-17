@@ -4,8 +4,7 @@ import { put } from '@vercel/blob'
 import { buildEditPrompt, RoomDetails } from '@/lib/prompts'
 import { getRateLimit } from '@/lib/rateLimit'
 
-// Увеличили максимальное время выполнения
-export const maxDuration = 120   // 120 секунд — достаточно для ModelsLab
+export const maxDuration = 10
 
 function buildColorPrefix(details: Partial<RoomDetails>, style: string): string {
   if (style !== 'my_style') return ''
@@ -17,9 +16,10 @@ function buildColorPrefix(details: Partial<RoomDetails>, style: string): string 
 }
 
 async function compressImage(buffer: Buffer): Promise<Buffer> {
+  if (buffer.length < 200 * 1024) return buffer
   return await sharp(buffer)
     .resize(768, 768, { fit: 'inside', withoutEnlargement: true })
-    .jpeg({ quality: 88 })
+    .jpeg({ quality: 80 })
     .toBuffer()
 }
 
