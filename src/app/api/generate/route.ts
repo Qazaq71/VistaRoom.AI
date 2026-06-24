@@ -65,21 +65,21 @@ export async function POST(req: NextRequest) {
     const colorPrefix = buildColorPrefix(details, style)
     const prompt = (colorPrefix + positive).substring(0, 950)
 
-    // fal-ai/flux-pro — img2img редизайн интерьера (без маски)
-    const falRes = await fetch('https://queue.fal.run/fal-ai/flux-pro/v1/redux', {
+    // flux-pro/v1/canny — сохраняет геометрию комнаты, меняет стиль
+    const falRes = await fetch('https://queue.fal.run/fal-ai/flux-pro/v1/canny', {
       method: 'POST',
       headers: {
         'Authorization': `Key ${process.env.FAL_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        image_url:    imageUrl,
+        control_image_url:      imageUrl,
         prompt,
-        num_images:   1,
-        image_size:   'square_hd',
-        guidance_scale: 3.5,
-        num_inference_steps: 28,
-        safety_tolerance: '5',
+        num_images:             1,
+        guidance_scale:         30,
+        controlnet_conditioning_scale: 0.6,
+        num_inference_steps:    28,
+        safety_tolerance:       '5',
       }),
     })
 
