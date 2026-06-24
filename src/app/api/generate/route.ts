@@ -6,15 +6,6 @@ import { getRateLimit } from '@/lib/rateLimit'
 
 export const maxDuration = 10
 
-function buildColorPrefix(details: Partial<RoomDetails>, style: string): string {
-  if (style !== 'my_style') return ''
-  const parts: string[] = []
-  if (details.wallColorHex) parts.push(`wall color exactly ${details.wallColorHex}`)
-  if (details.floorColorHex) parts.push(`floor color exactly ${details.floorColorHex}`)
-  if (details.tileColorHex) parts.push(`tile color exactly ${details.tileColorHex}`)
-  return parts.length ? parts.join(', ') + ', ' : ''
-}
-
 async function compressImage(buffer: Buffer): Promise<Buffer> {
   if (buffer.length < 200 * 1024) return buffer
   return await sharp(buffer)
@@ -23,51 +14,45 @@ async function compressImage(buffer: Buffer): Promise<Buffer> {
     .toBuffer()
 }
 
-function toAscii(text: string): string {
-  return text.replace(/[^\x00-\x7F]/g, '').replace(/\s+/g, ' ').trim()
-}
-
-type ModelsLabResponse = {
-  status: string
-  id?: number | string
-  output?: string[]
-  message?: string
-  fetch_result?: string
-  future_links?: string[]
-  eta?: number
+function buildColorPrefix(details: Partial<RoomDetails>, style: string): string {
+  if (style !== 'my_style') return ''
+  const parts: string[] = []
+  if (details.wallColorHex)  parts.push(`wall color exactly ${details.wallColorHex}`)
+  if (details.floorColorHex) parts.push(`floor color exactly ${details.floorColorHex}`)
+  if (details.tileColorHex)  parts.push(`tile color exactly ${details.tileColorHex}`)
+  return parts.length ? parts.join(', ') + ', ' : ''
 }
 
 export async function POST(req: NextRequest) {
   try {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '127.0.0.1'
-    
     const { ok, remaining, limit } = getRateLimit(ip)
     if (!ok) {
       return NextResponse.json({ error: 'Daily limit reached.', code: 'RATE_LIMIT' }, { status: 429 })
     }
 
-    const form = await req.formData()
+    const form      = await req.formData()
     const imageFile = form.get('image') as File | null
-    const room = (form.get('room') as string) || 'living'
-    const style = (form.get('style') as string) || 'minimalist'
+    const room      = (form.get('room')  as string) || 'living'
+    const style     = (form.get('style') as string) || 'minimalist'
 
     const details: Partial<RoomDetails> = {
-      wallColorHex: (form.get('wallColorHex') as string) || '',
-      wallFinish: JSON.parse((form.get('wallFinish') as string) || '[]'),
+      wallColorHex:  (form.get('wallColorHex')  as string) || '',
+      wallFinish:    JSON.parse((form.get('wallFinish')  as string) || '[]'),
       floorMaterial: (form.get('floorMaterial') as string) || '',
       floorColorHex: (form.get('floorColorHex') as string) || '',
-      tilezone: JSON.parse((form.get('tilezone') as string) || '[]'),
-      tileColorHex: (form.get('tileColorHex') as string) || '',
-      furniture: JSON.parse((form.get('furniture') as string) || '[]'),
-      lighting: JSON.parse((form.get('lighting') as string) || '[]'),
-      appliances: JSON.parse((form.get('appliances') as string) || '[]'),
-      extraNotes: (form.get('extraNotes') as string) || '',
+      tilezone:      JSON.parse((form.get('tilezone')   as string) || '[]'),
+      tileColorHex:  (form.get('tileColorHex')  as string) || '',
+      furniture:     JSON.parse((form.get('furniture')  as string) || '[]'),
+      lighting:      JSON.parse((form.get('lighting')   as string) || '[]'),
+      appliances:    JSON.parse((form.get('appliances') as string) || '[]'),
+      extraNotes:    (form.get('extraNotes')    as string) || '',
     }
 
     if (!imageFile) return NextResponse.json({ error: 'No image uploaded' }, { status: 400 })
 
-    const arrayBuffer = await imageFile.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
+    const arrayBuffer      = await imageFile.arrayBuffer()
+    const buffer           = Buffer.from(arrayBuffer)
     const compressedBuffer = await compressImage(buffer)
 
     const { url: imageUrl } = await put(
@@ -76,51 +61,54 @@ export async function POST(req: NextRequest) {
       { access: 'public', contentType: 'image/jpeg' }
     )
 
-    // Получаем промпт
     const { positive, negative } = buildEditPrompt(room, style, details)
     const colorPrefix = buildColorPrefix(details, style)
-    const prompt = toAscii(colorPrefix + positive)
-    const negPrompt = toAscii(negative)
+    const prompt = (colorPrefix + positive).substring(0, 950)
 
-    const isMyStyle = style === 'my_style'
-
-    const mlRes = await fetch('https://modelslab.com/api/v6/interior/make', {
+    // Submit async request to fal.ai FLUX.1 [pro] fill (img2img edit)
+    const falRes = await fetch('https://queue.fal.run/fal-ai/flux-pro/v1/fill', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Authorization': `Key ${process.env.FAL_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
-        key: process.env.MODELSLAB_API_KEY,
+        image_url:        imageUrl,
         prompt,
-        negative_prompt: negPrompt,
-        init_image: imageUrl,
-        strength: isMyStyle ? 0.78 : 0.65,        // чуть снизили
-        guidance_scale: 11,
-        num_inference_steps: 28,                  // снизили с 31
-        enhance_prompt: 'no',
-        width: '512',
-        height: '512',
-        safety_checker: 'no',
+        negative_prompt:  negative,
+        num_images:       1,
+        safety_tolerance: '5',
       }),
     })
 
-    const mlData = await mlRes.json() as ModelsLabResponse
-    console.log('[ModelsLab raw response]', JSON.stringify(mlData))
-
-    if (mlData.status === 'error') {
-      return NextResponse.json({ error: mlData.message ?? 'Generation error' }, { status: 500 })
+    if (!falRes.ok) {
+      const errText = await falRes.text()
+      console.error('[fal.ai submit error]', errText)
+      return NextResponse.json({ error: 'fal.ai request failed' }, { status: 500 })
     }
 
+    const falData = await falRes.json() as {
+      request_id:   string
+      response_url: string
+      status_url:   string
+      cancel_url:   string
+    }
+
+    console.log('[fal.ai queue response]', JSON.stringify(falData))
+
     return NextResponse.json({
-      predictionId: String(mlData.id ?? ''),
-      fetchResultUrl: mlData.fetch_result ?? null,
-      outputUrl: mlData.output?.[0] ?? null,
-      status: mlData.status === 'success' ? 'succeeded' : 'processing',
+      predictionId: falData.request_id,
+      statusUrl:    falData.status_url,
+      responseUrl:  falData.response_url,
+      outputUrl:    null,
+      status:       'processing',
       remaining,
       limit,
-      promptUsed: prompt.substring(0, 300) + '...',
+      promptUsed:   prompt.substring(0, 300) + '...',
     })
 
   } catch (err: any) {
-    console.error('API Error:', err)
+    console.error('[/api/generate]', err)
     return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 })
   }
 }
