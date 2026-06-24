@@ -65,18 +65,20 @@ export async function POST(req: NextRequest) {
     const colorPrefix = buildColorPrefix(details, style)
     const prompt = (colorPrefix + positive).substring(0, 950)
 
-    // Submit async request to fal.ai FLUX.1 [pro] fill (img2img edit)
-    const falRes = await fetch('https://queue.fal.run/fal-ai/flux-pro/v1/fill', {
+    // fal-ai/flux-pro — img2img редизайн интерьера (без маски)
+    const falRes = await fetch('https://queue.fal.run/fal-ai/flux-pro/v1/redux', {
       method: 'POST',
       headers: {
         'Authorization': `Key ${process.env.FAL_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        image_url:        imageUrl,
+        image_url:    imageUrl,
         prompt,
-        negative_prompt:  negative,
-        num_images:       1,
+        num_images:   1,
+        image_size:   'square_hd',
+        guidance_scale: 3.5,
+        num_inference_steps: 28,
         safety_tolerance: '5',
       }),
     })
@@ -84,7 +86,7 @@ export async function POST(req: NextRequest) {
     if (!falRes.ok) {
       const errText = await falRes.text()
       console.error('[fal.ai submit error]', errText)
-      return NextResponse.json({ error: 'fal.ai request failed' }, { status: 500 })
+      return NextResponse.json({ error: 'fal.ai request failed: ' + errText }, { status: 500 })
     }
 
     const falData = await falRes.json() as {
