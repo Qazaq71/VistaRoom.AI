@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
         control_image_url:      imageUrl,
         prompt,
         num_images:             1,
-        guidance_scale:         30,
+        guidance_scale:         15,
         controlnet_conditioning_scale: 0.6,
         num_inference_steps:    28,
         safety_tolerance:       '5',
