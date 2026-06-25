@@ -109,58 +109,179 @@ function hexToColorDescription(hex: string): string {
   const r = parseInt(h.slice(0, 2), 16)
   const g = parseInt(h.slice(2, 4), 16)
   const b = parseInt(h.slice(4, 6), 16)
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000
 
+  // Explicit map for all common interior hex codes
   const map: Record<string, string> = {
-    '37474f': 'dark anthracite gray',
-    '455a64': 'dark blue gray',
-    '263238': 'very dark charcoal',
-    '5c3d1e': 'dark walnut brown',
-    '4e342e': 'dark espresso brown',
-    '3e2723': 'very dark chocolate brown',
-    '1c1c1c': 'near black',
-    '333333': 'dark charcoal gray',
-    '212121': 'almost black',
+    // Whites and creams
     'ffffff': 'pure white',
     'f5f5f5': 'off white',
     'fafafa': 'bright white',
+    'f0ede8': 'warm ivory white',
+    'ede8e0': 'warm cream white',
+    'f5f0e8': 'soft warm cream',
+    'fff8dc': 'ivory cream',
+    'efe8d8': 'warm beige cream',
+    'efebe0': 'light warm cream',
+    'fdf6ec': 'very light cream',
+    'f8f4ee': 'pale cream',
+
+    // Light grays
+    'e8e8e8': 'light gray',
     'e0e0e0': 'light gray',
-    'bdbdbd': 'medium gray',
-    '9e9e9e': 'warm gray',
-    'f5f0e8': 'warm cream white',
-    'fff8dc': 'warm ivory',
+    'd9d9d9': 'light silver gray',
+    'bdbdbd': 'medium light gray',
+    'c4b9a8': 'warm light gray beige',
+    '9e9e9e': 'medium gray',
+    '8d8d8d': 'medium gray concrete',
+    '888888': 'medium gray',
+
+    // Dark grays and charcoals
+    '757575': 'dark gray',
+    '616161': 'dark gray',
+    '37474f': 'dark anthracite gray',
+    '455a64': 'dark blue gray',
+    '263238': 'very dark charcoal',
+    '333333': 'dark charcoal gray',
+    '2c2c2c': 'near black charcoal',
+    '212121': 'almost black',
+    '1c1c1c': 'near black',
+
+    // Beiges and tans — IMPORTANT: prevent misidentification as red
+    'f2e8d9': 'light beige',
+    'ede0cf': 'warm light beige',
+    'e8ddd0': 'light warm beige',
+    'd4c5b0': 'medium warm beige',
+    'd4b896': 'warm tan beige',
+    'c8a87a': 'warm oak tan',
+    'c8b49a': 'soft warm beige',
+    'c4a882': 'medium warm tan',
+    'b8956a': 'warm medium tan',
+    'a08060': 'medium tan brown',
+
+    // Browns
     '8b4513': 'saddle brown',
-    'd2691e': 'chocolate brown',
+    '6b4226': 'dark chocolate brown',
+    '6d4c41': 'medium warm brown',
+    '5c3d1e': 'dark walnut brown',
+    '795548': 'warm medium brown',
+    '4e342e': 'dark espresso brown',
+    '3e2723': 'very dark chocolate brown',
     'a0522d': 'sienna brown',
-    '6d4c41': 'medium brown',
-    '795548': 'warm brown',
-    '2e7d32': 'dark forest green',
-    '1b5e20': 'very dark green',
+    'd2691e': 'warm chocolate brown',
+    '8d6e63': 'warm brownish gray',
+
+    // Terracotta and earthy reds — warm but NOT red walls
+    'c97b63': 'warm terracotta orange',
+    'b5533c': 'deep terracotta red',
+    'c4704f': 'warm terracotta',
+    'bf6b58': 'muted terracotta',
+    'cd8b6a': 'light terracotta orange',
+    'e07b54': 'vivid terracotta',
+
+    // Blues
     '0d47a1': 'dark navy blue',
     '1a237e': 'very dark navy',
-    'b71c1c': 'dark burgundy red',
+    '1565c0': 'dark blue',
+    '1976d2': 'medium blue',
+    '5c9fd6': 'medium sky blue',
+    '90caf9': 'light sky blue',
+    '42a5f5': 'medium light blue',
+    'bbdefb': 'very light blue',
+    'e3f2fd': 'pale light blue',
+    '4fc3f7': 'light cyan blue',
+
+    // Greens
+    '1b5e20': 'very dark forest green',
+    '2e7d32': 'dark forest green',
+    '388e3c': 'dark green',
+    '43a047': 'medium green',
+    '66bb6a': 'medium light green',
+    '81c784': 'soft sage green',
+    'a5d6a7': 'light sage green',
+    'c8e6c9': 'very light green',
+    '4db6ac': 'medium teal green',
+    '80cbc4': 'light teal',
+    '00897b': 'teal green',
+    'a8d5a2': 'soft muted green',
+
+    // Pinks and roses
+    'f48fb1': 'soft pink',
+    'f06292': 'medium pink',
+    'e91e63': 'bright pink',
+    'fce4ec': 'very light pink',
+    'f8bbd0': 'light pale pink',
+    'ec407a': 'deep rose pink',
+
+    // Purples
     '880e4f': 'dark wine red',
-    'f57f17': 'dark amber',
+    'b71c1c': 'dark burgundy red',
+    '6a1b9a': 'dark purple',
+    '7b1fa2': 'medium purple',
+    'ab47bc': 'light purple',
+    'ce93d8': 'pale lavender purple',
+    '9c27b0': 'purple',
+    '7c4dff': 'medium violet',
+
+    // Yellows and ambers
+    'f57f17': 'dark amber yellow',
     'e65100': 'dark burnt orange',
+    'ff8f00': 'amber orange',
+    'ffa000': 'warm amber',
+    'ffb300': 'golden amber',
+    'ffca28': 'warm yellow gold',
+    'ffd54f': 'light golden yellow',
+    'ffe082': 'pale yellow',
+    'fff9c4': 'very pale yellow',
+    'f9a825': 'golden yellow',
+
+    // Marble and stone textures
+    'f0ede8': 'white marble ivory',
+
+    // Wood tones
+    'd4b896': 'light natural wood',
+    'c8a87a': 'warm light wood oak',
+    'b8956a': 'medium natural wood',
   }
 
   if (map[h]) return map[h]
 
-  if (brightness < 50) return 'very dark ' + getHue(r, g, b)
-  if (brightness < 100) return 'dark ' + getHue(r, g, b)
-  if (brightness < 160) return 'medium ' + getHue(r, g, b)
-  if (brightness < 210) return 'light ' + getHue(r, g, b)
-  return 'very light ' + getHue(r, g, b)
+  // Fallback: compute from RGB
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000
+  const hue = getHueFromRGB(r, g, b)
+
+  if (brightness > 220) return 'very light ' + hue
+  if (brightness > 180) return 'light ' + hue
+  if (brightness > 120) return 'medium ' + hue
+  if (brightness > 60)  return 'dark ' + hue
+  return 'very dark ' + hue
 }
 
-function getHue(r: number, g: number, b: number): string {
+function getHueFromRGB(r: number, g: number, b: number): string {
   const max = Math.max(r, g, b)
   const min = Math.min(r, g, b)
-  if (max - min < 30) return 'gray'
-  if (r > g && r > b) return b > g ? 'pink' : 'red'
-  if (g > r && g > b) return r > b ? 'yellow green' : 'green'
-  if (b > r && b > g) return r > g ? 'purple' : 'blue'
-  if (r > b && g > b) return 'yellow'
+  const delta = max - min
+  const saturation = max === 0 ? 0 : delta / max
+
+  // Very low saturation = achromatic
+  if (saturation < 0.10) return 'gray'
+
+  // Beige/tan detection: warm, low-medium saturation, red dominant but subtle
+  if (saturation < 0.35 && r > 150 && r > g && g > b && r - b < 100) return 'beige'
+
+  // Skin/terracotta: moderate saturation, red dominant
+  if (saturation >= 0.20 && saturation < 0.55 && r > g && r > b && r - b > 60 && r > 150) {
+    if (g > 100) return 'terracotta orange'
+    return 'warm red'
+  }
+
+  // Standard hue detection
+  if (r >= max && b >= min) return 'orange red'
+  if (r >= max && g >= min) return 'pink'
+  if (g >= max && r >= min) return 'yellow green'
+  if (g >= max && b >= min) return 'green'
+  if (b >= max && g >= min) return 'cyan blue'
+  if (b >= max && r >= min) return 'purple blue'
+
   return 'gray'
 }
 
