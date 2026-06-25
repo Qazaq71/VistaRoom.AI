@@ -24,7 +24,7 @@ function buildColorPrefix(details: Partial<RoomDetails>, style: string): string 
 }
 
 async function submitCanny(imageUrl: string, prompt: string, negative: string): Promise<Response> {
-  return fetch('https://queue.fal.run/fal-ai/flux-pro/v1/canny', {
+  return fetch('https://queue.fal.run/fal-ai/flux-dev/v3/canny', {
     method: 'POST',
     headers: {
       Authorization: `Key ${process.env.FAL_API_KEY}`,
@@ -37,7 +37,7 @@ async function submitCanny(imageUrl: string, prompt: string, negative: string): 
       num_images: 1,
       guidance_scale: 17,
       controlnet_conditioning_scale: 0.65,
-      num_inference_steps: 30,
+      num_inference_steps: 20,
       safety_tolerance: '5',
     }),
   })
