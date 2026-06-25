@@ -92,7 +92,7 @@ export function buildEditPrompt(
   if (details?.appliances?.length) parts.push(`${details.appliances.join(', ')},`)
   if (details?.extraNotes)         parts.push(`${details.extraNotes},`)
   parts.push(`photorealistic, sharp focus, natural lighting, highly detailed,`)
-  parts.push(`preserve all windows preserve all doors keep room geometry keep room proportions,`)
+  parts.push(`preserve all windows preserve all doors keep room geometry keep room proportions, white ceiling, ceiling color is white not colored, keep ceiling white,`)
   if (isMyStyle) parts.push(`color accurate, exact color matching, precise hex color reproduction`)
 
   const negative = [
