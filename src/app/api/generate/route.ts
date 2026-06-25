@@ -9,8 +9,8 @@ export const maxDuration = 10
 async function compressImage(buffer: Buffer): Promise<Buffer> {
   if (buffer.length < 200 * 1024) return buffer
   return await sharp(buffer)
-    .resize(768, 768, { fit: 'inside', withoutEnlargement: true })
-    .jpeg({ quality: 80 })
+    .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 85 })
     .toBuffer()
 }
 
@@ -23,6 +23,46 @@ function buildColorPrefix(details: Partial<RoomDetails>, style: string): string 
   return parts.length ? parts.join(', ') + ', ' : ''
 }
 
+async function submitCanny(imageUrl: string, prompt: string, negative: string): Promise<Response> {
+  return fetch('https://queue.fal.run/fal-ai/flux-pro/v1/canny', {
+    method: 'POST',
+    headers: {
+      Authorization: `Key ${process.env.FAL_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      control_image_url: imageUrl,
+      prompt,
+      negative_prompt: negative,
+      num_images: 1,
+      guidance_scale: 17,
+      controlnet_conditioning_scale: 0.65,
+      num_inference_steps: 30,
+      safety_tolerance: '5',
+    }),
+  })
+}
+
+async function submitFill(imageUrl: string, maskUrl: string, prompt: string, negative: string): Promise<Response> {
+  return fetch('https://queue.fal.run/fal-ai/flux-pro/v1/fill', {
+    method: 'POST',
+    headers: {
+      Authorization: `Key ${process.env.FAL_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      image_url: imageUrl,
+      mask_url: maskUrl,
+      prompt,
+      negative_prompt: negative,
+      num_images: 1,
+      num_inference_steps: 28,
+      guidance_scale: 15,
+      safety_tolerance: '5',
+    }),
+  })
+}
+
 export async function POST(req: NextRequest) {
   try {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '127.0.0.1'
@@ -33,8 +73,10 @@ export async function POST(req: NextRequest) {
 
     const form      = await req.formData()
     const imageFile = form.get('image') as File | null
+    const maskFile  = form.get('mask')  as File | null
     const room      = (form.get('room')  as string) || 'living'
     const style     = (form.get('style') as string) || 'minimalist'
+    const mode      = (form.get('mode')  as string) || 'style'
 
     const details: Partial<RoomDetails> = {
       wallColorHex:  (form.get('wallColorHex')  as string) || '',
@@ -51,37 +93,39 @@ export async function POST(req: NextRequest) {
 
     if (!imageFile) return NextResponse.json({ error: 'No image uploaded' }, { status: 400 })
 
-    const arrayBuffer      = await imageFile.arrayBuffer()
-    const buffer           = Buffer.from(arrayBuffer)
-    const compressedBuffer = await compressImage(buffer)
-
+    const imgBuffer     = Buffer.from(await imageFile.arrayBuffer())
+    const compressedImg = await compressImage(imgBuffer)
     const { url: imageUrl } = await put(
       `interior/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`,
-      compressedBuffer,
-      { access: 'public', contentType: 'image/jpeg' }
+      compressedImg,
+      { access: 'public', contentType: 'image/jpeg' },
     )
 
-    const { positive, negative } = buildEditPrompt(room, style, details)
-    const colorPrefix = buildColorPrefix(details, style)
-    const prompt = (colorPrefix + positive).substring(0, 950)
+    let maskUrl: string | null = null
+    if (maskFile) {
+      const maskBuffer  = Buffer.from(await maskFile.arrayBuffer())
+      const resizedMask = await sharp(maskBuffer)
+        .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
+        .png()
+        .toBuffer()
+      const { url } = await put(
+        `masks/${Date.now()}-${Math.random().toString(36).slice(2)}.png`,
+        resizedMask,
+        { access: 'public', contentType: 'image/png' },
+      )
+      maskUrl = url
+    }
 
-    // flux-pro/v1/canny — сохраняет геометрию комнаты, меняет стиль
-    const falRes = await fetch('https://queue.fal.run/fal-ai/flux-pro/v1/canny', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Key ${process.env.FAL_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        control_image_url:      imageUrl,
-        prompt,
-        num_images:             1,
-        guidance_scale:         15,
-        controlnet_conditioning_scale: 0.6,
-        num_inference_steps:    28,
-        safety_tolerance:       '5',
-      }),
-    })
+    const { positive, negative } = buildEditPrompt(room, style, details, mode as 'style' | 'partial' | 'clear')
+    const colorPrefix = buildColorPrefix(details, style)
+    const prompt      = (colorPrefix + positive).substring(0, 950)
+
+    let falRes: Response
+    if ((mode === 'partial' || mode === 'clear') && maskUrl) {
+      falRes = await submitFill(imageUrl, maskUrl, prompt, negative)
+    } else {
+      falRes = await submitCanny(imageUrl, prompt, negative)
+    }
 
     if (!falRes.ok) {
       const errText = await falRes.text()
@@ -104,6 +148,7 @@ export async function POST(req: NextRequest) {
       responseUrl:  falData.response_url,
       outputUrl:    null,
       status:       'processing',
+      mode,
       remaining,
       limit,
       promptUsed:   prompt.substring(0, 300) + '...',

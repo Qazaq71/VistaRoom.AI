@@ -589,6 +589,7 @@ export default function Home() {
     form.append('image',         imageFile)
     form.append('room',          room)
     form.append('style',         isMyStyle ? 'my_style' : style)
+    form.append('mode',          'style')
     form.append('size',          '')
     form.append('ceilingHeight', '')
     form.append('wallColorHex',  sendDetails ? wallColorHex : '')
