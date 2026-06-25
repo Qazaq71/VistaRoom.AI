@@ -234,13 +234,6 @@ function hexToColorDescription(hex: string): string {
     'fff9c4': 'very pale yellow',
     'f9a825': 'golden yellow',
 
-    // Marble and stone textures
-    'f0ede8': 'white marble ivory',
-
-    // Wood tones
-    'd4b896': 'light natural wood',
-    'c8a87a': 'warm light wood oak',
-    'b8956a': 'medium natural wood',
   }
 
   if (map[h]) return map[h]
