@@ -553,7 +553,7 @@ export default function Home() {
     let attempts = 0
     pollRef.current = setInterval(async () => {
       attempts++
-      if (attempts > 36) {
+      if (attempts > 60) {
         clearInterval(pollRef.current!)
         setStatus('error'); setStatusMsg('Превышено время ожидания. Попробуйте снова.')
         return
