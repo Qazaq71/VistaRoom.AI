@@ -104,13 +104,82 @@ export function buildEditPrompt(
   return { positive: parts.join(' ').substring(0, 950), negative }
 }
 
+function hexToColorDescription(hex: string): string {
+  const h = hex.replace('#', '').toLowerCase()
+  const r = parseInt(h.slice(0, 2), 16)
+  const g = parseInt(h.slice(2, 4), 16)
+  const b = parseInt(h.slice(4, 6), 16)
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000
+
+  const map: Record<string, string> = {
+    '37474f': 'dark anthracite gray',
+    '455a64': 'dark blue gray',
+    '263238': 'very dark charcoal',
+    '5c3d1e': 'dark walnut brown',
+    '4e342e': 'dark espresso brown',
+    '3e2723': 'very dark chocolate brown',
+    '1c1c1c': 'near black',
+    '333333': 'dark charcoal gray',
+    '212121': 'almost black',
+    'ffffff': 'pure white',
+    'f5f5f5': 'off white',
+    'fafafa': 'bright white',
+    'e0e0e0': 'light gray',
+    'bdbdbd': 'medium gray',
+    '9e9e9e': 'warm gray',
+    'f5f0e8': 'warm cream white',
+    'fff8dc': 'warm ivory',
+    '8b4513': 'saddle brown',
+    'd2691e': 'chocolate brown',
+    'a0522d': 'sienna brown',
+    '6d4c41': 'medium brown',
+    '795548': 'warm brown',
+    '2e7d32': 'dark forest green',
+    '1b5e20': 'very dark green',
+    '0d47a1': 'dark navy blue',
+    '1a237e': 'very dark navy',
+    'b71c1c': 'dark burgundy red',
+    '880e4f': 'dark wine red',
+    'f57f17': 'dark amber',
+    'e65100': 'dark burnt orange',
+  }
+
+  if (map[h]) return map[h]
+
+  if (brightness < 50) return 'very dark ' + getHue(r, g, b)
+  if (brightness < 100) return 'dark ' + getHue(r, g, b)
+  if (brightness < 160) return 'medium ' + getHue(r, g, b)
+  if (brightness < 210) return 'light ' + getHue(r, g, b)
+  return 'very light ' + getHue(r, g, b)
+}
+
+function getHue(r: number, g: number, b: number): string {
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  if (max - min < 30) return 'gray'
+  if (r > g && r > b) return b > g ? 'pink' : 'red'
+  if (g > r && g > b) return r > b ? 'yellow green' : 'green'
+  if (b > r && b > g) return r > g ? 'purple' : 'blue'
+  if (r > b && g > b) return 'yellow'
+  return 'gray'
+}
+
 function buildMyStylePart(details?: Partial<RoomDetails>): string {
   const parts: string[] = ['custom interior design']
-  if (details?.wallColorHex)     parts.push(`walls exactly color ${details.wallColorHex}, precise ${details.wallColorHex} wall paint`)
+  if (details?.wallColorHex) {
+    const wallColor = hexToColorDescription(details.wallColorHex)
+    parts.push(`${wallColor} walls, painted walls in ${wallColor} color`)
+  }
   if (details?.wallFinish?.length) parts.push(`walls finished with ${details.wallFinish.join(' and ')}`)
-  if (details?.floorColorHex)    parts.push(`floor exactly color ${details.floorColorHex}, precise ${details.floorColorHex} floor`)
+  if (details?.floorColorHex) {
+    const floorColor = hexToColorDescription(details.floorColorHex)
+    parts.push(`${floorColor} floor, ${floorColor} flooring`)
+  }
   if (details?.floorMaterial)    parts.push(`${details.floorMaterial} flooring`)
-  if (details?.tileColorHex)     parts.push(`tiles exactly color ${details.tileColorHex}, precise ${details.tileColorHex} tile color`)
+  if (details?.tileColorHex) {
+    const tileColor = hexToColorDescription(details.tileColorHex)
+    parts.push(`${tileColor} tiles, ${tileColor} tile color`)
+  }
   if (details?.tilezone?.length) parts.push(`tile zones: ${details.tilezone.join(', ')}`)
   return parts.join(', ')
 }
