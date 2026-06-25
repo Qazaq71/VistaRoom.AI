@@ -35,9 +35,9 @@ async function submitCanny(imageUrl: string, prompt: string, negative: string): 
       prompt,
       negative_prompt: negative,
       num_images: 1,
-      guidance_scale: 17,
+      guidance_scale: 12,
       controlnet_conditioning_scale: 0.65,
-      num_inference_steps: 20,
+      num_inference_steps: 28,
       safety_tolerance: '5',
     }),
   })
