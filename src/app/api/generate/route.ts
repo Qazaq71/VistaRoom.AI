@@ -79,9 +79,12 @@ async function submitFill(imageUrl: string, maskUrl: string, prompt: string, neg
 export async function POST(req: NextRequest) {
   try {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '127.0.0.1'
-    const { ok, remaining, limit } = getRateLimit(ip)
+    const { ok, remaining, limit } = await getRateLimit(ip)
     if (!ok) {
-      return NextResponse.json({ error: 'Daily limit reached.', code: 'RATE_LIMIT' }, { status: 429 })
+      return NextResponse.json(
+        { error: 'Превышен лимит генераций. Попробуйте завтра.', code: 'RATE_LIMIT' },
+        { status: 429 },
+      )
     }
 
     const form      = await req.formData()
