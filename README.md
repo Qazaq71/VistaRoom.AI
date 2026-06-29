@@ -1,6 +1,6 @@
 # VistaRoom AI — ИИ-дизайн интерьеров
 
-Production-ready Next.js приложение с безопасным бэкендом, rate limiting и Replicate API.
+Production-ready Next.js приложение с безопасным бэкендом, rate limiting и Fal.ai API.
 
 ## Структура проекта
 
@@ -9,14 +9,15 @@ VistaRoom AI/
 ├── src/
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── generate/route.ts   ← POST: принимает фото, запускает Replicate
-│   │   │   └── poll/route.ts       ← GET: проверяет статус генерации
+│   │   │   ├── generate/route.ts   ← POST: принимает фото, запускает Fal.ai
+│   │   │   ├── poll/route.ts       ← GET: проверяет статус генерации
+│   │   │   └── proxy/route.ts      ← GET: проксирует изображения (CORS)
 │   │   ├── globals.css             ← все стили
 │   │   ├── layout.tsx
 │   │   └── page.tsx                ← главная страница (React)
 │   └── lib/
 │       ├── rateLimit.ts            ← защита от спама (3 генерации/день/IP)
-│       └── prompts.ts              ← промпты для Replicate по стилю и типу комнаты
+│       └── prompts.ts              ← промпты для Fal.ai по стилю и типу комнаты
 ├── .env.local                      ← ВАШ токен (не коммитить в git!)
 ├── .env.example                    ← шаблон для команды
 ├── next.config.js
@@ -32,15 +33,17 @@ VistaRoom AI/
 npm install
 ```
 
-### 2. Добавьте токен Replicate
+### 2. Добавьте переменные окружения
 
-Откройте `.env.local` и замените значение:
+Скопируйте `.env.example` в `.env.local` и заполните значения:
 
 ```
-REPLICATE_API_TOKEN=r8_ВАШ_ТОКЕН_ЗДЕСЬ
+FAL_API_KEY=your_fal_api_key_here
+BLOB_READ_WRITE_TOKEN=your_blob_token_here
 ```
 
-Получить токен: https://replicate.com/account/api-tokens (регистрация бесплатная)
+- Fal.ai API key: https://fal.ai/dashboard/keys
+- Vercel Blob token: https://vercel.com/docs/storage/vercel-blob
 
 ### 3. Запустите одной командой
 
@@ -62,7 +65,8 @@ Vercel — лучший хостинг для Next.js, имеет бесплат
 2. Зайдите на https://vercel.com → "Add New Project"
 3. Выберите ваш репозиторий
 4. В разделе "Environment Variables" добавьте:
-   - `REPLICATE_API_TOKEN` = ваш токен
+   - `FAL_API_KEY` = ваш Fal.ai ключ
+   - `BLOB_READ_WRITE_TOKEN` = ваш Vercel Blob токен
    - `DAILY_LIMIT` = `3`
 5. Нажмите "Deploy" → через 2 минуты сайт в интернете
 
@@ -95,32 +99,14 @@ DAILY_LIMIT=5   # в .env.local
 ## Архитектура безопасности
 
 ```
-Браузер  →  POST /api/generate  →  Сервер (токен скрыт)  →  Replicate API
-         ←  { predictionId }   ←                         ←  { id, status }
+Браузер  →  POST /api/generate  →  Сервер (ключ скрыт)  →  Fal.ai API
+         ←  { predictionId }   ←                        ←  { request_id, status_url }
 
-Браузер  →  GET /api/poll?id=xxx  →  Сервер  →  Replicate API
-         ←  { status, outputUrl } ←          ←  { status, output }
+Браузер  →  GET /api/poll?id=xxx  →  Сервер  →  Fal.ai API
+         ←  { status, outputUrl } ←          ←  { status, images }
 ```
 
-Токен НИКОГДА не покидает сервер. В браузер идут только ID предикции и URL результата.
-
----
-
-## Смена модели Replicate
-
-В `src/app/api/generate/route.ts` измените `MODEL_VERSION`:
-
-- SDXL img2img (текущая): `7762fd07cf82c948538e41f63f77d685e02b063e37e496241f10aa99441669b8`
-- FLUX Kontext (лучше держит структуру): ищите на replicate.com/black-forest-labs
-
----
-
-## Добавить Stripe (оплата)
-
-1. Создайте продукты на https://stripe.com/products
-2. Добавьте `STRIPE_SECRET_KEY` в `.env.local`
-3. Создайте `src/app/api/checkout/route.ts` с Stripe Checkout Session
-4. Добавьте проверку подписки в `generate/route.ts`
+Ключ `FAL_API_KEY` НИКОГДА не покидает сервер. В браузер идут только ID запроса и URL результата.
 
 ---
 
@@ -128,7 +114,8 @@ DAILY_LIMIT=5   # в .env.local
 
 | Переменная | Описание | Обязательная |
 |---|---|---|
-| `REPLICATE_API_TOKEN` | Токен с replicate.com | ✅ |
+| `FAL_API_KEY` | API-ключ с fal.ai/dashboard/keys | ✅ |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob токен для хранения изображений | ✅ |
 | `DAILY_LIMIT` | Лимит генераций в день/IP | нет (default: 3) |
 
 ---
@@ -138,8 +125,9 @@ DAILY_LIMIT=5   # в .env.local
 | Сервис | Стоимость |
 |---|---|
 | Vercel (хостинг) | Бесплатно (Hobby plan) |
-| Replicate API | ~$0.01–0.04 за генерацию |
+| Fal.ai API | ~$0.01–0.05 за генерацию |
+| Vercel Blob | Бесплатно до 1 ГБ |
 | Домен | ~$10/год (namecheap.com) |
 
-При 100 генерациях в месяц: ~$1–4 расходов на API.
+При 100 генерациях в месяц: ~$1–5 расходов на API.
 При 10 платящих клиентах по $19: $190 дохода.
