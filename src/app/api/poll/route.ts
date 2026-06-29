@@ -3,7 +3,7 @@ import sharp from 'sharp'
 import { put } from '@vercel/blob'
 
 export const dynamic    = 'force-dynamic'
-export const maxDuration = 30
+export const maxDuration = 60
 
 type FalStatus = 'IN_QUEUE' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED'
 
@@ -20,73 +20,53 @@ interface FalResultResponse {
 const WATERMARK_TEXT = 'VistaRoom.AI'
 
 async function applyWatermark(imageBuffer: Buffer): Promise<Buffer> {
-  const base = sharp(imageBuffer)
-  const { width: w = 1024, height: h = 1024 } = await base.metadata()
-
-  const fontSize = Math.max(16, Math.round(w * 0.034))
-  // Pango uses point sizes. At 96 DPI: pt = px × 72/96
-  const ptSize = Math.max(12, Math.round(fontSize * 72 / 96))
-  const margin = Math.round(w * 0.025)
-  const padX   = Math.round(fontSize * 0.8)
-  const padY   = Math.round(fontSize * 0.5)
-
-  // ── Step 1: render plain black text on transparent background ───────────────
-  // No Pango markup — avoids colour-attribute support differences across versions.
-  // Pango's default colour is always black, which is the most reliable.
-  let rawText: Buffer
+  // Outer try/catch: watermark failures must NEVER propagate — generation must always succeed.
   try {
-    rawText = await sharp({
-      text: {
-        text: WATERMARK_TEXT,
-        font: `Sans Bold ${ptSize}`,
-        rgba: true,
-        dpi:  96,
-      },
-    }).png().toBuffer()
-  } catch {
-    // Pango unavailable — return JPEG without watermark
-    return base.jpeg({ quality: 88 }).toBuffer()
+    const { width: w = 1024, height: h = 1024 } = await sharp(imageBuffer).metadata()
+
+    const fontSize = Math.max(16, Math.round(w * 0.034))
+    const ptSize   = Math.max(12, Math.round(fontSize * 0.75))
+    const margin   = Math.round(w * 0.025)
+    const padX     = Math.round(fontSize * 0.8)
+    const padY     = Math.round(fontSize * 0.5)
+
+    // Render black text on transparent background, then negate RGB → white text.
+    // Single pipeline reduces Sharp overhead vs. two separate toBuffer() calls.
+    const textBuf = await sharp({
+      text: { text: WATERMARK_TEXT, font: `Sans Bold ${ptSize}`, rgba: true, dpi: 96 },
+    })
+      .negate({ alpha: false })
+      .png()
+      .toBuffer()
+
+    const { width: tw = Math.round(fontSize * 7), height: th = Math.round(fontSize * 1.4) } =
+      await sharp(textBuf).metadata()
+
+    const badgeW = tw + padX * 2
+    const badgeH = th + padY * 2
+    const bx     = Math.max(0, w - badgeW - margin)
+    const by     = Math.max(0, h - badgeH - margin)
+    const rx     = Math.round(badgeH / 2)
+
+    const bgSvg = [
+      `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">`,
+      `<rect x="${bx}" y="${by}" width="${badgeW}" height="${badgeH}"`,
+      ` rx="${rx}" ry="${rx}" fill="black" fill-opacity="0.60"/>`,
+      `</svg>`,
+    ].join('')
+
+    return await sharp(imageBuffer)
+      .composite([
+        { input: Buffer.from(bgSvg), blend: 'over' },
+        { input: textBuf, left: bx + padX, top: by + Math.round((badgeH - th) / 2), blend: 'over' },
+      ])
+      .jpeg({ quality: 88 })
+      .toBuffer()
+
+  } catch (err) {
+    console.error('[applyWatermark] failed, skipping watermark:', err instanceof Error ? err.message : err)
+    return sharp(imageBuffer).jpeg({ quality: 88 }).toBuffer()
   }
-
-  const { width: rawW } = await sharp(rawText).metadata()
-  if (!rawW || rawW < 5) {
-    // Font not found — text rendered empty; skip watermark gracefully
-    return base.jpeg({ quality: 88 }).toBuffer()
-  }
-
-  // ── Step 2: invert RGB only → white text on transparent background ──────────
-  // negate({ alpha: false }): (0,0,0,255) → (255,255,255,255)  [text pixels]
-  //                           (0,0,0,  0) → (255,255,255,  0)  [background, still transparent]
-  const textBuf = await sharp(rawText)
-    .negate({ alpha: false })
-    .png()
-    .toBuffer()
-
-  const { width: tw = Math.round(fontSize * 7), height: th = Math.round(fontSize * 1.4) } =
-    await sharp(textBuf).metadata()
-
-  const badgeW = tw + padX * 2
-  const badgeH = th + padY * 2
-  const bx     = Math.max(0, w - badgeW - margin)
-  const by     = Math.max(0, h - badgeH - margin)
-  const rx     = Math.round(badgeH / 2)
-
-  // ── Step 3: semi-transparent badge background (SVG rect, no <text> element) ─
-  const bgSvg = [
-    `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">`,
-    `<rect x="${bx}" y="${by}" width="${badgeW}" height="${badgeH}"`,
-    ` rx="${rx}" ry="${rx}" fill="black" fill-opacity="0.60"/>`,
-    `</svg>`,
-  ].join('')
-
-  // ── Step 4: composite badge → then text on top ──────────────────────────────
-  return sharp(imageBuffer)
-    .composite([
-      { input: Buffer.from(bgSvg), blend: 'over' },
-      { input: textBuf, left: bx + padX, top: by + Math.round((badgeH - th) / 2), blend: 'over' },
-    ])
-    .jpeg({ quality: 88 })
-    .toBuffer()
 }
 
 export async function GET(req: NextRequest) {
@@ -148,13 +128,21 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ id, status: 'failed', outputUrl: null, error: 'Failed to download generated image' })
     }
 
-    const imgBuf      = Buffer.from(await imgRes.arrayBuffer())
-    const watermarked = await applyWatermark(imgBuf)
-    const { url: outputUrl } = await put(
-      `results/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`,
-      watermarked,
-      { access: 'public', contentType: 'image/jpeg' },
-    )
+    // Watermark + Blob upload is best-effort.
+    // Any failure falls back to the raw fal.ai URL so generation always completes.
+    let outputUrl: string = rawUrl
+    try {
+      const imgBuf      = Buffer.from(await imgRes.arrayBuffer())
+      const watermarked = await applyWatermark(imgBuf)
+      const { url }     = await put(
+        `results/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`,
+        watermarked,
+        { access: 'public', contentType: 'image/jpeg' },
+      )
+      outputUrl = url
+    } catch (wmErr) {
+      console.error('[/api/poll] watermark/upload failed, using raw url:', wmErr instanceof Error ? wmErr.message : wmErr)
+    }
 
     return NextResponse.json({ id, status: 'succeeded', outputUrl, error: null })
 
