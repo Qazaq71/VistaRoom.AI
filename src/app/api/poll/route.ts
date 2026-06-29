@@ -17,36 +17,50 @@ interface FalResultResponse {
   images?: { url: string }[]
 }
 
-const WATERMARK_TEXT   = 'VistaRoom.AI'
-const CHAR_WIDTH_RATIO = 0.57   // bold Arial: approx char width / fontSize
+const WATERMARK_TEXT = 'VistaRoom.AI'
 
 async function applyWatermark(imageBuffer: Buffer): Promise<Buffer> {
   const { width: w = 1024, height: h = 1024 } = await sharp(imageBuffer).metadata()
 
-  const fontSize = Math.max(13, Math.round(w * 0.034))
-  const padX     = Math.round(fontSize * 0.7)
-  const padY     = Math.round(fontSize * 0.45)
-  const textW    = Math.round(WATERMARK_TEXT.length * fontSize * CHAR_WIDTH_RATIO)
-  const badgeW   = textW + padX * 2
-  const badgeH   = fontSize + padY * 2
+  const fontSize = Math.max(14, Math.round(w * 0.034))
+  // Pango font size is in points (pt). At 96 DPI: px = pt * 96/72, so pt = px * 72/96
+  const ptSize   = Math.max(10, Math.round(fontSize * 72 / 96))
   const margin   = Math.round(w * 0.025)
-  const bx       = w - badgeW - margin
-  const by       = h - badgeH - margin
-  const rx       = Math.round(badgeH / 2)
+  const padX     = Math.round(fontSize * 0.75)
+  const padY     = Math.round(fontSize * 0.5)
 
-  const svg = [
-    `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">`,
-    `  <rect x="${bx}" y="${by}" width="${badgeW}" height="${badgeH}"`,
-    `        rx="${rx}" ry="${rx}" fill="black" fill-opacity="0.55"/>`,
-    `  <text x="${bx + padX}" y="${by + Math.round(badgeH / 2)}"`,
-    `        font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="600"`,
-    `        fill="white" fill-opacity="0.92" dominant-baseline="middle"`,
-    `  >${WATERMARK_TEXT}</text>`,
-    `</svg>`,
-  ].join('\n')
+  // Render text via Pango — bundled in Sharp prebuilt binaries, no system font needed.
+  // <span foreground="white"> is Pango markup; detected by the leading '<' character.
+  const textBuf = await sharp({
+    text: {
+      text: `<span foreground="white">${WATERMARK_TEXT}</span>`,
+      font: `Sans Bold ${ptSize}`,
+      rgba: true,
+      dpi:  96,
+    },
+  }).png().toBuffer()
+
+  // Get actual rendered text dimensions (no estimation needed)
+  const { width: tw = Math.round(fontSize * 7), height: th = Math.round(fontSize * 1.3) } =
+    await sharp(textBuf).metadata()
+
+  const badgeW = tw + padX * 2
+  const badgeH = th + padY * 2
+  const bx     = w  - badgeW - margin
+  const by     = h  - badgeH - margin
+  const rx     = Math.round(badgeH / 2)
+
+  // Badge background via SVG — rect only, no <text>, no librsvg font dependency
+  const bgSvg = `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">` +
+    `<rect x="${bx}" y="${by}" width="${badgeW}" height="${badgeH}"` +
+    ` rx="${rx}" ry="${rx}" fill="black" fill-opacity="0.55"/>` +
+    `</svg>`
 
   return sharp(imageBuffer)
-    .composite([{ input: Buffer.from(svg), blend: 'over' }])
+    .composite([
+      { input: Buffer.from(bgSvg), blend: 'over' },
+      { input: textBuf, left: bx + padX, top: by + Math.round((badgeH - th) / 2), blend: 'over' },
+    ])
     .jpeg({ quality: 88 })
     .toBuffer()
 }
