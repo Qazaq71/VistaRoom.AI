@@ -332,72 +332,6 @@ function StepHeader({ step, current, label, done, onClick }: {
   )
 }
 
-// ── Client-side watermark via Canvas ─────────────────────────────────────────
-async function addWatermark(imageUrl: string): Promise<string> {
-  try {
-    // Fetch image through our own proxy to avoid CORS issues with Replicate CDN
-    const res    = await fetch(`/api/proxy?url=${encodeURIComponent(imageUrl)}`)
-    const blob   = await res.blob()
-    const objUrl = URL.createObjectURL(blob)
-
-    return new Promise(resolve => {
-      const img = new Image()
-      img.onload = () => {
-        try {
-          const canvas  = document.createElement('canvas')
-          canvas.width  = img.width
-          canvas.height = img.height
-          const ctx = canvas.getContext('2d')
-          if (!ctx) throw new Error('Canvas context unavailable')
-          ctx.drawImage(img, 0, 0)
-          URL.revokeObjectURL(objUrl)
-
-          const text     = 'VistaRoom-AI'
-          const fontSize = Math.max(13, Math.round(img.width * 0.034))
-          ctx.font       = `600 ${fontSize}px Arial, sans-serif`
-
-          const textW  = ctx.measureText(text).width
-          const padX   = fontSize * 0.7
-          const padY   = fontSize * 0.45
-          const badgeW = textW + padX * 2
-          const badgeH = fontSize + padY * 2
-          const margin = img.width * 0.025
-          const rx     = badgeH / 2
-          const bx     = img.width  - badgeW - margin
-          const by     = img.height - badgeH - margin
-
-          ctx.beginPath()
-          ctx.moveTo(bx + rx, by)
-          ctx.lineTo(bx + badgeW - rx, by)
-          ctx.arcTo(bx + badgeW, by,          bx + badgeW, by + rx,          rx)
-          ctx.lineTo(bx + badgeW, by + badgeH - rx)
-          ctx.arcTo(bx + badgeW, by + badgeH, bx + badgeW - rx, by + badgeH, rx)
-          ctx.lineTo(bx + rx,    by + badgeH)
-          ctx.arcTo(bx,          by + badgeH, bx, by + badgeH - rx,          rx)
-          ctx.lineTo(bx,         by + rx)
-          ctx.arcTo(bx,          by,          bx + rx, by,                   rx)
-          ctx.closePath()
-          ctx.fillStyle = 'rgba(0,0,0,0.55)'
-          ctx.fill()
-
-          ctx.fillStyle    = 'rgba(255,255,255,0.92)'
-          ctx.textBaseline = 'middle'
-          ctx.fillText(text, bx + padX, by + badgeH / 2)
-
-          resolve(canvas.toDataURL('image/jpeg', 0.88))
-        } catch { resolve(objUrl) }
-      }
-      img.onerror = () => {
-        URL.revokeObjectURL(objUrl)
-        resolve(imageUrl)
-      }
-      img.src = objUrl
-    })
-  } catch {
-    return imageUrl
-  }
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -541,10 +475,7 @@ export default function Home() {
         }
         if (data.status === 'succeeded' && data.outputUrl) {
           clearInterval(pollRef.current!)
-          // addWatermark always resolves (has internal fallbacks), but wrap defensively
-          let watermarked = data.outputUrl
-          try { watermarked = await addWatermark(data.outputUrl) } catch { /* use original */ }
-          setOutputUrl(watermarked)
+          setOutputUrl(data.outputUrl)
           setStatus('done')
         } else if (data.status === 'failed') {
           clearInterval(pollRef.current!)
@@ -586,9 +517,7 @@ export default function Home() {
       if (!res.ok) { setStatus('error'); setStatusMsg(data.error || 'Ошибка сервера'); return }
       setRemaining(data.remaining)
       if (data.outputUrl) {
-        let watermarked = data.outputUrl
-        try { watermarked = await addWatermark(data.outputUrl) } catch { /* use original */ }
-        setOutputUrl(watermarked); setStatus('done')
+        setOutputUrl(data.outputUrl); setStatus('done')
       } else if (data.predictionId) {
         setStatus('processing'); setStatusMsg('Генерирую дизайн...')
         pollPrediction(data.predictionId, data.statusUrl ?? null)
