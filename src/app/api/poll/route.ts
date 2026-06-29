@@ -20,45 +20,37 @@ interface FalResultResponse {
 const WATERMARK_TEXT = 'VistaRoom.AI'
 
 async function applyWatermark(imageBuffer: Buffer): Promise<Buffer> {
-  // Outer try/catch: watermark failures must NEVER propagate — generation must always succeed.
+  // Any failure here must NEVER propagate — generation must always complete.
   try {
     const { width: w = 1024, height: h = 1024 } = await sharp(imageBuffer).metadata()
 
-    const fontSize = Math.max(16, Math.round(w * 0.034))
-    const ptSize   = Math.max(12, Math.round(fontSize * 0.75))
-    const margin   = Math.round(w * 0.025)
-    const padX     = Math.round(fontSize * 0.8)
-    const padY     = Math.round(fontSize * 0.5)
+    const ptSize = Math.max(10, Math.round(w * 0.016))
+    const padX   = 10
+    const padY   = 5
+    const margin = Math.round(w * 0.02)
 
-    // Render black text on transparent background, then negate RGB → white text.
-    // Single pipeline reduces Sharp overhead vs. two separate toBuffer() calls.
+    // Plain black text — Pango default, no markup, no negate, maximum reliability.
     const textBuf = await sharp({
       text: { text: WATERMARK_TEXT, font: `Sans Bold ${ptSize}`, rgba: true, dpi: 96 },
-    })
-      .negate({ alpha: false })
-      .png()
-      .toBuffer()
+    }).png().toBuffer()
 
-    const { width: tw = Math.round(fontSize * 7), height: th = Math.round(fontSize * 1.4) } =
-      await sharp(textBuf).metadata()
+    const { width: tw = 0, height: th = 0 } = await sharp(textBuf).metadata()
+    if (!tw || !th) return sharp(imageBuffer).jpeg({ quality: 88 }).toBuffer()
 
-    const badgeW = tw + padX * 2
-    const badgeH = th + padY * 2
-    const bx     = Math.max(0, w - badgeW - margin)
-    const by     = Math.max(0, h - badgeH - margin)
-    const rx     = Math.round(badgeH / 2)
+    // White semi-transparent badge via sharp.create — no SVG, no librsvg fonts needed.
+    const badgeW   = tw + padX * 2
+    const badgeH   = th + padY * 2
+    const badgeBuf = await sharp({
+      create: { width: badgeW, height: badgeH, channels: 4, background: { r: 255, g: 255, b: 255, alpha: 0.72 } },
+    }).png().toBuffer()
 
-    const bgSvg = [
-      `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">`,
-      `<rect x="${bx}" y="${by}" width="${badgeW}" height="${badgeH}"`,
-      ` rx="${rx}" ry="${rx}" fill="black" fill-opacity="0.60"/>`,
-      `</svg>`,
-    ].join('')
+    const bx = Math.max(0, w - badgeW - margin)
+    const by = Math.max(0, h - badgeH - margin)
 
     return await sharp(imageBuffer)
       .composite([
-        { input: Buffer.from(bgSvg), blend: 'over' },
-        { input: textBuf, left: bx + padX, top: by + Math.round((badgeH - th) / 2), blend: 'over' },
+        { input: badgeBuf, left: bx,        top: by,        blend: 'over' },
+        { input: textBuf,  left: bx + padX,  top: by + padY, blend: 'over' },
       ])
       .jpeg({ quality: 88 })
       .toBuffer()
