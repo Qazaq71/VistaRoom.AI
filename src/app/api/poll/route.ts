@@ -20,42 +20,66 @@ interface FalResultResponse {
 const WATERMARK_TEXT = 'VistaRoom.AI'
 
 async function applyWatermark(imageBuffer: Buffer): Promise<Buffer> {
-  const { width: w = 1024, height: h = 1024 } = await sharp(imageBuffer).metadata()
+  const base = sharp(imageBuffer)
+  const { width: w = 1024, height: h = 1024 } = await base.metadata()
 
-  const fontSize = Math.max(14, Math.round(w * 0.034))
-  // Pango font size is in points (pt). At 96 DPI: px = pt * 96/72, so pt = px * 72/96
-  const ptSize   = Math.max(10, Math.round(fontSize * 72 / 96))
-  const margin   = Math.round(w * 0.025)
-  const padX     = Math.round(fontSize * 0.75)
-  const padY     = Math.round(fontSize * 0.5)
+  const fontSize = Math.max(16, Math.round(w * 0.034))
+  // Pango uses point sizes. At 96 DPI: pt = px × 72/96
+  const ptSize = Math.max(12, Math.round(fontSize * 72 / 96))
+  const margin = Math.round(w * 0.025)
+  const padX   = Math.round(fontSize * 0.8)
+  const padY   = Math.round(fontSize * 0.5)
 
-  // Render text via Pango — bundled in Sharp prebuilt binaries, no system font needed.
-  // <span foreground="white"> is Pango markup; detected by the leading '<' character.
-  const textBuf = await sharp({
-    text: {
-      text: `<span foreground="white">${WATERMARK_TEXT}</span>`,
-      font: `Sans Bold ${ptSize}`,
-      rgba: true,
-      dpi:  96,
-    },
-  }).png().toBuffer()
+  // ── Step 1: render plain black text on transparent background ───────────────
+  // No Pango markup — avoids colour-attribute support differences across versions.
+  // Pango's default colour is always black, which is the most reliable.
+  let rawText: Buffer
+  try {
+    rawText = await sharp({
+      text: {
+        text: WATERMARK_TEXT,
+        font: `Sans Bold ${ptSize}`,
+        rgba: true,
+        dpi:  96,
+      },
+    }).png().toBuffer()
+  } catch {
+    // Pango unavailable — return JPEG without watermark
+    return base.jpeg({ quality: 88 }).toBuffer()
+  }
 
-  // Get actual rendered text dimensions (no estimation needed)
-  const { width: tw = Math.round(fontSize * 7), height: th = Math.round(fontSize * 1.3) } =
+  const { width: rawW } = await sharp(rawText).metadata()
+  if (!rawW || rawW < 5) {
+    // Font not found — text rendered empty; skip watermark gracefully
+    return base.jpeg({ quality: 88 }).toBuffer()
+  }
+
+  // ── Step 2: invert RGB only → white text on transparent background ──────────
+  // negate({ alpha: false }): (0,0,0,255) → (255,255,255,255)  [text pixels]
+  //                           (0,0,0,  0) → (255,255,255,  0)  [background, still transparent]
+  const textBuf = await sharp(rawText)
+    .negate({ alpha: false })
+    .png()
+    .toBuffer()
+
+  const { width: tw = Math.round(fontSize * 7), height: th = Math.round(fontSize * 1.4) } =
     await sharp(textBuf).metadata()
 
   const badgeW = tw + padX * 2
   const badgeH = th + padY * 2
-  const bx     = w  - badgeW - margin
-  const by     = h  - badgeH - margin
+  const bx     = Math.max(0, w - badgeW - margin)
+  const by     = Math.max(0, h - badgeH - margin)
   const rx     = Math.round(badgeH / 2)
 
-  // Badge background via SVG — rect only, no <text>, no librsvg font dependency
-  const bgSvg = `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">` +
-    `<rect x="${bx}" y="${by}" width="${badgeW}" height="${badgeH}"` +
-    ` rx="${rx}" ry="${rx}" fill="black" fill-opacity="0.55"/>` +
-    `</svg>`
+  // ── Step 3: semi-transparent badge background (SVG rect, no <text> element) ─
+  const bgSvg = [
+    `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">`,
+    `<rect x="${bx}" y="${by}" width="${badgeW}" height="${badgeH}"`,
+    ` rx="${rx}" ry="${rx}" fill="black" fill-opacity="0.60"/>`,
+    `</svg>`,
+  ].join('')
 
+  // ── Step 4: composite badge → then text on top ──────────────────────────────
   return sharp(imageBuffer)
     .composite([
       { input: Buffer.from(bgSvg), blend: 'over' },
