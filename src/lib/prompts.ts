@@ -279,7 +279,6 @@ function getHueFromRGB(r: number, g: number, b: number): string {
 }
 
 function buildMyStylePart(details?: Partial<RoomDetails>): string {
-  console.log('[buildMyStylePart] details:', JSON.stringify(details))
   const parts: string[] = ['custom interior design']
   if (details?.wallColorHex) {
     const wallColor = hexToColorDescription(details.wallColorHex)
