@@ -6,6 +6,18 @@ import { getRateLimit } from '@/lib/rateLimit'
 
 export const maxDuration = 10
 
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10 MB
+
+function validateImageFile(file: File): string | null {
+  if (!file.type.startsWith('image/')) {
+    return 'Файл должен быть изображением (JPG, PNG, WEBP)'
+  }
+  if (file.size > MAX_IMAGE_SIZE) {
+    return 'Размер файла не должен превышать 10 МБ'
+  }
+  return null
+}
+
 async function compressImage(buffer: Buffer): Promise<Buffer> {
   if (buffer.length < 200 * 1024) return buffer
   return await sharp(buffer)
@@ -92,6 +104,14 @@ export async function POST(req: NextRequest) {
     }
 
     if (!imageFile) return NextResponse.json({ error: 'No image uploaded' }, { status: 400 })
+
+    const imageError = validateImageFile(imageFile)
+    if (imageError) return NextResponse.json({ error: imageError }, { status: 400 })
+
+    if (maskFile) {
+      const maskError = validateImageFile(maskFile)
+      if (maskError) return NextResponse.json({ error: `Маска: ${maskError}` }, { status: 400 })
+    }
 
     const imgBuffer     = Buffer.from(await imageFile.arrayBuffer())
     const compressedImg = await compressImage(imgBuffer)
