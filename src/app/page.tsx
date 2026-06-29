@@ -534,20 +534,27 @@ export default function Home() {
         const statusParam = statusUrl ? `&statusUrl=${encodeURIComponent(statusUrl)}` : ''
         const res  = await fetch(`/api/poll?id=${id}${statusParam}`)
         const data = await res.json()
+        if (!res.ok) {
+          // HTTP error from poll route — log and keep retrying (don't swallow silently)
+          setStatusMsg(`Генерирую дизайн... (${Math.min(attempts * 2, 60)} сек)`)
+          return
+        }
         if (data.status === 'succeeded' && data.outputUrl) {
           clearInterval(pollRef.current!)
-          // Apply watermark client-side via Canvas — no server dependency
-          const watermarked = await addWatermark(data.outputUrl)
-          setOutputUrl(watermarked); setStatus('done')
+          // addWatermark always resolves (has internal fallbacks), but wrap defensively
+          let watermarked = data.outputUrl
+          try { watermarked = await addWatermark(data.outputUrl) } catch { /* use original */ }
+          setOutputUrl(watermarked)
+          setStatus('done')
         } else if (data.status === 'failed') {
           clearInterval(pollRef.current!)
           setStatus('error'); setStatusMsg(data.error || 'Генерация не удалась.')
         } else {
           setStatusMsg(`Генерирую дизайн... (${Math.min(attempts * 2, 60)} сек)`)
         }
-      } catch { /* continue */ }
+      } catch { /* network error — continue polling */ }
     }, 5000)
-}, [imagePreview, isMyStyle, style, room])
+  }, [imagePreview, isMyStyle, style, room])
 
   const generate = useCallback(async () => {
     if (!imageFile) { setStatus('error'); setStatusMsg('Загрузите фотографию помещения'); return }
@@ -579,7 +586,8 @@ export default function Home() {
       if (!res.ok) { setStatus('error'); setStatusMsg(data.error || 'Ошибка сервера'); return }
       setRemaining(data.remaining)
       if (data.outputUrl) {
-        const watermarked = await addWatermark(data.outputUrl)
+        let watermarked = data.outputUrl
+        try { watermarked = await addWatermark(data.outputUrl) } catch { /* use original */ }
         setOutputUrl(watermarked); setStatus('done')
       } else {
         setStatus('processing'); setStatusMsg('Генерирую дизайн...')
