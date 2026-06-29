@@ -51,8 +51,6 @@ const STYLE_CATEGORIES = [
     keys: ['loft', 'cyberpunk', 'maximalism', 'industrial', 'japanese_zen'],
   },
 ]
-type Plan = 'free' | 'profi' | 'agency'
-
 const ROOM_LABELS: Record<string, string> = {
   living: 'Гостиная', bedroom: 'Спальня', kitchen: 'Кухня',
   bathroom: 'Ванная', toilet: 'Туалет', office: 'Офис',
@@ -516,40 +514,14 @@ export default function Home() {
     setOutputUrl(null); setStatus('idle')
   }, [])
 
-  // User plan — in production this comes from auth/session
-  // For now: read from localStorage or default to 'free' (watermarked)
-  // Set to 'agency' to disable watermark
   const [billingYearly, setBillingYearly] = useState(false)
-
-  const [userPlan, setUserPlan] = useState<Plan>('free')
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    try {
-      const storedPlan = localStorage.getItem('vistaroom_plan')
-      setUserPlan(storedPlan === 'profi' || storedPlan === 'agency' ? storedPlan as Plan : 'free')
-    } catch {
-      setUserPlan('free')
-    }
-  }, [])
-
-  const updateUserPlan = useCallback((plan: Plan) => {
-    setUserPlan(plan)
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('vistaroom_plan', plan)
-      } catch {
-        // ignore unavailable storage
-      }
-    }
-  }, [])
 
   const clearImage = () => {
     setImageFile(null); setImagePreview(null); setOutputUrl(null); setStatus('idle')
     if (fileRef.current) fileRef.current.value = ''
   }
 
-  const pollPrediction = useCallback((id: string, statusUrl: string | null, plan: string) => {
+  const pollPrediction = useCallback((id: string, statusUrl: string | null) => {
     let attempts = 0
     pollRef.current = setInterval(async () => {
       attempts++
@@ -565,9 +537,7 @@ export default function Home() {
         if (data.status === 'succeeded' && data.outputUrl) {
           clearInterval(pollRef.current!)
           // Apply watermark client-side via Canvas — no server dependency
-          const watermarked = (plan === 'profi' || plan === 'agency')
-            ? data.outputUrl
-            : await addWatermark(data.outputUrl)
+          const watermarked = await addWatermark(data.outputUrl)
           setOutputUrl(watermarked); setStatus('done')
         } else if (data.status === 'failed') {
           clearInterval(pollRef.current!)
@@ -609,18 +579,16 @@ export default function Home() {
       if (!res.ok) { setStatus('error'); setStatusMsg(data.error || 'Ошибка сервера'); return }
       setRemaining(data.remaining)
       if (data.outputUrl) {
-        const watermarked = (userPlan === 'profi' || userPlan === 'agency')
-          ? data.outputUrl
-          : await addWatermark(data.outputUrl)
+        const watermarked = await addWatermark(data.outputUrl)
         setOutputUrl(watermarked); setStatus('done')
       } else {
         setStatus('processing'); setStatusMsg('Генерирую дизайн...')
-        pollPrediction(data.predictionId, data.statusUrl ?? null, userPlan)
+        pollPrediction(data.predictionId, data.statusUrl ?? null)
       }
     } catch { setStatus('error'); setStatusMsg('Нет соединения с сервером.') }
   }, [imageFile, room, style, isMyStyle, wallColorHex, wallFinish,
       floorMaterial, floorColorHex, tilezone, tileColorHex,
-      furniture, lighting, appliances, extraNotes, userPlan, pollPrediction])
+      furniture, lighting, appliances, extraNotes, pollPrediction])
 
   const download = async () => {
     if (!outputUrl) return
@@ -702,19 +670,6 @@ export default function Home() {
           <div>
             <div className="panel-heading">Создайте дизайн</div>
             <div className="panel-sub">Первые 3 генерации бесплатно</div>
-            <div className="plan-switcher">
-              <span>Тестовый тариф:</span>
-              {(['free','profi','agency'] as Plan[]).map(plan => (
-                <button
-                  key={plan}
-                  type="button"
-                  className={`plan-switch${userPlan === plan ? ' active' : ''}`}
-                  onClick={() => updateUserPlan(plan)}
-                >
-                  {plan === 'free' ? 'Free' : plan === 'profi' ? 'Профи' : 'Агентство'}
-                </button>
-              ))}
-            </div>
           </div>
 
           {remaining !== null && (

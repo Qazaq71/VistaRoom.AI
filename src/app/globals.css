@@ -485,35 +485,6 @@ h1 em { font-style: italic; color: var(--warm); }
 .plan.featured .plan-btn { background: var(--warm); border-color: var(--warm); color: #fff; }
 .plan.featured .plan-btn:hover { opacity: .9; }
 
-.plan-switcher {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  margin-top: 14px;
-  margin-bottom: 6px;
-  font-size: 13px;
-  color: var(--muted);
-}
-.plan-switcher span {
-  font-weight: 600;
-}
-.plan-switch {
-  border: 1px solid var(--border);
-  background: var(--paper);
-  color: var(--ink);
-  border-radius: 999px;
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: background .2s, border-color .2s, color .2s;
-}
-.plan-switch:hover { background: var(--cream); }
-.plan-switch.active {
-  background: var(--ink);
-  color: #fff;
-  border-color: var(--ink);
-}
-
 .history-section {
   margin: 60px 0;
   padding: 40px 32px 32px;
