@@ -589,9 +589,11 @@ export default function Home() {
         let watermarked = data.outputUrl
         try { watermarked = await addWatermark(data.outputUrl) } catch { /* use original */ }
         setOutputUrl(watermarked); setStatus('done')
-      } else {
+      } else if (data.predictionId) {
         setStatus('processing'); setStatusMsg('Генерирую дизайн...')
         pollPrediction(data.predictionId, data.statusUrl ?? null)
+      } else {
+        setStatus('error'); setStatusMsg(data.error || 'Ошибка запуска генерации.')
       }
     } catch { setStatus('error'); setStatusMsg('Нет соединения с сервером.') }
   }, [imageFile, room, style, isMyStyle, wallColorHex, wallFinish,

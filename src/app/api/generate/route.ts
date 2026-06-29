@@ -9,7 +9,8 @@ export const maxDuration = 10
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10 MB
 
 function validateImageFile(file: File): string | null {
-  if (!file.type.startsWith('image/')) {
+  const type = typeof file.type === 'string' ? file.type : ''
+  if (type !== '' && !type.startsWith('image/')) {
     return 'Файл должен быть изображением (JPG, PNG, WEBP)'
   }
   if (file.size > MAX_IMAGE_SIZE) {
@@ -161,6 +162,11 @@ export async function POST(req: NextRequest) {
     }
 
     console.log('[fal.ai queue response]', JSON.stringify(falData))
+
+    if (!falData.request_id) {
+      console.error('[fal.ai] missing request_id:', JSON.stringify(falData))
+      return NextResponse.json({ error: 'Сервис генерации не вернул ID задачи. Попробуйте снова.' }, { status: 500 })
+    }
 
     return NextResponse.json({
       predictionId: falData.request_id,
