@@ -91,16 +91,32 @@ export async function POST(req: NextRequest) {
     const style     = (form.get('style') as string) || 'minimalist'
     const mode      = (form.get('mode')  as string) || 'style'
 
+    let wallFinish: string[]
+    let tilezone:   string[]
+    let furniture:  string[]
+    let lighting:   string[]
+    let appliances: string[]
+    try {
+      wallFinish  = JSON.parse((form.get('wallFinish')  as string) || '[]')
+      tilezone    = JSON.parse((form.get('tilezone')    as string) || '[]')
+      furniture   = JSON.parse((form.get('furniture')   as string) || '[]')
+      lighting    = JSON.parse((form.get('lighting')    as string) || '[]')
+      appliances  = JSON.parse((form.get('appliances')  as string) || '[]')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Invalid JSON'
+      return NextResponse.json({ error: `Некорректный JSON в параметрах запроса: ${msg}` }, { status: 400 })
+    }
+
     const details: Partial<RoomDetails> = {
       wallColorHex:  (form.get('wallColorHex')  as string) || '',
-      wallFinish:    JSON.parse((form.get('wallFinish')  as string) || '[]'),
+      wallFinish,
       floorMaterial: (form.get('floorMaterial') as string) || '',
       floorColorHex: (form.get('floorColorHex') as string) || '',
-      tilezone:      JSON.parse((form.get('tilezone')   as string) || '[]'),
+      tilezone,
       tileColorHex:  (form.get('tileColorHex')  as string) || '',
-      furniture:     JSON.parse((form.get('furniture')  as string) || '[]'),
-      lighting:      JSON.parse((form.get('lighting')   as string) || '[]'),
-      appliances:    JSON.parse((form.get('appliances') as string) || '[]'),
+      furniture,
+      lighting,
+      appliances,
       extraNotes:    (form.get('extraNotes')    as string) || '',
     }
 
@@ -180,8 +196,9 @@ export async function POST(req: NextRequest) {
       promptUsed:   prompt.substring(0, 300) + '...',
     })
 
-  } catch (err: any) {
-    console.error('[/api/generate]', err)
-    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Internal server error'
+    console.error('[/api/generate]', message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
