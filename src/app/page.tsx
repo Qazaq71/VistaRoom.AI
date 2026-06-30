@@ -266,7 +266,14 @@ export default function Home() {
 
             if (activeGenRef.current !== genId) break
 
-            const pollRes = await fetch(statusUrl)
+            const pollRes = await fetch(`/api/check-status?url=${encodeURIComponent(statusUrl)}`)
+
+            if (!pollRes.ok) {
+              console.error('Polling failed with status:', pollRes.status)
+              await delay(5000)
+              continue
+            }
+
             const pollData = await pollRes.json()
 
             if (activeGenRef.current !== genId) break
