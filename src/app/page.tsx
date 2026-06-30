@@ -186,9 +186,20 @@ const APPLIANCE_CARDS = [
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Status = 'idle' | 'uploading' | 'processing' | 'done' | 'error'
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 type MyStyleStep = 'palette' | 'lighting' | 'extras'
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
+
+function Toast({ msg, type, onDismiss }: { msg: string; type: 'success' | 'error'; onDismiss: () => void }) {
+  return (
+    <div className={`toast toast-${type}`} role="alert">
+      <span>{type === 'success' ? '✓' : '✕'}</span>
+      <span>{msg}</span>
+      <button className="toast-close" onClick={onDismiss} aria-label="Закрыть">✕</button>
+    </div>
+  )
+}
 
 function BeforeAfterSlider({ before, after }: { before: string; after: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -324,6 +335,38 @@ export default function Home() {
   const [dragOver, setDragOver]   = useState(false)
   const [promptPreviewOpen, setPromptPreviewOpen] = useState(false)
 
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
+
+  const showToast = useCallback((msg: string, type: 'success' | 'error') => {
+    setToast({ msg, type })
+    setTimeout(() => setToast(null), 4000)
+  }, [])
+
+  const saveImage = useCallback(async () => {
+    if (!outputUrl || saveStatus === 'saving') return
+    setSaveStatus('saving')
+    try {
+      const res = await fetch('/api/save-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ outputUrl }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.savedUrl) {
+        throw new Error(data.error || 'Ошибка сохранения')
+      }
+      setOutputUrl(data.savedUrl)
+      setSaveStatus('saved')
+      showToast('Изображение успешно сохранено', 'success')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Ошибка сохранения'
+      setSaveStatus('error')
+      showToast(msg, 'error')
+      setTimeout(() => setSaveStatus('idle'), 3000)
+    }
+  }, [outputUrl, saveStatus, showToast])
+
   const fileRef = useRef<HTMLInputElement>(null)
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -399,6 +442,7 @@ export default function Home() {
 
   const clearImage = () => {
     setImageFile(null); setImagePreview(null); setOutputUrl(null); setStatus('idle')
+    setSaveStatus('idle')
     if (fileRef.current) fileRef.current.value = ''
   }
 
@@ -822,6 +866,11 @@ export default function Home() {
             </div>
           )}
 
+          {/* Toast */}
+          {toast && (
+            <Toast msg={toast.msg} type={toast.type} onDismiss={() => setToast(null)} />
+          )}
+
           {/* Result */}
           {status === 'done' && outputUrl && (
             <div className="result-wrap show">
@@ -832,6 +881,22 @@ export default function Home() {
                   <img src={outputUrl} alt="Result" className="result-img" />}
               <div className="result-actions">
                 <button className="btn-dl" onClick={download}>↓ Скачать</button>
+                {saveStatus !== 'saved' && (
+                  <button
+                    className="btn-save"
+                    onClick={saveImage}
+                    disabled={saveStatus === 'saving'}
+                  >
+                    {saveStatus === 'saving'
+                      ? <><div className="spinner spinner-sm" />Сохраняем...</>
+                      : saveStatus === 'error'
+                        ? '↻ Повторить'
+                        : '☁ Сохранить'}
+                  </button>
+                )}
+                {saveStatus === 'saved' && (
+                  <span className="btn-saved">✓ Сохранено</span>
+                )}
                 <button className="btn-regen" onClick={generate}>Ещё вариант</button>
               </div>
             </div>
