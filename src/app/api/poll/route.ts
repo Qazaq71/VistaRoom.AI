@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
 
 export const dynamic    = 'force-dynamic'
-export const maxDuration = 30
+export const maxDuration = 60
 
 type FalStatus = 'IN_QUEUE' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED'
 
@@ -31,6 +31,7 @@ export async function GET(req: NextRequest) {
     const tStatusStart = Date.now()
     const statusRes = await fetch(pollUrl, {
       headers: { Authorization: `Key ${process.env.FAL_API_KEY}` },
+      signal: AbortSignal.timeout(10_000),
     })
     console.log(`[Timing] Fal.ai Status Check: ${Date.now() - tStatusStart}ms`)
 
@@ -58,6 +59,7 @@ export async function GET(req: NextRequest) {
     const tResultStart = Date.now()
     const resultRes = await fetch(responseUrl, {
       headers: { Authorization: `Key ${process.env.FAL_API_KEY}` },
+      signal: AbortSignal.timeout(10_000),
     })
     console.log(`[Timing] Fetch Result Metadata from Fal.ai: ${Date.now() - tResultStart}ms`)
 
@@ -75,7 +77,7 @@ export async function GET(req: NextRequest) {
     }
 
     const tDownloadStart = Date.now()
-    const imgRes = await fetch(rawUrl)
+    const imgRes = await fetch(rawUrl, { signal: AbortSignal.timeout(30_000) })
     console.log(`[Timing] Download from Fal.ai: ${Date.now() - tDownloadStart}ms`)
 
     if (!imgRes.ok) {

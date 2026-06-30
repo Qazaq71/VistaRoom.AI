@@ -318,7 +318,7 @@ export default function Home() {
   const [tileColorHex, setTileColorHex] = useState<string>('#FFFFFF')
   const [furniture, setFurniture]     = useState<string[]>([])
   const [appliances, setAppliances]   = useState<string[]>([])
-  const [showExtras, setShowExtras]   = useState(false)
+
 
   const [detailsOpen, setDetailsOpen] = useState(false)
 
@@ -330,7 +330,7 @@ export default function Home() {
   const [promptPreviewOpen, setPromptPreviewOpen] = useState(false)
 
   const fileRef = useRef<HTMLInputElement>(null)
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const toggleArr = (arr: string[], set: (v: string[]) => void, val: string) =>
     set(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val])
@@ -421,40 +421,55 @@ export default function Home() {
 
   const pollPrediction = useCallback((id: string, statusUrl: string | null) => {
     let attempts = 0
-    pollRef.current = setInterval(async () => {
+    const startTime = Date.now()
+    const MAX_ATTEMPTS = 45 // ~6 min max with backoff
+
+    const tick = async () => {
       attempts++
-      if (attempts > 60) {
-        clearInterval(pollRef.current!)
-        setStatus('error'); setStatusMsg('Превышено время ожидания. Попробуйте снова.')
+      if (attempts > MAX_ATTEMPTS) {
+        pollRef.current = null
+        setStatus('error')
+        setStatusMsg('Превышено время ожидания. Попробуйте снова.')
         return
       }
+
       try {
         const statusParam = statusUrl ? `&statusUrl=${encodeURIComponent(statusUrl)}` : ''
-        const res  = await fetch(`/api/poll?id=${id}${statusParam}`)
+        const res = await fetch(`/api/poll?id=${id}${statusParam}`)
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = await res.json()
-        if (!res.ok) {
-          // HTTP error from poll route — log and keep retrying (don't swallow silently)
-          setStatusMsg(`Генерирую дизайн... (${Math.min(attempts * 2, 60)} сек)`)
-          return
-        }
+
         if (data.status === 'succeeded' && data.outputUrl) {
-          clearInterval(pollRef.current!)
+          pollRef.current = null
           setOutputUrl(data.outputUrl)
           setStatus('done')
-        } else if (data.status === 'failed') {
-          clearInterval(pollRef.current!)
-          setStatus('error'); setStatusMsg(data.error || 'Генерация не удалась.')
-        } else {
-          setStatusMsg(`Генерирую дизайн... (${Math.min(attempts * 2, 60)} сек)`)
+          return
         }
-      } catch { /* network error — continue polling */ }
-    }, 5000)
+        if (data.status === 'failed') {
+          pollRef.current = null
+          setStatus('error')
+          setStatusMsg(data.error || 'Генерация не удалась.')
+          return
+        }
+        // IN_PROGRESS / IN_QUEUE — update elapsed and reschedule
+        const elapsed = Math.round((Date.now() - startTime) / 1000)
+        setStatusMsg(`Генерирую дизайн... (${elapsed} сек)`)
+      } catch {
+        // network or HTTP error — will retry
+      }
+
+      // Exponential backoff: 4s → 12s cap
+      const delay = Math.min(4000 * Math.pow(1.2, Math.min(attempts - 1, 10)), 12000)
+      pollRef.current = setTimeout(tick, delay)
+    }
+
+    pollRef.current = setTimeout(tick, 4000)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const generate = useCallback(async () => {
     if (!imageFile) { setStatus('error'); setStatusMsg('Загрузите фотографию помещения'); return }
-    if (pollRef.current) clearInterval(pollRef.current)
+    if (pollRef.current) { clearTimeout(pollRef.current); pollRef.current = null }
     setStatus('uploading'); setStatusMsg('Отправляю изображение...'); setOutputUrl(null)
 
     const sendDetails = isMyStyle
