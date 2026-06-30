@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
 import { buildEditPrompt, detectConflicts, type RoomDetails } from '@/lib/prompts'
 import StylePicker from '@/app/components/StylePicker'
 import RoomTypeSelector from '@/app/components/RoomTypeSelector'
@@ -86,6 +86,8 @@ function BeforeAfterSlider({ before, after }: { before: string; after: string })
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
+const delay = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
+
 export default function Home() {
   const [imageFile, setImageFile]       = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -156,15 +158,8 @@ export default function Home() {
   }, [outputUrl, showToast])  // saveStatus removed — isSavingRef handles the lock
 
   const fileRef      = useRef<HTMLInputElement>(null)
-  const pollRef      = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const activeGenRef = useRef(0)   // incremented on each generate() call; stale ticks check this
+  const activeGenRef = useRef(0)   // incremented on each generate() call; stale loop iterations check this
   const isSavingRef  = useRef(false) // prevents double-save without saveStatus in useCallback deps
-
-  useEffect(() => {
-    return () => {
-      if (pollRef.current) clearTimeout(pollRef.current)
-    }
-  }, [])
 
   // Computed for prompts
   const liveDetails: Partial<RoomDetails> = useMemo(() => ({
@@ -217,67 +212,14 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const pollPrediction = useCallback((id: string, statusUrl: string | null, genId: number) => {
-    const startTime = Date.now()
-    const MAX_POLL_MS = 5 * 60 * 1000
-
-    const tick = async () => {
-      if (activeGenRef.current !== genId) return
-
-      if (Date.now() - startTime > MAX_POLL_MS) {
-        pollRef.current = null
-        setStatus('error')
-        setStatusMsg('Превышено время ожидания. Попробуйте снова.')
-        return
-      }
-
-      try {
-        const statusParam = statusUrl ? `&statusUrl=${encodeURIComponent(statusUrl)}` : ''
-        const res = await fetch(`/api/poll?id=${id}${statusParam}`)
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const data = await res.json()
-
-        // Check again after await — generate() may have fired while fetch was in-flight
-        if (activeGenRef.current !== genId) return
-
-        if (data.status === 'succeeded' && data.outputUrl) {
-          pollRef.current = null
-          setOutputUrl(data.outputUrl)
-          setStatus('done')
-          return
-        }
-        if (data.status === 'failed') {
-          pollRef.current = null
-          setStatus('error')
-          setStatusMsg(data.error || 'Генерация не удалась.')
-          return
-        }
-        // IN_PROGRESS / IN_QUEUE
-        const elapsed = Math.round((Date.now() - startTime) / 1000)
-        setStatusMsg(`Генерирую дизайн... (${elapsed} сек)`)
-      } catch {
-        if (activeGenRef.current !== genId) return
-        const elapsed = Math.round((Date.now() - startTime) / 1000)
-        setStatusMsg(`Ожидаю ответ сервера... (${elapsed} сек)`)
-      }
-
-      pollRef.current = setTimeout(tick, 2000)
-    }
-
-    pollRef.current = setTimeout(tick, 2000)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   const generate = useCallback(async () => {
     if (!imageFile) { setStatus('error'); setStatusMsg('Загрузите фотографию помещения'); return }
 
-    // Increment generation counter — any in-flight tick from a previous poll will see
-    // activeGenRef.current !== its captured genId and stop without touching state
     const genId = ++activeGenRef.current
-    if (pollRef.current) { clearTimeout(pollRef.current); pollRef.current = null }
 
     setStatus('uploading'); setStatusMsg('Отправляю изображение...'); setOutputUrl(null)
-    setSaveStatus('idle')  // reset save UI for the new result
+    setSaveStatus('idle')
 
     const sendDetails = isMyStyle
     const form = new FormData()
@@ -301,7 +243,6 @@ export default function Home() {
     try {
       const res = await fetch('/api/generate', { method: 'POST', body: form })
 
-      // Bail if a newer generate() fired during upload — stale genId would silently kill polling
       if (activeGenRef.current !== genId) return
 
       if (!res.ok) {
@@ -313,16 +254,47 @@ export default function Home() {
       setRemaining(data.remaining)
       if (data.outputUrl) {
         setOutputUrl(data.outputUrl); setStatus('done')
-      } else if (data.predictionId) {
+      } else if (data.predictionId && data.statusUrl) {
         setStatus('processing'); setStatusMsg('Генерирую дизайн...')
-        pollPrediction(data.predictionId, data.statusUrl ?? null, genId)
+        const statusUrl = data.statusUrl as string
+        const startTime = Date.now()
+        let isCompleted = false
+
+        while (!isCompleted && activeGenRef.current === genId) {
+          try {
+            await delay(2500)
+
+            if (activeGenRef.current !== genId) break
+
+            const pollRes = await fetch(statusUrl)
+            const pollData = await pollRes.json()
+
+            if (activeGenRef.current !== genId) break
+
+            if (pollData.status === 'COMPLETED' || pollData.status === 'OK') {
+              setOutputUrl(pollData.response.images[0].url || pollData.response.images.url)
+              setStatus('done')
+              isCompleted = true
+            } else if (pollData.status === 'FAILED') {
+              setStatus('error')
+              setStatusMsg('Ошибка генерации на стороне сервера')
+              isCompleted = true
+            } else {
+              const elapsed = Math.round((Date.now() - startTime) / 1000)
+              setStatusMsg(`Генерирую дизайн... (${elapsed} сек)`)
+            }
+          } catch (err) {
+            console.error('Polling error, retrying...', err)
+            await delay(3500)
+          }
+        }
       } else {
         setStatus('error'); setStatusMsg(data.error || 'Ошибка запуска генерации.')
       }
     } catch { setStatus('error'); setStatusMsg('Нет соединения с сервером.') }
   }, [imageFile, room, style, isMyStyle, wallColorHex, wallFinish,
       floorMaterial, floorColorHex, tilezone, tileColorHex,
-      furniture, lighting, appliances, extraNotes, pollPrediction])
+      furniture, lighting, appliances, extraNotes])
 
   const download = async () => {
     if (!outputUrl) return
