@@ -162,6 +162,10 @@ export default function Home() {
   const activeGenRef = useRef(0)   // incremented on each generate() call; stale upload completions check this
   const isSavingRef  = useRef(false) // prevents double-save without saveStatus in useCallback deps
 
+  // Hard timeout for flux-pro generation: 5 minutes.
+  // Without this, a stuck IN_PROGRESS task hangs the UI indefinitely.
+  const POLL_TIMEOUT_MS = 5 * 60 * 1000
+
   // Polling is owned entirely by this effect. React guarantees the cleanup runs
   // synchronously before the effect re-fires, so it is structurally impossible for
   // two poll loops to run concurrently regardless of how many renders occur.
@@ -170,11 +174,21 @@ export default function Home() {
 
     let stopped = false
     const controller = new AbortController()
+    // Compute an absolute deadline so elapsed sleeps don't erode the budget
+    const deadline = Date.now() + POLL_TIMEOUT_MS
 
     ;(async () => {
       while (!stopped) {
         await delay(3000)
         if (stopped) break
+
+        // Enforce the hard timeout before each request
+        if (Date.now() > deadline) {
+          setStatus('error')
+          setStatusMsg('Генерация заняла слишком долго (более 5 минут). Попробуйте ещё раз.')
+          stopped = true
+          break
+        }
 
         try {
           const res = await fetch(
@@ -194,6 +208,16 @@ export default function Home() {
           const s = (data.status || '').toUpperCase()
 
           if (s === 'COMPLETED' || s === 'OK') {
+            // Fal.ai can return COMPLETED with error/error_type fields instead of FAILED
+            // when the model itself encounters an internal problem (e.g. safety filter hit)
+            if (data.error || data.error_type) {
+              console.error('COMPLETED with fal.ai error:', data.error, data.error_type)
+              setStatus('error')
+              setStatusMsg(`Ошибка fal.ai: ${data.error || data.error_type}`)
+              stopped = true
+              break
+            }
+
             const imgUrl =
               data.response?.images?.[0]?.url ||
               data.images?.[0]?.url ||
@@ -225,6 +249,7 @@ export default function Home() {
       stopped = true
       controller.abort()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pollUrl])
 
   // Computed for prompts
