@@ -344,7 +344,8 @@ export default function Home() {
   }, [])
 
   const saveImage = useCallback(async () => {
-    if (!outputUrl || saveStatus === 'saving') return
+    if (!outputUrl || isSavingRef.current) return
+    isSavingRef.current = true
     setSaveStatus('saving')
     try {
       const res = await fetch('/api/save-image', {
@@ -353,9 +354,7 @@ export default function Home() {
         body: JSON.stringify({ outputUrl }),
       })
       const data = await res.json()
-      if (!res.ok || !data.savedUrl) {
-        throw new Error(data.error || 'Ошибка сохранения')
-      }
+      if (!res.ok || !data.savedUrl) throw new Error(data.error || 'Ошибка сохранения')
       setOutputUrl(data.savedUrl)
       setSaveStatus('saved')
       showToast('Изображение успешно сохранено', 'success')
@@ -364,11 +363,15 @@ export default function Home() {
       setSaveStatus('error')
       showToast(msg, 'error')
       setTimeout(() => setSaveStatus('idle'), 3000)
+    } finally {
+      isSavingRef.current = false
     }
-  }, [outputUrl, saveStatus, showToast])
+  }, [outputUrl, showToast])  // saveStatus removed — isSavingRef handles the lock
 
-  const fileRef = useRef<HTMLInputElement>(null)
-  const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const fileRef      = useRef<HTMLInputElement>(null)
+  const pollRef      = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const activeGenRef = useRef(0)   // incremented on each generate() call; stale ticks check this
+  const isSavingRef  = useRef(false) // prevents double-save without saveStatus in useCallback deps
 
   const toggleArr = (arr: string[], set: (v: string[]) => void, val: string) =>
     set(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val])
@@ -458,12 +461,15 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const pollPrediction = useCallback((id: string, statusUrl: string | null) => {
+  const pollPrediction = useCallback((id: string, statusUrl: string | null, genId: number) => {
     let attempts = 0
     const startTime = Date.now()
     const MAX_ATTEMPTS = 45 // ~6 min max with backoff
 
     const tick = async () => {
+      // Bail out immediately if a newer generation has been started
+      if (activeGenRef.current !== genId) return
+
       attempts++
       if (attempts > MAX_ATTEMPTS) {
         pollRef.current = null
@@ -477,6 +483,9 @@ export default function Home() {
         const res = await fetch(`/api/poll?id=${id}${statusParam}`)
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = await res.json()
+
+        // Check again after await — generate() may have fired while fetch was in-flight
+        if (activeGenRef.current !== genId) return
 
         if (data.status === 'succeeded' && data.outputUrl) {
           pollRef.current = null
@@ -494,7 +503,8 @@ export default function Home() {
         const elapsed = Math.round((Date.now() - startTime) / 1000)
         setStatusMsg(`Генерирую дизайн... (${elapsed} сек)`)
       } catch {
-        // network or HTTP error — will retry
+        // network or HTTP error — check cancellation before retrying
+        if (activeGenRef.current !== genId) return
       }
 
       // Exponential backoff: 4s → 12s cap
@@ -508,8 +518,14 @@ export default function Home() {
 
   const generate = useCallback(async () => {
     if (!imageFile) { setStatus('error'); setStatusMsg('Загрузите фотографию помещения'); return }
+
+    // Increment generation counter — any in-flight tick from a previous poll will see
+    // activeGenRef.current !== its captured genId and stop without touching state
+    const genId = ++activeGenRef.current
     if (pollRef.current) { clearTimeout(pollRef.current); pollRef.current = null }
+
     setStatus('uploading'); setStatusMsg('Отправляю изображение...'); setOutputUrl(null)
+    setSaveStatus('idle')  // reset save UI for the new result
 
     const sendDetails = isMyStyle
     const form = new FormData()
@@ -539,7 +555,7 @@ export default function Home() {
         setOutputUrl(data.outputUrl); setStatus('done')
       } else if (data.predictionId) {
         setStatus('processing'); setStatusMsg('Генерирую дизайн...')
-        pollPrediction(data.predictionId, data.statusUrl ?? null)
+        pollPrediction(data.predictionId, data.statusUrl ?? null, genId)
       } else {
         setStatus('error'); setStatusMsg(data.error || 'Ошибка запуска генерации.')
       }
