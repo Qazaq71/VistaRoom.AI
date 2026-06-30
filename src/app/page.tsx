@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useMemo } from 'react'
 import { buildEditPrompt, detectConflicts, type RoomDetails } from '@/lib/prompts'
 import StylePicker from '@/app/components/StylePicker'
 import RoomTypeSelector from '@/app/components/RoomTypeSelector'
+import RoomSettings from '@/app/components/RoomSettings'
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 
@@ -325,8 +326,6 @@ export default function Home() {
   const [furniture, setFurniture]     = useState<string[]>([])
   const [appliances, setAppliances]   = useState<string[]>([])
 
-
-  const [detailsOpen, setDetailsOpen] = useState(false)
 
   const [status, setStatus]       = useState<Status>('idle')
   const [statusMsg, setStatusMsg] = useState('')
@@ -850,27 +849,16 @@ export default function Home() {
           )}
 
           {/* Optional extras for preset styles */}
-          {!isMyStyle && (
-            <button className="details-toggle" onClick={() => setDetailsOpen(o => !o)}>
-              {detailsOpen ? '▾ Скрыть детали' : '▸ Дополнительные настройки'}
-            </button>
-          )}
-          {!isMyStyle && detailsOpen && (
-            <div className="details-block">
-              <div className="details-body">
-                <div>
-                  <div className="field-label" style={{ marginBottom: 8 }}>Освещение</div>
-                  <div className="swatch-grid">
-                    {LIGHTING_CARDS.map(l => (
-                      <SwatchCard key={l.key} label={l.label} icon={l.icon}
-                        selected={lighting.includes(l.key)}
-                        onClick={() => toggleArr(lighting, setLighting, l.key)} small />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          <RoomSettings
+            room={room}
+            lighting={lighting} setLighting={setLighting}
+            tilezone={tilezone} setTilezone={setTilezone}
+            tileColorHex={tileColorHex} setTileColorHex={setTileColorHex}
+            furniture={furniture} setFurniture={setFurniture}
+            appliances={appliances} setAppliances={setAppliances}
+            extraNotes={extraNotes} setExtraNotes={setExtraNotes}
+            isMyStyle={isMyStyle}
+          />
 
           {/* Status */}
           {status === 'error' && <div className="status-box error show">{statusMsg}</div>}
