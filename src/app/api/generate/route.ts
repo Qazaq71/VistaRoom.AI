@@ -4,7 +4,7 @@ import { put } from '@vercel/blob'
 import { buildEditPrompt, RoomDetails } from '@/lib/prompts'
 import { getRateLimit } from '@/lib/rateLimit'
 
-export const maxDuration = 30
+export const maxDuration = 60
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10 MB
 
@@ -37,39 +37,41 @@ function buildColorPrefix(details: Partial<RoomDetails>, style: string): string 
 }
 
 async function submitCanny(imageUrl: string, prompt: string, negative: string): Promise<Response> {
-  return fetch('https://queue.fal.run/fal-ai/flux/dev', {
+  return fetch('https://queue.fal.run/fal-ai/flux-pro/v1/canny', {
     method: 'POST',
     headers: {
       Authorization: `Key ${process.env.FAL_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
+      control_image_url: imageUrl,
       prompt,
       negative_prompt: negative,
-      image_url: imageUrl,
-      controlnet_conditioning_scale: 0.65,
       num_images: 1,
-      guidance_scale: 7.5,
-      num_inference_steps: 20,
+      guidance_scale: 10,
+      controlnet_conditioning_scale: 0.65,
+      num_inference_steps: 24,
+      safety_tolerance: '5',
     }),
   })
 }
 
 async function submitFill(imageUrl: string, maskUrl: string, prompt: string, negative: string): Promise<Response> {
-  return fetch('https://queue.fal.run/fal-ai/flux/dev', {
+  return fetch('https://queue.fal.run/fal-ai/flux-pro/v1/fill', {
     method: 'POST',
     headers: {
       Authorization: `Key ${process.env.FAL_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      prompt,
-      negative_prompt: negative,
       image_url: imageUrl,
       mask_url: maskUrl,
+      prompt,
+      negative_prompt: negative,
       num_images: 1,
-      guidance_scale: 7.5,
-      num_inference_steps: 20,
+      num_inference_steps: 24,
+      guidance_scale: 12,
+      safety_tolerance: '5',
     }),
   })
 }
