@@ -407,6 +407,18 @@ export default function Home() {
     if (fileRef.current) fileRef.current.value = ''
   }
 
+  const handleStyleChange = useCallback((s: string) => {
+    setStyle(s)
+    if (s !== 'my_style') {
+      setWallFinish([]); setWallColorHex(''); setWallFinishKey(''); setSchemeId('')
+      setFloorMaterial(''); setFloorColorHex(''); setFloorMaterialKey('')
+      setTilezone([]); setTileColorHex('#FFFFFF')
+      setFurniture([]); setLighting([]); setAppliances([])
+      setExtraNotes('')
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const pollPrediction = useCallback((id: string, statusUrl: string | null) => {
     let attempts = 0
     pollRef.current = setInterval(async () => {
@@ -437,7 +449,8 @@ export default function Home() {
         }
       } catch { /* network error — continue polling */ }
     }, 5000)
-  }, [imagePreview, isMyStyle, style, room])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const generate = useCallback(async () => {
     if (!imageFile) { setStatus('error'); setStatusMsg('Загрузите фотографию помещения'); return }
@@ -567,16 +580,7 @@ export default function Home() {
           {/* Style */}
           <StylePicker
             selectedStyle={style}
-            onStyleChange={(s) => {
-              setStyle(s)
-              if (s !== 'my_style') {
-                setWallFinish([]); setWallColorHex(''); setWallFinishKey(''); setSchemeId('')
-                setFloorMaterial(''); setFloorColorHex(''); setFloorMaterialKey('')
-                setTilezone([]); setTileColorHex('#FFFFFF')
-                setFurniture([]); setLighting([]); setAppliances([])
-                setExtraNotes('')
-              }
-            }}
+            onStyleChange={handleStyleChange}
           />
           {/* ══════════════ MY STYLE WIZARD ══════════════ */}
           {isMyStyle && (
