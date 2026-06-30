@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { put } from '@vercel/blob'
 
 export const dynamic    = 'force-dynamic'
-export const maxDuration = 60
+export const maxDuration = 25
 
 type FalStatus = 'IN_QUEUE' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED'
 
@@ -28,84 +27,61 @@ export async function GET(req: NextRequest) {
       ? decodeURIComponent(statusUrl)
       : `https://queue.fal.run/fal-ai/flux-pro/requests/${id}/status`
 
-    const tStatusStart = Date.now()
+    // Step 1: lightweight status check — should complete in < 1s
     const statusRes = await fetch(pollUrl, {
       headers: { Authorization: `Key ${process.env.FAL_API_KEY}` },
       signal: AbortSignal.timeout(10_000),
     })
-    console.log(`[Timing] Fal.ai Status Check: ${Date.now() - tStatusStart}ms`)
 
     if (!statusRes.ok) {
       const errText = await statusRes.text()
-      console.error('[/api/poll] status error', statusRes.status, errText)
+      console.error(`[/api/poll] status error ${statusRes.status} id=${id}:`, errText)
       return NextResponse.json({ error: 'Status check failed: ' + errText }, { status: 500 })
     }
 
     const statusData: FalStatusResponse = await statusRes.json()
-    console.log('[/api/poll] status:', statusData.status, 'id:', id)
+    console.log(`[/api/poll] status=${statusData.status} id=${id} (${Date.now() - t0}ms)`)
 
     if (statusData.status === 'IN_QUEUE' || statusData.status === 'IN_PROGRESS') {
       return NextResponse.json({ id, status: 'processing', outputUrl: null })
     }
 
     if (statusData.status === 'FAILED') {
+      console.error(`[/api/poll] generation failed id=${id}`)
       return NextResponse.json({ id, status: 'failed', outputUrl: null, error: 'Generation failed' })
     }
 
+    // Step 2: COMPLETED — fetch result metadata to get the image URL
+    // No image download, no Blob upload — return Fal.ai URL directly
     const responseUrl =
       statusData.response_url ??
       `https://queue.fal.run/fal-ai/flux-pro/requests/${id}`
 
-    const tResultStart = Date.now()
     const resultRes = await fetch(responseUrl, {
       headers: { Authorization: `Key ${process.env.FAL_API_KEY}` },
       signal: AbortSignal.timeout(10_000),
     })
-    console.log(`[Timing] Fetch Result Metadata from Fal.ai: ${Date.now() - tResultStart}ms`)
 
     if (!resultRes.ok) {
       const errText = await resultRes.text()
-      console.error('[/api/poll] result error', resultRes.status, errText)
+      console.error(`[/api/poll] result error ${resultRes.status} id=${id}:`, errText)
       return NextResponse.json({ error: 'Result fetch failed: ' + errText }, { status: 500 })
     }
 
     const resultData: FalResultResponse = await resultRes.json()
-    const rawUrl = resultData.images?.[0]?.url ?? null
+    const outputUrl = resultData.images?.[0]?.url ?? null
 
-    if (!rawUrl) {
+    if (!outputUrl) {
+      console.error(`[/api/poll] no image in response id=${id}:`, JSON.stringify(resultData))
       return NextResponse.json({ id, status: 'failed', outputUrl: null, error: 'No image in response' })
     }
 
-    const tDownloadStart = Date.now()
-    const imgRes = await fetch(rawUrl, { signal: AbortSignal.timeout(30_000) })
-    console.log(`[Timing] Download from Fal.ai: ${Date.now() - tDownloadStart}ms`)
-
-    if (!imgRes.ok) {
-      console.error('[/api/poll] image download error', imgRes.status)
-      return NextResponse.json({ id, status: 'failed', outputUrl: null, error: 'Failed to download generated image' })
-    }
-
-    let outputUrl: string = rawUrl
-    try {
-      const imgBuf  = Buffer.from(await imgRes.arrayBuffer())
-      const tUploadStart = Date.now()
-      const { url } = await put(
-        `results/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`,
-        imgBuf,
-        { access: 'public', contentType: 'image/jpeg' },
-      )
-      console.log(`[Timing] Upload to Blob: ${Date.now() - tUploadStart}ms`)
-      outputUrl = url
-    } catch (uploadErr) {
-      console.error('[/api/poll] blob upload failed, using raw url:', uploadErr instanceof Error ? uploadErr.message : uploadErr)
-    }
-
-    console.log(`[Timing] Total Poll Time (completed): ${Date.now() - t0}ms`)
+    console.log(`[/api/poll] succeeded id=${id} (${Date.now() - t0}ms)`)
     return NextResponse.json({ id, status: 'succeeded', outputUrl, error: null })
 
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error'
-    console.error('[/api/poll]', message)
+    console.error('[/api/poll] exception:', message)
     return NextResponse.json({ error: 'Poll error: ' + message }, { status: 500 })
   }
 }
