@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useRef, useCallback, useMemo } from 'react'
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { buildEditPrompt, detectConflicts, type RoomDetails } from '@/lib/prompts'
 import StylePicker from '@/app/components/StylePicker'
 import RoomTypeSelector from '@/app/components/RoomTypeSelector'
@@ -160,6 +160,12 @@ export default function Home() {
   const activeGenRef = useRef(0)   // incremented on each generate() call; stale ticks check this
   const isSavingRef  = useRef(false) // prevents double-save without saveStatus in useCallback deps
 
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearTimeout(pollRef.current)
+    }
+  }, [])
+
   // Computed for prompts
   const liveDetails: Partial<RoomDetails> = useMemo(() => ({
     wallColorHex, wallFinish, floorMaterial, floorColorHex,
@@ -213,8 +219,7 @@ export default function Home() {
 
   const pollPrediction = useCallback((id: string, statusUrl: string | null, genId: number) => {
     const startTime = Date.now()
-    const MAX_POLL_MS = 5 * 60 * 1000  // 5-minute hard wall
-    let pollErrors = 0                   // consecutive network/server errors
+    const MAX_POLL_MS = 5 * 60 * 1000
 
     const tick = async () => {
       if (activeGenRef.current !== genId) return
@@ -248,27 +253,18 @@ export default function Home() {
           return
         }
         // IN_PROGRESS / IN_QUEUE
-        pollErrors = 0
         const elapsed = Math.round((Date.now() - startTime) / 1000)
         setStatusMsg(`Генерирую дизайн... (${elapsed} сек)`)
       } catch {
         if (activeGenRef.current !== genId) return
-        pollErrors++
         const elapsed = Math.round((Date.now() - startTime) / 1000)
-        // Surface poll errors to user after a few consecutive failures
-        if (pollErrors >= 3) {
-          setStatusMsg(`Ожидаю ответ сервера... (${elapsed} сек)`)
-        }
+        setStatusMsg(`Ожидаю ответ сервера... (${elapsed} сек)`)
       }
 
-      // Back-off: normal 3s → 5s cap; on errors, jump to 5s immediately
-      const delay = pollErrors > 0
-        ? Math.min(3000 * Math.pow(1.5, Math.min(pollErrors - 1, 4)), 5000)
-        : Math.min(3000 * Math.pow(1.15, Math.min(Math.round((Date.now() - startTime) / 5000), 12)), 5000)
-      pollRef.current = setTimeout(tick, delay)
+      pollRef.current = setTimeout(tick, 2000)
     }
 
-    pollRef.current = setTimeout(tick, 5000)
+    pollRef.current = setTimeout(tick, 2000)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
