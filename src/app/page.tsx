@@ -212,16 +212,14 @@ export default function Home() {
   }, [])
 
   const pollPrediction = useCallback((id: string, statusUrl: string | null, genId: number) => {
-    let attempts = 0
     const startTime = Date.now()
-    const MAX_ATTEMPTS = 45 // ~6 min max with backoff
+    const MAX_POLL_MS = 5 * 60 * 1000  // 5-minute hard wall
+    let pollErrors = 0                   // consecutive network/server errors
 
     const tick = async () => {
-      // Bail out immediately if a newer generation has been started
       if (activeGenRef.current !== genId) return
 
-      attempts++
-      if (attempts > MAX_ATTEMPTS) {
+      if (Date.now() - startTime > MAX_POLL_MS) {
         pollRef.current = null
         setStatus('error')
         setStatusMsg('Превышено время ожидания. Попробуйте снова.')
@@ -249,20 +247,28 @@ export default function Home() {
           setStatusMsg(data.error || 'Генерация не удалась.')
           return
         }
-        // IN_PROGRESS / IN_QUEUE — update elapsed and reschedule
+        // IN_PROGRESS / IN_QUEUE
+        pollErrors = 0
         const elapsed = Math.round((Date.now() - startTime) / 1000)
         setStatusMsg(`Генерирую дизайн... (${elapsed} сек)`)
       } catch {
-        // network or HTTP error — check cancellation before retrying
         if (activeGenRef.current !== genId) return
+        pollErrors++
+        const elapsed = Math.round((Date.now() - startTime) / 1000)
+        // Surface poll errors to user after a few consecutive failures
+        if (pollErrors >= 3) {
+          setStatusMsg(`Ожидаю ответ сервера... (${elapsed} сек)`)
+        }
       }
 
-      // Exponential backoff: 3s → 5s cap
-      const delay = Math.min(3000 * Math.pow(1.15, Math.min(attempts - 1, 12)), 5000)
+      // Back-off: normal 3s → 5s cap; on errors, jump to 5s immediately
+      const delay = pollErrors > 0
+        ? Math.min(3000 * Math.pow(1.5, Math.min(pollErrors - 1, 4)), 5000)
+        : Math.min(3000 * Math.pow(1.15, Math.min(Math.round((Date.now() - startTime) / 5000), 12)), 5000)
       pollRef.current = setTimeout(tick, delay)
     }
 
-    pollRef.current = setTimeout(tick, 8000)
+    pollRef.current = setTimeout(tick, 5000)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -297,9 +303,17 @@ export default function Home() {
     form.append('extraNotes',    sendDetails ? extraNotes : '')
 
     try {
-      const res  = await fetch('/api/generate', { method: 'POST', body: form })
+      const res = await fetch('/api/generate', { method: 'POST', body: form })
+
+      // Bail if a newer generate() fired during upload — stale genId would silently kill polling
+      if (activeGenRef.current !== genId) return
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}))
+        setStatus('error'); setStatusMsg(errBody.error || 'Ошибка сервера')
+        return
+      }
       const data = await res.json()
-      if (!res.ok) { setStatus('error'); setStatusMsg(data.error || 'Ошибка сервера'); return }
       setRemaining(data.remaining)
       if (data.outputUrl) {
         setOutputUrl(data.outputUrl); setStatus('done')
