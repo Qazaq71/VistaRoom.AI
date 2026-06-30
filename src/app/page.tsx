@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useRef, useCallback, useMemo } from 'react'
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { buildEditPrompt, detectConflicts, type RoomDetails } from '@/lib/prompts'
 import StylePicker from '@/app/components/StylePicker'
 import RoomTypeSelector from '@/app/components/RoomTypeSelector'
@@ -126,6 +126,7 @@ export default function Home() {
 
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
+  const [pollUrl, setPollUrl] = useState<string | null>(null)
 
   const showToast = useCallback((msg: string, type: 'success' | 'error') => {
     setToast({ msg, type })
@@ -158,8 +159,73 @@ export default function Home() {
   }, [outputUrl, showToast])  // saveStatus removed — isSavingRef handles the lock
 
   const fileRef      = useRef<HTMLInputElement>(null)
-  const activeGenRef = useRef(0)   // incremented on each generate() call; stale loop iterations check this
+  const activeGenRef = useRef(0)   // incremented on each generate() call; stale upload completions check this
   const isSavingRef  = useRef(false) // prevents double-save without saveStatus in useCallback deps
+
+  // Polling is owned entirely by this effect. React guarantees the cleanup runs
+  // synchronously before the effect re-fires, so it is structurally impossible for
+  // two poll loops to run concurrently regardless of how many renders occur.
+  useEffect(() => {
+    if (!pollUrl) return
+
+    let stopped = false
+    const controller = new AbortController()
+
+    ;(async () => {
+      while (!stopped) {
+        await delay(3000)
+        if (stopped) break
+
+        try {
+          const res = await fetch(
+            `/api/check-status?url=${encodeURIComponent(pollUrl)}`,
+            { signal: controller.signal },
+          )
+
+          if (!res.ok) {
+            console.error('Proxy error:', res.status)
+            await delay(5000)
+            continue
+          }
+
+          const data = await res.json()
+          console.log('Fal.ai poll data:', data)
+
+          const s = (data.status || '').toUpperCase()
+
+          if (s === 'COMPLETED' || s === 'OK') {
+            const imgUrl =
+              data.response?.images?.[0]?.url ||
+              data.images?.[0]?.url ||
+              data.output?.images?.[0]?.url
+            if (imgUrl) {
+              setOutputUrl(imgUrl)
+              setStatus('done')
+            } else {
+              console.error('COMPLETED but no image URL:', data)
+              setStatus('error')
+              setStatusMsg('Ошибка: Не удалось прочитать URL картинки')
+            }
+            stopped = true
+          } else if (s === 'FAILED' || s === 'ERROR') {
+            setStatus('error')
+            setStatusMsg('Ошибка генерации на сервере fal.ai')
+            stopped = true
+          }
+          // IN_QUEUE / IN_PROGRESS: fall through, loop sleeps 3 s and retries
+        } catch (err) {
+          if ((err as Error).name === 'AbortError') break
+          console.error('Polling crash, retrying...', err)
+          await delay(4000)
+        }
+      }
+    })()
+
+    return () => {
+      stopped = true
+      controller.abort()
+    }
+  }, [pollUrl])
 
   // Computed for prompts
   const liveDetails: Partial<RoomDetails> = useMemo(() => ({
@@ -196,7 +262,7 @@ export default function Home() {
 
   const clearImage = () => {
     setImageFile(null); setImagePreview(null); setOutputUrl(null); setStatus('idle')
-    setSaveStatus('idle')
+    setSaveStatus('idle'); setPollUrl(null)
     if (fileRef.current) fileRef.current.value = ''
   }
 
@@ -217,6 +283,7 @@ export default function Home() {
     if (!imageFile) { setStatus('error'); setStatusMsg('Загрузите фотографию помещения'); return }
 
     const currentGenId = ++activeGenRef.current
+    setPollUrl(null) // kill any in-progress poll before starting a new generation
 
     setStatus('uploading'); setStatusMsg('Отправляю изображение...'); setOutputUrl(null)
     setSaveStatus('idle')
@@ -255,51 +322,9 @@ export default function Home() {
       if (data.outputUrl) {
         setOutputUrl(data.outputUrl); setStatus('done')
       } else if (data.predictionId && data.statusUrl) {
+        if (activeGenRef.current !== currentGenId) return
         setStatus('processing'); setStatusMsg('Генерирую дизайн...')
-        const statusUrl = data.statusUrl as string
-        let isCompleted = false
-
-        while (!isCompleted && activeGenRef.current === currentGenId) {
-          try {
-            await delay(2500);
-            if (activeGenRef.current !== currentGenId) break;
-
-            const res = await fetch(`/api/check-status?url=${encodeURIComponent(statusUrl)}`);
-            if (!res.ok) {
-              console.error("Server proxy error status:", res.status);
-              await delay(5000);
-              continue;
-            }
-
-            const data = await res.json();
-            console.log("Fal.ai poll data:", data);
-
-            const currentStatus = (data.status || "").toUpperCase();
-
-            if (currentStatus === 'COMPLETED' || currentStatus === 'OK') {
-              const imgUrl = data.response?.images?.[0]?.url || data.images?.[0]?.url || data.output?.images?.[0]?.url;
-
-              if (imgUrl) {
-                setOutputUrl(imgUrl);
-                setStatus('done');
-                isCompleted = true;
-              } else {
-                console.error("Status is COMPLETED but images array is missing:", data);
-                setStatus('error');
-                setStatusMsg('Ошибка: Не удалось прочитать URL картинки');
-                isCompleted = true;
-              }
-            } else if (currentStatus === 'FAILED' || currentStatus === 'ERROR') {
-              setStatus('error');
-              setStatusMsg('Ошибка генерации на сервере fal.ai');
-              isCompleted = true;
-            }
-            // IN_QUEUE or IN_PROGRESS: no branch hit, loop sleeps and retries
-          } catch (err) {
-            console.error("Polling crash, retrying...", err);
-            await delay(4000);
-          }
-        }
+        setPollUrl(data.statusUrl as string)
       } else {
         setStatus('error'); setStatusMsg(data.error || 'Ошибка запуска генерации.')
       }
