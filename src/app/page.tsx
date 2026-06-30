@@ -262,7 +262,7 @@ export default function Home() {
       pollRef.current = setTimeout(tick, delay)
     }
 
-    pollRef.current = setTimeout(tick, 3000)
+    pollRef.current = setTimeout(tick, 8000)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -510,7 +510,7 @@ export default function Home() {
                 {saveStatus === 'saved' && (
                   <span className="btn-saved">✓ Сохранено</span>
                 )}
-                <button className="btn-regen" onClick={generate}>Ещё вариант</button>
+                <button className="btn-regen" onClick={generate} disabled={isLoading}>Ещё вариант</button>
               </div>
             </div>
           )}
