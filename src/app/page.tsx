@@ -216,7 +216,7 @@ export default function Home() {
   const generate = useCallback(async () => {
     if (!imageFile) { setStatus('error'); setStatusMsg('Загрузите фотографию помещения'); return }
 
-    const genId = ++activeGenRef.current
+    const currentGenId = ++activeGenRef.current
 
     setStatus('uploading'); setStatusMsg('Отправляю изображение...'); setOutputUrl(null)
     setSaveStatus('idle')
@@ -243,7 +243,7 @@ export default function Home() {
     try {
       const res = await fetch('/api/generate', { method: 'POST', body: form })
 
-      if (activeGenRef.current !== genId) return
+      if (activeGenRef.current !== currentGenId) return
 
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}))
@@ -257,42 +257,47 @@ export default function Home() {
       } else if (data.predictionId && data.statusUrl) {
         setStatus('processing'); setStatusMsg('Генерирую дизайн...')
         const statusUrl = data.statusUrl as string
-        const startTime = Date.now()
         let isCompleted = false
 
-        while (!isCompleted && activeGenRef.current === genId) {
+        while (!isCompleted && activeGenRef.current === currentGenId) {
           try {
-            await delay(2500)
+            await delay(2500);
+            if (activeGenRef.current !== currentGenId) break;
 
-            if (activeGenRef.current !== genId) break
-
-            const pollRes = await fetch(`/api/check-status?url=${encodeURIComponent(statusUrl)}`)
-
-            if (!pollRes.ok) {
-              console.error('Polling failed with status:', pollRes.status)
-              await delay(5000)
-              continue
+            const res = await fetch(`/api/check-status?url=${encodeURIComponent(statusUrl)}`);
+            if (!res.ok) {
+              console.error("Server proxy error status:", res.status);
+              await delay(5000);
+              continue;
             }
 
-            const pollData = await pollRes.json()
+            const data = await res.json();
+            console.log("Fal.ai poll data:", data);
 
-            if (activeGenRef.current !== genId) break
+            const currentStatus = (data.status || "").toUpperCase();
 
-            if (pollData.status === 'COMPLETED' || pollData.status === 'OK') {
-              setOutputUrl(pollData.response.images[0].url || pollData.response.images.url)
-              setStatus('done')
-              isCompleted = true
-            } else if (pollData.status === 'FAILED') {
-              setStatus('error')
-              setStatusMsg('Ошибка генерации на стороне сервера')
-              isCompleted = true
-            } else {
-              const elapsed = Math.round((Date.now() - startTime) / 1000)
-              setStatusMsg(`Генерирую дизайн... (${elapsed} сек)`)
+            if (currentStatus === 'COMPLETED' || currentStatus === 'OK') {
+              const imgUrl = data.response?.images?.[0]?.url || data.images?.[0]?.url || data.output?.images?.[0]?.url;
+
+              if (imgUrl) {
+                setOutputUrl(imgUrl);
+                setStatus('done');
+                isCompleted = true;
+              } else {
+                console.error("Status is COMPLETED but images array is missing:", data);
+                setStatus('error');
+                setStatusMsg('Ошибка: Не удалось прочитать URL картинки');
+                isCompleted = true;
+              }
+            } else if (currentStatus === 'FAILED' || currentStatus === 'ERROR') {
+              setStatus('error');
+              setStatusMsg('Ошибка генерации на сервере fal.ai');
+              isCompleted = true;
             }
+            // IN_QUEUE or IN_PROGRESS: no branch hit, loop sleeps and retries
           } catch (err) {
-            console.error('Polling error, retrying...', err)
-            await delay(3500)
+            console.error("Polling crash, retrying...", err);
+            await delay(4000);
           }
         }
       } else {
