@@ -77,6 +77,8 @@ async function submitFill(imageUrl: string, maskUrl: string, prompt: string, neg
 }
 
 export async function POST(req: NextRequest) {
+  const t0 = Date.now()
+  console.log('[Timing] Generate START')
   try {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '127.0.0.1'
     const { ok, remaining, limit } = await getRateLimit(ip)
@@ -135,11 +137,13 @@ export async function POST(req: NextRequest) {
 
     const imgBuffer     = Buffer.from(await imageFile.arrayBuffer())
     const compressedImg = await compressImage(imgBuffer)
+    const tBlobStart = Date.now()
     const { url: imageUrl } = await put(
       `interior/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`,
       compressedImg,
       { access: 'public', contentType: 'image/jpeg' },
     )
+    console.log(`[Timing] Upload Source Image to Blob: ${Date.now() - tBlobStart}ms`)
 
     let maskUrl: string | null = null
     if (maskFile) {
@@ -148,11 +152,13 @@ export async function POST(req: NextRequest) {
         .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
         .png()
         .toBuffer()
+      const tMaskStart = Date.now()
       const { url } = await put(
         `masks/${Date.now()}-${Math.random().toString(36).slice(2)}.png`,
         resizedMask,
         { access: 'public', contentType: 'image/png' },
       )
+      console.log(`[Timing] Upload Mask to Blob: ${Date.now() - tMaskStart}ms`)
       maskUrl = url
     }
 
@@ -160,16 +166,19 @@ export async function POST(req: NextRequest) {
     const colorPrefix = buildColorPrefix(details, style)
     const prompt      = (colorPrefix + positive).substring(0, 950)
 
+    const tFalStart = Date.now()
     let falRes: Response
     if ((mode === 'partial' || mode === 'clear') && maskUrl) {
       falRes = await submitFill(imageUrl, maskUrl, prompt, negative)
     } else {
       falRes = await submitCanny(imageUrl, prompt, negative)
     }
+    console.log(`[Timing] Submit to Fal.ai Queue: ${Date.now() - tFalStart}ms`)
 
     if (!falRes.ok) {
       const errText = await falRes.text()
       console.error('[fal.ai submit error]', errText)
+      console.log(`[Timing] Total Generate Time (error): ${Date.now() - t0}ms`)
       return NextResponse.json({ error: 'fal.ai request failed: ' + errText }, { status: 500 })
     }
 
@@ -184,9 +193,11 @@ export async function POST(req: NextRequest) {
 
     if (!falData.request_id) {
       console.error('[fal.ai] missing request_id:', JSON.stringify(falData))
+      console.log(`[Timing] Total Generate Time (error): ${Date.now() - t0}ms`)
       return NextResponse.json({ error: 'Сервис генерации не вернул ID задачи. Попробуйте снова.' }, { status: 500 })
     }
 
+    console.log(`[Timing] Total Generate Time (task queued): ${Date.now() - t0}ms`)
     return NextResponse.json({
       predictionId: falData.request_id,
       statusUrl:    falData.status_url,
@@ -202,6 +213,7 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Internal server error'
     console.error('[/api/generate]', message)
+    console.log(`[Timing] Total Generate Time (exception): ${Date.now() - t0}ms`)
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }

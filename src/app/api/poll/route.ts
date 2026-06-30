@@ -17,6 +17,7 @@ interface FalResultResponse {
 }
 
 export async function GET(req: NextRequest) {
+  const t0 = Date.now()
   try {
     const id        = req.nextUrl.searchParams.get('id')
     const statusUrl = req.nextUrl.searchParams.get('statusUrl')
@@ -27,9 +28,11 @@ export async function GET(req: NextRequest) {
       ? decodeURIComponent(statusUrl)
       : `https://queue.fal.run/fal-ai/flux-pro/requests/${id}/status`
 
+    const tStatusStart = Date.now()
     const statusRes = await fetch(pollUrl, {
       headers: { Authorization: `Key ${process.env.FAL_API_KEY}` },
     })
+    console.log(`[Timing] Fal.ai Status Check: ${Date.now() - tStatusStart}ms`)
 
     if (!statusRes.ok) {
       const errText = await statusRes.text()
@@ -52,9 +55,11 @@ export async function GET(req: NextRequest) {
       statusData.response_url ??
       `https://queue.fal.run/fal-ai/flux-pro/requests/${id}`
 
+    const tResultStart = Date.now()
     const resultRes = await fetch(responseUrl, {
       headers: { Authorization: `Key ${process.env.FAL_API_KEY}` },
     })
+    console.log(`[Timing] Fetch Result Metadata from Fal.ai: ${Date.now() - tResultStart}ms`)
 
     if (!resultRes.ok) {
       const errText = await resultRes.text()
@@ -69,7 +74,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ id, status: 'failed', outputUrl: null, error: 'No image in response' })
     }
 
+    const tDownloadStart = Date.now()
     const imgRes = await fetch(rawUrl)
+    console.log(`[Timing] Download from Fal.ai: ${Date.now() - tDownloadStart}ms`)
+
     if (!imgRes.ok) {
       console.error('[/api/poll] image download error', imgRes.status)
       return NextResponse.json({ id, status: 'failed', outputUrl: null, error: 'Failed to download generated image' })
@@ -78,16 +86,19 @@ export async function GET(req: NextRequest) {
     let outputUrl: string = rawUrl
     try {
       const imgBuf  = Buffer.from(await imgRes.arrayBuffer())
+      const tUploadStart = Date.now()
       const { url } = await put(
         `results/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`,
         imgBuf,
         { access: 'public', contentType: 'image/jpeg' },
       )
+      console.log(`[Timing] Upload to Blob: ${Date.now() - tUploadStart}ms`)
       outputUrl = url
     } catch (uploadErr) {
       console.error('[/api/poll] blob upload failed, using raw url:', uploadErr instanceof Error ? uploadErr.message : uploadErr)
     }
 
+    console.log(`[Timing] Total Poll Time (completed): ${Date.now() - t0}ms`)
     return NextResponse.json({ id, status: 'succeeded', outputUrl, error: null })
 
   } catch (err: unknown) {
