@@ -257,12 +257,12 @@ export default function Home() {
         if (activeGenRef.current !== genId) return
       }
 
-      // Exponential backoff: 4s → 12s cap
-      const delay = Math.min(4000 * Math.pow(1.2, Math.min(attempts - 1, 10)), 12000)
+      // Exponential backoff: 3s → 5s cap
+      const delay = Math.min(3000 * Math.pow(1.15, Math.min(attempts - 1, 12)), 5000)
       pollRef.current = setTimeout(tick, delay)
     }
 
-    pollRef.current = setTimeout(tick, 4000)
+    pollRef.current = setTimeout(tick, 3000)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
