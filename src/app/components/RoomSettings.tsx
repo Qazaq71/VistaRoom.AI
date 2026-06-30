@@ -2,6 +2,10 @@
 
 import { useState } from 'react'
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export type MyStyleStep = 'palette' | 'lighting' | 'extras'
+
 // ─── Static data ──────────────────────────────────────────────────────────────
 
 const TILE_ROOMS = ['kitchen', 'bathroom', 'toilet']
@@ -88,6 +92,21 @@ function SwatchCard({ label, icon, hex, selected, onClick, small }: {
   )
 }
 
+// ─── StepHeader ───────────────────────────────────────────────────────────────
+
+export function StepHeader({ step, current, label, done, onClick }: {
+  step: MyStyleStep; current: MyStyleStep; label: string; done: boolean; onClick: () => void
+}) {
+  const isActive = step === current
+  return (
+    <button className={`step-header${isActive ? ' active' : ''}${done ? ' done' : ''}`} onClick={onClick}>
+      <span className="step-dot">{done ? '✓' : ''}</span>
+      <span className="step-label">{label}</span>
+      <span className="step-arrow">{isActive ? '▾' : '›'}</span>
+    </button>
+  )
+}
+
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 export interface RoomSettingsProps {
@@ -104,7 +123,9 @@ export interface RoomSettingsProps {
   setAppliances: (v: string[]) => void
   extraNotes: string
   setExtraNotes: (v: string) => void
-  isMyStyle: boolean
+  isMyStyle?: boolean
+  myStep?: MyStyleStep
+  setMyStep?: (step: MyStyleStep) => void
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -117,7 +138,9 @@ export default function RoomSettings({
   furniture, setFurniture,
   appliances, setAppliances,
   extraNotes, setExtraNotes,
-  isMyStyle,
+  isMyStyle = false,
+  myStep,
+  setMyStep,
 }: RoomSettingsProps) {
   const [open, setOpen] = useState(false)
 
@@ -126,9 +149,121 @@ export default function RoomSettings({
 
   const showTileZone = TILE_ROOMS.includes(room)
 
-  // Wizard «Мой стиль» будет перенесён сюда — пока рендер на стороне page.tsx
-  if (isMyStyle) return null
+  const lightingDone = lighting.length > 0
+  const extrasDone   = !!(tilezone.length || furniture.length || appliances.length || extraNotes)
 
+  // ── «Мой стиль» wizard: шаги Lighting и Extras ──────────────────────────
+  if (isMyStyle && myStep !== undefined && setMyStep) {
+    return (
+      <>
+        {/* Шаг 2: Освещение */}
+        <StepHeader
+          step="lighting"
+          current={myStep}
+          label="Освещение"
+          done={lightingDone}
+          onClick={() => setMyStep(myStep === 'lighting' ? 'palette' : 'lighting')}
+        />
+
+        {myStep === 'lighting' && (
+          <div className="wizard-body">
+            <div className="swatch-grid">
+              {LIGHTING_CARDS.map(l => (
+                <SwatchCard key={l.key} label={l.label} icon={l.icon}
+                  selected={lighting.includes(l.key)}
+                  onClick={() => toggleArr(lighting, setLighting, l.key)} small />
+              ))}
+            </div>
+            <button className="wizard-next" style={{ marginTop: 12 }}
+              onClick={() => setMyStep('extras')}>
+              Готово — к деталям →
+            </button>
+          </div>
+        )}
+
+        {/* Шаг 3: Детали */}
+        <StepHeader
+          step="extras"
+          current={myStep}
+          label="Детали (необязательно)"
+          done={extrasDone}
+          onClick={() => setMyStep(myStep === 'extras' ? 'lighting' : 'extras')}
+        />
+
+        {myStep === 'extras' && (
+          <div className="wizard-body">
+
+            {showTileZone && setTilezone && (
+              <div style={{ marginBottom: 16 }}>
+                <div className="field-label" style={{ marginBottom: 8 }}>Зоны плитки</div>
+                <div className="swatch-grid" style={{ marginBottom: 10 }}>
+                  {Object.entries(TILE_ZONE_LABELS)
+                    .filter(([k]) => {
+                      if (room === 'kitchen')  return k.startsWith('kitchen')
+                      if (room === 'bathroom') return ['bath_walls', 'bath_floor', 'shower', 'tub_surround'].includes(k)
+                      if (room === 'toilet')   return k.startsWith('toilet')
+                      return false
+                    })
+                    .map(([k, label]) => (
+                      <SwatchCard key={k} label={label}
+                        selected={tilezone.includes(k)}
+                        onClick={() => toggleArr(tilezone, setTilezone!, k)} small />
+                    ))}
+                </div>
+                {tilezone.length > 0 && setTileColorHex && (
+                  <>
+                    <div className="field-label" style={{ marginBottom: 6 }}>Цвет плитки</div>
+                    <div className="swatch-grid">
+                      {TILE_CARDS.map(t => (
+                        <SwatchCard key={t.key} label={t.label} hex={t.hex}
+                          selected={tileColorHex === t.hex}
+                          onClick={() => setTileColorHex(t.hex)} small />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            <div style={{ marginBottom: 16 }}>
+              <div className="field-label" style={{ marginBottom: 4 }}>Мебель в кадре</div>
+              <div className="adv-hint" style={{ marginBottom: 8 }}>Что должно быть в готовом дизайне</div>
+              <div className="swatch-grid">
+                {FURNITURE_CARDS.map(f => (
+                  <SwatchCard key={f.key} label={f.label} icon={f.icon}
+                    selected={furniture.includes(f.key)}
+                    onClick={() => toggleArr(furniture, setFurniture, f.key)} small />
+                ))}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <div className="field-label" style={{ marginBottom: 8 }}>Техника</div>
+              <div className="swatch-grid">
+                {APPLIANCE_CARDS.map(a => (
+                  <SwatchCard key={a.key} label={a.label} icon={a.icon}
+                    selected={appliances.includes(a.key)}
+                    onClick={() => toggleArr(appliances, setAppliances, a.key)} small />
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="field-label" style={{ marginBottom: 6 }}>Дополнительно</div>
+              <textarea className="detail-textarea"
+                placeholder="Например: много растений, рабочее место у окна..."
+                value={extraNotes}
+                onChange={e => setExtraNotes(e.target.value)}
+                rows={2} />
+            </div>
+
+          </div>
+        )}
+      </>
+    )
+  }
+
+  // ── Обычный режим: сворачиваемые дополнительные настройки ───────────────
   return (
     <>
       <button className="details-toggle" onClick={() => setOpen(o => !o)}>
@@ -139,7 +274,6 @@ export default function RoomSettings({
         <div className="details-block">
           <div className="details-body">
 
-            {/* Lighting */}
             <div>
               <div className="field-label" style={{ marginBottom: 8 }}>Освещение</div>
               <div className="swatch-grid">
@@ -151,7 +285,6 @@ export default function RoomSettings({
               </div>
             </div>
 
-            {/* Tile zones — кухня / ванная / туалет */}
             {showTileZone && setTilezone && (
               <div style={{ marginTop: 16 }}>
                 <div className="field-label" style={{ marginBottom: 8 }}>Зоны плитки</div>
@@ -184,7 +317,6 @@ export default function RoomSettings({
               </div>
             )}
 
-            {/* Furniture */}
             <div style={{ marginTop: 16 }}>
               <div className="field-label" style={{ marginBottom: 4 }}>Мебель в кадре</div>
               <div className="adv-hint" style={{ marginBottom: 8 }}>Что должно быть в готовом дизайне</div>
@@ -197,7 +329,6 @@ export default function RoomSettings({
               </div>
             </div>
 
-            {/* Appliances */}
             <div style={{ marginTop: 16 }}>
               <div className="field-label" style={{ marginBottom: 8 }}>Техника</div>
               <div className="swatch-grid">
@@ -209,7 +340,6 @@ export default function RoomSettings({
               </div>
             </div>
 
-            {/* Extra notes */}
             <div style={{ marginTop: 16 }}>
               <div className="field-label" style={{ marginBottom: 6 }}>Дополнительно</div>
               <textarea className="detail-textarea"
