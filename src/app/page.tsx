@@ -3,14 +3,9 @@
 import { useState, useRef, useCallback, useMemo } from 'react'
 import { buildEditPrompt, detectConflicts, type RoomDetails } from '@/lib/prompts'
 import StylePicker from '@/app/components/StylePicker'
+import RoomTypeSelector from '@/app/components/RoomTypeSelector'
 
 // ─── Static data ──────────────────────────────────────────────────────────────
-
-const ROOM_LABELS: Record<string, string> = {
-  living: 'Гостиная', bedroom: 'Спальня', kitchen: 'Кухня',
-  bathroom: 'Ванная', toilet: 'Туалет', office: 'Офис',
-  kids: 'Детская', cafe: 'Кафе', shop: 'Магазин', salon: 'Салон',
-}
 
 const TILE_ROOMS = ['kitchen', 'bathroom', 'toilet']
 
@@ -582,15 +577,7 @@ export default function Home() {
           )}
 
           {/* Room type */}
-          <div>
-            <div className="field-label">Тип помещения</div>
-            <div className="chips">
-              {Object.entries(ROOM_LABELS).map(([k, label]) => (
-                <button key={k} className={`chip${room === k ? ' active' : ''}`}
-                  onClick={() => setRoom(k)}>{label}</button>
-              ))}
-            </div>
-          </div>
+          <RoomTypeSelector selectedRoomType={room} onRoomTypeChange={setRoom} />
 
           {/* Style */}
           <StylePicker
