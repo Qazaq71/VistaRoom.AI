@@ -36,37 +36,44 @@ function buildColorPrefix(details: Partial<RoomDetails>, style: string): string 
   return parts.length ? parts.join(', ') + ', ' : ''
 }
 
+// FLUX.1 [pro] v1.1 — image-to-image mode.
+// Replaces deprecated fal-ai/flux-pro/v1/canny (ControlNet): structural fidelity
+// is now controlled via `strength` rather than edge maps, which avoids harsh outlines
+// while still anchoring the room layout. guidance_scale stays in FLUX native range (3–4);
+// the old 7.5 value was tuned for SD and causes over-saturation on FLUX.
 async function submitCanny(imageUrl: string, prompt: string, negative: string): Promise<Response> {
-  return fetch('https://queue.fal.run/fal-ai/flux-pro/v1/canny', {
+  return fetch('https://queue.fal.run/fal-ai/flux-pro/v1.1', {
     method: 'POST',
     headers: {
       Authorization: `Key ${process.env.FAL_API_KEY}`,
       'Content-Type': 'application/json',
-      // Tell fal.ai to abort the task after 300 s on their side,
-      // preventing tasks from staying IN_PROGRESS indefinitely
       'X-Fal-Request-Timeout': '300',
     },
     body: JSON.stringify({
-      control_image_url: imageUrl,
+      image_url: imageUrl,        // replaces control_image_url (ControlNet-specific param)
       prompt,
       negative_prompt: negative,
+      strength: 0.85,             // 0.85 = strong style rework, ~15% structural anchor
       num_images: 1,
-      guidance_scale: 7.5,              // reduced from 10 — fewer CFG steps per pass, faster inference
-      controlnet_conditioning_scale: 0.65,
-      num_inference_steps: 20,          // reduced from 24 — quality remains good, ~17% faster
+      num_inference_steps: 28,    // FLUX Pro v1.1 quality sweet spot (28–30 steps)
+      guidance_scale: 3.5,        // FLUX native range; 7.5 would over-saturate colours
       safety_tolerance: '5',
     }),
   })
 }
 
+// FLUX.1 [pro] Fill — dedicated inpainting endpoint, unchanged.
+// Best choice for partial-clear and furniture-swap: understands masked regions
+// semantically, not just pixel-level diffusion, so background restoration is clean
+// and object placement is coherent. Parameters corrected for FLUX Fill:
+// guidance_scale 3.5 (was 8 — too high for FLUX, caused over-sharpening/halos),
+// steps bumped to 28 for tighter inpainting seams.
 async function submitFill(imageUrl: string, maskUrl: string, prompt: string, negative: string): Promise<Response> {
   return fetch('https://queue.fal.run/fal-ai/flux-pro/v1/fill', {
     method: 'POST',
     headers: {
       Authorization: `Key ${process.env.FAL_API_KEY}`,
       'Content-Type': 'application/json',
-      // Tell fal.ai to abort the task after 300 s on their side,
-      // preventing tasks from staying IN_PROGRESS indefinitely
       'X-Fal-Request-Timeout': '300',
     },
     body: JSON.stringify({
@@ -75,8 +82,8 @@ async function submitFill(imageUrl: string, maskUrl: string, prompt: string, neg
       prompt,
       negative_prompt: negative,
       num_images: 1,
-      num_inference_steps: 20,          // reduced from 24 — faster without visible quality loss
-      guidance_scale: 8,                // reduced from 12 — lower guidance = faster convergence
+      num_inference_steps: 28,    // was 20 — more steps = cleaner seams at mask boundary
+      guidance_scale: 3.5,        // was 8 — FLUX Fill native range; 8 caused halos/over-sharpening
       safety_tolerance: '5',
     }),
   })
