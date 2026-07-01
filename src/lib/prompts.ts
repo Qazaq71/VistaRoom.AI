@@ -71,21 +71,23 @@ export function buildEditPrompt(
   }
 
   const stylePart = isMyStyle ? buildMyStylePart(details) : (STYLE_DESCRIPTIONS[styleKey] || styleKey + ' style')
+
   const parts: string[] = [
-    `Professional photorealistic interior photography of a ${room},`,
-    `${stylePart},`,
+    `Completely redesign and transform this ${room} into ${stylePart}.`,
+    `Fully replace and repaint all wall coverings, ceiling, flooring, cabinetry fronts, curtains, and lighting fixtures to match this style.`,
   ]
-  if (details?.lighting?.length)   parts.push(`${details.lighting.join(', ')} lighting,`)
-  if (details?.furniture?.length)  parts.push(`${details.furniture.join(', ')},`)
-  if (details?.appliances?.length) parts.push(`${details.appliances.join(', ')},`)
-  if (details?.extraNotes)         parts.push(`${details.extraNotes},`)
-  parts.push(`photorealistic, sharp focus, natural lighting, highly detailed,`)
-  parts.push(`preserve all windows preserve all doors keep room geometry keep room proportions, white ceiling, ceiling color is white not colored, keep ceiling white,`)
-  if (isMyStyle) parts.push(`color accurate, exact color matching, precise hex color reproduction`)
+  if (details?.lighting?.length)   parts.push(`New lighting fixtures: ${details.lighting.join(', ')}.`)
+  if (details?.furniture?.length)  parts.push(`New furniture: ${details.furniture.join(', ')}.`)
+  if (details?.appliances?.length) parts.push(`New appliances: ${details.appliances.join(', ')}.`)
+  if (details?.extraNotes)         parts.push(`${details.extraNotes}.`)
+  parts.push(`Photorealistic, sharp focus, highly detailed, natural lighting.`)
+  parts.push(`Do not change the room's structure: keep window position, size and frame exactly as in the original photo, keep door position exactly as in the original photo, keep the same room proportions and camera angle.`)
+  if (isMyStyle) parts.push(`Color accurate, exact color matching, precise hex color reproduction.`)
 
   const negative = [
-    'remove windows, remove doors, change room shape, alter proportions, change ceiling height,',
+    'remove windows, remove doors, change room shape, alter proportions, change ceiling height, change camera angle, wide angle distortion,',
     'blurry, low quality, text, watermark, people, cartoon, deformed, distorted, fish-eye,',
+    'minimal changes, subtle changes, same as original, unchanged walls, unchanged furniture,',
     isMyStyle ? 'wrong color, incorrect wall color, wrong floor color, color mismatch, desaturated,' : '',
   ].filter(Boolean).join(' ')
 

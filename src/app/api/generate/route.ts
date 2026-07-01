@@ -42,11 +42,27 @@ function buildColorPrefix(details: Partial<RoomDetails>, style: string): string 
   return parts.length ? parts.join(', ') + ', ' : ''
 }
 
-// fal-ai/flux-pro/kontext — context-aware editing that preserves room geometry,
-// window/door positions, and spatial proportions while changing style.
-// guidance_scale 4 is the recommended starting point per the schema.
-// aspect_ratio null = inherit source image ratio (no re-cropping).
-async function submitRedesign(imageUrl: string, prompt: string): Promise<Response> {
+function nearestAspectRatio(width: number, height: number): string {
+  const ratios: Record<string, number> = {
+    '21:9': 21/9, '16:9': 16/9, '4:3': 4/3, '3:2': 3/2, '1:1': 1,
+    '2:3': 2/3, '3:4': 3/4, '9:16': 9/16, '9:21': 9/21,
+  }
+  const target = width / height
+  let best = '1:1'
+  let bestDiff = Infinity
+  for (const [key, value] of Object.entries(ratios)) {
+    const diff = Math.abs(value - target)
+    if (diff < bestDiff) { bestDiff = diff; best = key }
+  }
+  return best
+}
+
+async function submitRedesign(
+  imageUrl: string,
+  prompt: string,
+  aspectRatio: string,
+  guidanceScale: number = 7,
+): Promise<Response> {
   return fetch('https://queue.fal.run/fal-ai/flux-pro/kontext', {
     method: 'POST',
     headers: {
@@ -57,8 +73,8 @@ async function submitRedesign(imageUrl: string, prompt: string): Promise<Respons
     body: JSON.stringify({
       image_url: imageUrl,
       prompt,
-      guidance_scale: 4,
-      aspect_ratio: null,
+      guidance_scale: guidanceScale,
+      aspect_ratio: aspectRatio,
       safety_tolerance: '2',
       output_format: 'jpeg',
       num_images: 1,
@@ -213,7 +229,8 @@ export async function POST(req: NextRequest) {
       const { positive } = buildEditPrompt(room, style, details, 'style')
       const colorPrefix  = buildColorPrefix(details, style)
       promptUsed = (colorPrefix + positive).substring(0, 950)
-      falRes = await submitRedesign(imageUrl, promptUsed)
+      const aspectRatio = nearestAspectRatio(imgWidth, imgHeight)
+      falRes = await submitRedesign(imageUrl, promptUsed, aspectRatio, 7)
     }
 
     console.log(`[Timing] Submit to Fal.ai Queue: ${Date.now() - tFalStart}ms`)
