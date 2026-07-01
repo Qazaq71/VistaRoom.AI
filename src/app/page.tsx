@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
 import { buildEditPrompt, detectConflicts, type RoomDetails } from '@/lib/prompts'
 import StylePicker from '@/app/components/StylePicker'
 import RoomTypeSelector from '@/app/components/RoomTypeSelector'
@@ -111,100 +111,10 @@ export default function Home() {
   const [dragOver, setDragOver]   = useState(false)
   const [promptPreviewOpen, setPromptPreviewOpen] = useState(false)
 
-  const [pollUrl, setPollUrl] = useState<string | null>(null)
-
   const fileRef      = useRef<HTMLInputElement>(null)
   const activeGenRef = useRef(0)   // incremented on each generate() call; stale upload completions check this
 
-  // Hard timeout for flux-pro generation: 5 minutes.
-  // Without this, a stuck IN_PROGRESS task hangs the UI indefinitely.
   const POLL_TIMEOUT_MS = 5 * 60 * 1000
-
-  // Polling is owned entirely by this effect. React guarantees the cleanup runs
-  // synchronously before the effect re-fires, so it is structurally impossible for
-  // two poll loops to run concurrently regardless of how many renders occur.
-  useEffect(() => {
-    if (!pollUrl) return
-
-    let stopped = false
-    const controller = new AbortController()
-    // Compute an absolute deadline so elapsed sleeps don't erode the budget
-    const deadline = Date.now() + POLL_TIMEOUT_MS
-
-    ;(async () => {
-      while (!stopped) {
-        await delay(3000)
-        if (stopped) break
-
-        // Enforce the hard timeout before each request
-        if (Date.now() > deadline) {
-          setStatus('error')
-          setStatusMsg('Генерация заняла слишком долго (более 5 минут). Попробуйте ещё раз.')
-          stopped = true
-          break
-        }
-
-        try {
-          const res = await fetch(
-            `/api/check-status?url=${encodeURIComponent(pollUrl)}`,
-            { signal: controller.signal },
-          )
-
-          if (!res.ok) {
-            console.error('Proxy error:', res.status)
-            await delay(5000)
-            continue
-          }
-
-          const data = await res.json()
-          console.log('Fal.ai poll data:', data)
-
-          const s = (data.status || '').toUpperCase()
-
-          if (s === 'COMPLETED' || s === 'OK') {
-            // Fal.ai can return COMPLETED with error/error_type fields instead of FAILED
-            // when the model itself encounters an internal problem (e.g. safety filter hit)
-            if (data.error || data.error_type) {
-              console.error('COMPLETED with fal.ai error:', data.error, data.error_type)
-              setStatus('error')
-              setStatusMsg(`Ошибка fal.ai: ${data.error || data.error_type}`)
-              stopped = true
-              break
-            }
-
-            const imgUrl =
-              data.response?.images?.[0]?.url ||
-              data.images?.[0]?.url ||
-              data.output?.images?.[0]?.url
-            if (imgUrl) {
-              setOutputUrl(imgUrl)
-              setStatus('done')
-            } else {
-              console.error('COMPLETED but no image URL:', data)
-              setStatus('error')
-              setStatusMsg('Ошибка: Не удалось прочитать URL картинки')
-            }
-            stopped = true
-          } else if (s === 'FAILED' || s === 'ERROR') {
-            setStatus('error')
-            setStatusMsg('Ошибка генерации на сервере fal.ai')
-            stopped = true
-          }
-          // IN_QUEUE / IN_PROGRESS: fall through, loop sleeps 3 s and retries
-        } catch (err) {
-          if ((err as Error).name === 'AbortError') break
-          console.error('Polling crash, retrying...', err)
-          await delay(4000)
-        }
-      }
-    })()
-
-    return () => {
-      stopped = true
-      controller.abort()
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pollUrl])
 
   // Computed for prompts
   const liveDetails: Partial<RoomDetails> = useMemo(() => ({
@@ -240,8 +150,8 @@ export default function Home() {
   const [billingYearly, setBillingYearly] = useState(false)
 
   const clearImage = () => {
+    activeGenRef.current++
     setImageFile(null); setImagePreview(null); setOutputUrl(null); setStatus('idle')
-    setPollUrl(null)
     if (fileRef.current) fileRef.current.value = ''
   }
 
@@ -262,7 +172,6 @@ export default function Home() {
     if (!imageFile) { setStatus('error'); setStatusMsg('Загрузите фотографию помещения'); return }
 
     const currentGenId = ++activeGenRef.current
-    setPollUrl(null) // kill any in-progress poll before starting a new generation
 
     setStatus('uploading'); setStatusMsg('Отправляю изображение...'); setOutputUrl(null)
 
@@ -302,7 +211,43 @@ export default function Home() {
       } else if (data.predictionId && data.statusUrl) {
         if (activeGenRef.current !== currentGenId) return
         setStatus('processing'); setStatusMsg('Генерирую дизайн...')
-        setPollUrl(data.statusUrl as string)
+
+        const deadline = Date.now() + POLL_TIMEOUT_MS
+        while (true) {
+          await delay(3000)
+          if (activeGenRef.current !== currentGenId) return
+
+          if (Date.now() > deadline) {
+            setStatus('error')
+            setStatusMsg('Генерация заняла слишком долго (более 5 минут). Попробуйте ещё раз.')
+            return
+          }
+
+          try {
+            const pollRes = await fetch(
+              `/api/poll?id=${encodeURIComponent(data.predictionId)}&statusUrl=${encodeURIComponent(data.statusUrl)}`
+            )
+            if (!pollRes.ok) { await delay(2000); continue }
+
+            const pollData = await pollRes.json()
+            if (activeGenRef.current !== currentGenId) return
+
+            if (pollData.status === 'succeeded' && pollData.outputUrl) {
+              setOutputUrl(pollData.outputUrl)
+              setStatus('done')
+              return
+            } else if (pollData.status === 'failed') {
+              setStatus('error')
+              setStatusMsg(pollData.error || 'Ошибка генерации на сервере fal.ai')
+              return
+            }
+            // 'processing' → loop continues
+          } catch (err) {
+            if (activeGenRef.current !== currentGenId) return
+            console.error('Polling error, retrying...', err)
+            await delay(4000)
+          }
+        }
       } else {
         setStatus('error'); setStatusMsg(data.error || 'Ошибка запуска генерации.')
       }
