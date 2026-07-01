@@ -36,12 +36,12 @@ function buildColorPrefix(details: Partial<RoomDetails>, style: string): string 
   return parts.length ? parts.join(', ') + ', ' : ''
 }
 
-// fal-ai/flux-general/image-to-image — open FLUX.1 image-to-image.
-// strength 0.60 gives the model enough room to re-style while the geometry
-// (windows, doors, proportions) stays anchored. 26 steps is the quality
-// sweet spot for flux-general; guidance_scale 5.0 is in its native range.
+// fal-ai/flux-pro/v1.1 — Pro image-to-image.
+// strength 0.56 lets the style and furniture change visibly while room geometry
+// (windows, doors, proportions) is still well-preserved.
+// 28 steps + guidance_scale 5.2 is the quality sweet spot for flux-pro.
 async function submitCanny(imageUrl: string, prompt: string, negative: string): Promise<Response> {
-  return fetch('https://queue.fal.run/fal-ai/flux-general/image-to-image', {
+  return fetch('https://queue.fal.run/fal-ai/flux-pro/v1.1', {
     method: 'POST',
     headers: {
       Authorization: `Key ${process.env.FAL_API_KEY}`,
@@ -52,20 +52,20 @@ async function submitCanny(imageUrl: string, prompt: string, negative: string): 
       image_url: imageUrl,
       prompt,
       negative_prompt: negative,
-      strength: 0.62,
+      strength: 0.56,
       num_images: 1,
-      num_inference_steps: 26,
+      num_inference_steps: 28,
       guidance_scale: 5.2,
     }),
   })
 }
 
-// fal-ai/flux-general/inpainting — open FLUX.1 inpainting endpoint.
+// fal-ai/flux-pro/v1/fill — Pro inpainting endpoint.
 // Handles partial/clear modes: fills masked region with prompt-driven content
 // while leaving the unmasked background untouched.
-// guidance_scale 5.2 keeps inpainted content crisp and prompt-faithful.
+// 28 steps + guidance_scale 5.0 balances fidelity and prompt adherence.
 async function submitFill(imageUrl: string, maskUrl: string, prompt: string, negative: string): Promise<Response> {
-  return fetch('https://queue.fal.run/fal-ai/flux-general/inpainting', {
+  return fetch('https://queue.fal.run/fal-ai/flux-pro/v1/fill', {
     method: 'POST',
     headers: {
       Authorization: `Key ${process.env.FAL_API_KEY}`,
@@ -78,8 +78,8 @@ async function submitFill(imageUrl: string, maskUrl: string, prompt: string, neg
       prompt,
       negative_prompt: negative,
       num_images: 1,
-      num_inference_steps: 26,
-      guidance_scale: 5.2,
+      num_inference_steps: 28,
+      guidance_scale: 5.0,
     }),
   })
 }
