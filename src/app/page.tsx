@@ -10,19 +10,6 @@ import MyStylePalette from '@/app/components/MyStylePalette'
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Status = 'idle' | 'uploading' | 'processing' | 'done' | 'error'
-type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function Toast({ msg, type, onDismiss }: { msg: string; type: 'success' | 'error'; onDismiss: () => void }) {
-  return (
-    <div className={`toast toast-${type}`} role="alert">
-      <span>{type === 'success' ? '✓' : '✕'}</span>
-      <span>{msg}</span>
-      <button className="toast-close" onClick={onDismiss} aria-label="Закрыть">✕</button>
-    </div>
-  )
-}
 
 function BeforeAfterSlider({ before, after }: { before: string; after: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -124,43 +111,10 @@ export default function Home() {
   const [dragOver, setDragOver]   = useState(false)
   const [promptPreviewOpen, setPromptPreviewOpen] = useState(false)
 
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
-  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
   const [pollUrl, setPollUrl] = useState<string | null>(null)
-
-  const showToast = useCallback((msg: string, type: 'success' | 'error') => {
-    setToast({ msg, type })
-    setTimeout(() => setToast(null), 4000)
-  }, [])
-
-  const saveImage = useCallback(async () => {
-    if (!outputUrl || isSavingRef.current) return
-    isSavingRef.current = true
-    setSaveStatus('saving')
-    try {
-      const res = await fetch('/api/save-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ outputUrl }),
-      })
-      const data = await res.json()
-      if (!res.ok || !data.savedUrl) throw new Error(data.error || 'Ошибка сохранения')
-      setOutputUrl(data.savedUrl)
-      setSaveStatus('saved')
-      showToast('Изображение успешно сохранено', 'success')
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Ошибка сохранения'
-      setSaveStatus('error')
-      showToast(msg, 'error')
-      setTimeout(() => setSaveStatus('idle'), 3000)
-    } finally {
-      isSavingRef.current = false
-    }
-  }, [outputUrl, showToast])  // saveStatus removed — isSavingRef handles the lock
 
   const fileRef      = useRef<HTMLInputElement>(null)
   const activeGenRef = useRef(0)   // incremented on each generate() call; stale upload completions check this
-  const isSavingRef  = useRef(false) // prevents double-save without saveStatus in useCallback deps
 
   // Hard timeout for flux-pro generation: 5 minutes.
   // Without this, a stuck IN_PROGRESS task hangs the UI indefinitely.
@@ -287,7 +241,7 @@ export default function Home() {
 
   const clearImage = () => {
     setImageFile(null); setImagePreview(null); setOutputUrl(null); setStatus('idle')
-    setSaveStatus('idle'); setPollUrl(null)
+    setPollUrl(null)
     if (fileRef.current) fileRef.current.value = ''
   }
 
@@ -311,7 +265,6 @@ export default function Home() {
     setPollUrl(null) // kill any in-progress poll before starting a new generation
 
     setStatus('uploading'); setStatusMsg('Отправляю изображение...'); setOutputUrl(null)
-    setSaveStatus('idle')
 
     const sendDetails = isMyStyle
     const form = new FormData()
@@ -523,11 +476,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* Toast */}
-          {toast && (
-            <Toast msg={toast.msg} type={toast.type} onDismiss={() => setToast(null)} />
-          )}
-
           {/* Result */}
           {status === 'done' && outputUrl && (
             <div className="result-wrap show">
@@ -538,22 +486,6 @@ export default function Home() {
                   <img src={outputUrl} alt="Result" className="result-img" />}
               <div className="result-actions">
                 <button className="btn-dl" onClick={download}>↓ Скачать</button>
-                {saveStatus !== 'saved' && (
-                  <button
-                    className="btn-save"
-                    onClick={saveImage}
-                    disabled={saveStatus === 'saving'}
-                  >
-                    {saveStatus === 'saving'
-                      ? <><div className="spinner spinner-sm" />Сохраняем...</>
-                      : saveStatus === 'error'
-                        ? '↻ Повторить'
-                        : '☁ Сохранить'}
-                  </button>
-                )}
-                {saveStatus === 'saved' && (
-                  <span className="btn-saved">✓ Сохранено</span>
-                )}
                 <button className="btn-regen" onClick={generate} disabled={isLoading}>Ещё вариант</button>
               </div>
             </div>
