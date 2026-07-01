@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
     const pollUrl = statusUrl
       ? decodeURIComponent(statusUrl)
-      : `https://queue.fal.run/fal-ai/flux-pro/requests/${id}/status`
+      : `https://queue.fal.run/fal-ai/flux-pro/kontext/requests/${id}/status`
 
     // Step 1: lightweight status check — should complete in < 1s
     const statusRes = await fetch(pollUrl, {

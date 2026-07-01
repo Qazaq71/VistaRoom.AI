@@ -19,12 +19,18 @@ function validateImageFile(file: File): string | null {
   return null
 }
 
-async function compressImage(buffer: Buffer): Promise<Buffer> {
-  if (buffer.length < 200 * 1024) return buffer
-  return await sharp(buffer)
-    .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
-    .jpeg({ quality: 85 })
-    .toBuffer()
+async function compressImage(buffer: Buffer): Promise<{ data: Buffer; width: number; height: number }> {
+  let data: Buffer
+  if (buffer.length < 200 * 1024) {
+    data = buffer
+  } else {
+    data = await sharp(buffer)
+      .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
+      .jpeg({ quality: 85 })
+      .toBuffer()
+  }
+  const { width = 1024, height = 1024 } = await sharp(data).metadata()
+  return { data, width, height }
 }
 
 function buildColorPrefix(details: Partial<RoomDetails>, style: string): string {
@@ -36,12 +42,12 @@ function buildColorPrefix(details: Partial<RoomDetails>, style: string): string 
   return parts.length ? parts.join(', ') + ', ' : ''
 }
 
-// fal-ai/flux-pro/v1.1 — Pro image-to-image.
-// strength 0.56 lets the style and furniture change visibly while room geometry
-// (windows, doors, proportions) is still well-preserved.
-// 28 steps + guidance_scale 5.2 is the quality sweet spot for flux-pro.
-async function submitCanny(imageUrl: string, prompt: string, negative: string): Promise<Response> {
-  return fetch('https://queue.fal.run/fal-ai/flux-pro/v1.1', {
+// fal-ai/flux-pro/kontext — context-aware editing that preserves room geometry,
+// window/door positions, and spatial proportions while changing style.
+// guidance_scale 4 is the recommended starting point per the schema.
+// aspect_ratio null = inherit source image ratio (no re-cropping).
+async function submitRedesign(imageUrl: string, prompt: string): Promise<Response> {
+  return fetch('https://queue.fal.run/fal-ai/flux-pro/kontext', {
     method: 'POST',
     headers: {
       Authorization: `Key ${process.env.FAL_API_KEY}`,
@@ -51,20 +57,18 @@ async function submitCanny(imageUrl: string, prompt: string, negative: string): 
     body: JSON.stringify({
       image_url: imageUrl,
       prompt,
-      negative_prompt: negative,
-      strength: 0.56,
+      guidance_scale: 4,
+      aspect_ratio: null,
+      safety_tolerance: '2',
+      output_format: 'jpeg',
       num_images: 1,
-      num_inference_steps: 28,
-      guidance_scale: 5.2,
     }),
   })
 }
 
-// fal-ai/flux-pro/v1/fill — Pro inpainting endpoint.
-// Handles partial/clear modes: fills masked region with prompt-driven content
-// while leaving the unmasked background untouched.
-// 28 steps + guidance_scale 5.0 balances fidelity and prompt adherence.
-async function submitFill(imageUrl: string, maskUrl: string, prompt: string, negative: string): Promise<Response> {
+// fal-ai/flux-pro/v1/fill — inpainting for partial furniture/decor replacement.
+// image_url and mask_url are resized to identical dimensions before upload.
+async function submitReplace(imageUrl: string, maskUrl: string, prompt: string): Promise<Response> {
   return fetch('https://queue.fal.run/fal-ai/flux-pro/v1/fill', {
     method: 'POST',
     headers: {
@@ -76,10 +80,32 @@ async function submitFill(imageUrl: string, maskUrl: string, prompt: string, neg
       image_url: imageUrl,
       mask_url: maskUrl,
       prompt,
-      negative_prompt: negative,
+      safety_tolerance: '2',
+      enhance_prompt: false,
       num_images: 1,
-      num_inference_steps: 28,
-      guidance_scale: 5.0,
+      output_format: 'jpeg',
+      sync_mode: false,
+    }),
+  })
+}
+
+// fal-ai/flux-pro/v1/erase — erases the masked region and fills with plausible
+// background (walls/floor). No prompt: the model inpaints autonomously.
+// image_url and mask_url are resized to identical dimensions before upload.
+async function submitErase(imageUrl: string, maskUrl: string): Promise<Response> {
+  return fetch('https://queue.fal.run/fal-ai/flux-pro/v1/erase', {
+    method: 'POST',
+    headers: {
+      Authorization: `Key ${process.env.FAL_API_KEY}`,
+      'Content-Type': 'application/json',
+      'X-Fal-Request-Timeout': '300',
+    },
+    body: JSON.stringify({
+      image_url: imageUrl,
+      mask_url: maskUrl,
+      dilate_pixels: 10,
+      output_format: 'jpeg',
+      sync_mode: false,
     }),
   })
 }
@@ -143,9 +169,9 @@ export async function POST(req: NextRequest) {
       if (maskError) return NextResponse.json({ error: `Маска: ${maskError}` }, { status: 400 })
     }
 
-    const imgBuffer     = Buffer.from(await imageFile.arrayBuffer())
-    const compressedImg = await compressImage(imgBuffer)
+    const imgRaw = Buffer.from(await imageFile.arrayBuffer())
     const tBlobStart = Date.now()
+    const { data: compressedImg, width: imgWidth, height: imgHeight } = await compressImage(imgRaw)
     const { url: imageUrl } = await put(
       `interior/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`,
       compressedImg,
@@ -156,8 +182,9 @@ export async function POST(req: NextRequest) {
     let maskUrl: string | null = null
     if (maskFile) {
       const maskBuffer  = Buffer.from(await maskFile.arrayBuffer())
+      // Resize mask to exactly match compressed image pixel dimensions for fill/erase alignment
       const resizedMask = await sharp(maskBuffer)
-        .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
+        .resize(imgWidth, imgHeight, { fit: 'fill' })
         .png()
         .toBuffer()
       const tMaskStart = Date.now()
@@ -170,17 +197,25 @@ export async function POST(req: NextRequest) {
       maskUrl = url
     }
 
-    const { positive, negative } = buildEditPrompt(room, style, details, mode as 'style' | 'partial' | 'clear')
-    const colorPrefix = buildColorPrefix(details, style)
-    const prompt      = (colorPrefix + positive).substring(0, 950)
-
     const tFalStart = Date.now()
     let falRes: Response
-    if ((mode === 'partial' || mode === 'clear') && maskUrl) {
-      falRes = await submitFill(imageUrl, maskUrl, prompt, negative)
+    let promptUsed = ''
+
+    if (mode === 'clear' && maskUrl) {
+      // erase accepts no prompt — model fills background autonomously
+      falRes = await submitErase(imageUrl, maskUrl)
+    } else if (mode === 'partial' && maskUrl) {
+      const { positive } = buildEditPrompt(room, style, details, 'partial')
+      const colorPrefix  = buildColorPrefix(details, style)
+      promptUsed = (colorPrefix + positive).substring(0, 950)
+      falRes = await submitReplace(imageUrl, maskUrl, promptUsed)
     } else {
-      falRes = await submitCanny(imageUrl, prompt, negative)
+      const { positive } = buildEditPrompt(room, style, details, 'style')
+      const colorPrefix  = buildColorPrefix(details, style)
+      promptUsed = (colorPrefix + positive).substring(0, 950)
+      falRes = await submitRedesign(imageUrl, promptUsed)
     }
+
     console.log(`[Timing] Submit to Fal.ai Queue: ${Date.now() - tFalStart}ms`)
 
     if (!falRes.ok) {
@@ -215,7 +250,9 @@ export async function POST(req: NextRequest) {
       mode,
       remaining,
       limit,
-      promptUsed:   prompt.substring(0, 300) + '...',
+      promptUsed:   promptUsed
+        ? promptUsed.substring(0, 300) + '...'
+        : '(no prompt — erase mode)',
     })
 
   } catch (err: unknown) {

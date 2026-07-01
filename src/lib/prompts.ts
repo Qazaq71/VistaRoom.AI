@@ -54,23 +54,11 @@ export function buildEditPrompt(
   roomKey:  string,
   styleKey: string,
   details?: Partial<RoomDetails>,
-  mode: 'style' | 'partial' | 'clear' = 'style',
+  mode: 'style' | 'partial' = 'style',
 ): { positive: string; negative: string } {
 
   const room      = ROOM_NAMES[roomKey] || 'interior'
   const isMyStyle = styleKey === 'my_style'
-
-  if (mode === 'clear') {
-    const parts = [
-      `Empty ${room} without any furniture,`,
-      `bare walls, clean floor, no furniture no objects no decor, architectural shell only,`,
-    ]
-    if (isMyStyle && details?.wallColorHex)  parts.push(`walls color ${details.wallColorHex},`)
-    if (isMyStyle && details?.floorColorHex) parts.push(`floor color ${details.floorColorHex},`)
-    parts.push(`professional interior photography, photorealistic, sharp focus, natural lighting`)
-    const negative = 'furniture, sofa, chair, table, bed, cabinet, wardrobe, shelf, lamp, decoration, plant, rug, clutter, objects, appliances, blurry, low quality, text, watermark, people, cartoon, deformed'
-    return { positive: parts.join(' ').substring(0, 950), negative }
-  }
 
   if (mode === 'partial') {
     const stylePart = isMyStyle ? buildMyStylePart(details) : (STYLE_DESCRIPTIONS[styleKey] || styleKey + ' style')
