@@ -52,10 +52,10 @@ async function submitCanny(imageUrl: string, prompt: string, negative: string): 
       image_url: imageUrl,
       prompt,
       negative_prompt: negative,
-      strength: 0.53,
+      strength: 0.58,
       num_images: 1,
       num_inference_steps: 26,
-      guidance_scale: 5.4,
+      guidance_scale: 5.3,
     }),
   })
 }
