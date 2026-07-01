@@ -53,10 +53,10 @@ async function submitCanny(imageUrl: string, prompt: string, negative: string): 
       image_url: imageUrl,        // replaces control_image_url (ControlNet-specific param)
       prompt,
       negative_prompt: negative,
-      strength: 0.85,             // 0.85 = strong style rework, ~15% structural anchor
+      strength: 0.72,             // 0.72 = moderate rework, ~28% structural anchor — better room layout preservation
       num_images: 1,
       num_inference_steps: 28,    // FLUX Pro v1.1 quality sweet spot (28–30 steps)
-      guidance_scale: 3.5,        // FLUX native range; 7.5 would over-saturate colours
+      guidance_scale: 4.5,        // raised from 3.5 — stronger prompt adherence without SD-style over-saturation
       safety_tolerance: '5',
     }),
   })
@@ -82,8 +82,8 @@ async function submitFill(imageUrl: string, maskUrl: string, prompt: string, neg
       prompt,
       negative_prompt: negative,
       num_images: 1,
-      num_inference_steps: 28,    // was 20 — more steps = cleaner seams at mask boundary
-      guidance_scale: 3.5,        // was 8 — FLUX Fill native range; 8 caused halos/over-sharpening
+      num_inference_steps: 28,    // more steps = cleaner seams at mask boundary
+      guidance_scale: 4.8,        // raised from 3.5 — sharper inpainted content, better prompt fidelity in masked region
       safety_tolerance: '5',
     }),
   })
