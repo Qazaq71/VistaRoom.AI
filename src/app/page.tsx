@@ -75,6 +75,18 @@ function BeforeAfterSlider({ before, after }: { before: string; after: string })
 
 const delay = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
 
+function createTestMask(): Promise<Blob> {
+  const canvas = document.createElement('canvas')
+  canvas.width = 1024
+  canvas.height = 1024
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = '#000000'
+  ctx.fillRect(0, 0, 1024, 1024)
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(256, 256, 512, 512)
+  return new Promise(resolve => canvas.toBlob(b => resolve(b!), 'image/png'))
+}
+
 export default function Home() {
   const [imageFile, setImageFile]       = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -110,6 +122,7 @@ export default function Home() {
   const [remaining, setRemaining] = useState<number | null>(null)
   const [dragOver, setDragOver]   = useState(false)
   const [promptPreviewOpen, setPromptPreviewOpen] = useState(false)
+  const [mode, setMode] = useState<'style' | 'partial' | 'clear'>('style')
 
   const fileRef      = useRef<HTMLInputElement>(null)
   const activeGenRef = useRef(0)   // incremented on each generate() call; stale upload completions check this
@@ -180,7 +193,7 @@ export default function Home() {
     form.append('image',         imageFile)
     form.append('room',          room)
     form.append('style',         isMyStyle ? 'my_style' : style)
-    form.append('mode',          'style')
+    form.append('mode',          mode)
     form.append('size',          '')
     form.append('ceilingHeight', '')
     form.append('wallColorHex',  sendDetails ? wallColorHex : '')
@@ -195,6 +208,11 @@ export default function Home() {
     form.append('extraNotes',    sendDetails ? extraNotes : '')
 
     try {
+      if (mode === 'partial' || mode === 'clear') {
+        const maskBlob = await createTestMask()
+        form.append('mask', maskBlob, 'mask.png')
+      }
+
       const res = await fetch('/api/generate', { method: 'POST', body: form })
 
       if (activeGenRef.current !== currentGenId) return
@@ -252,7 +270,7 @@ export default function Home() {
         setStatus('error'); setStatusMsg(data.error || 'Ошибка запуска генерации.')
       }
     } catch { setStatus('error'); setStatusMsg('Нет соединения с сервером.') }
-  }, [imageFile, room, style, isMyStyle, wallColorHex, wallFinish,
+  }, [imageFile, room, style, isMyStyle, mode, wallColorHex, wallFinish,
       floorMaterial, floorColorHex, tilezone, tileColorHex,
       furniture, lighting, appliances, extraNotes])
 
@@ -410,6 +428,32 @@ export default function Home() {
               extraNotes={extraNotes} setExtraNotes={setExtraNotes}
             />
           )}
+
+          {/* Mode switcher */}
+          <div>
+            <div className="field-label">Режим генерации</div>
+            <div className="mode-switcher">
+              {([
+                { value: 'style',   label: 'Стиль целиком' },
+                { value: 'partial', label: 'Частичная замена' },
+                { value: 'clear',   label: 'Очистка области' },
+              ] as const).map(m => (
+                <button
+                  key={m.value}
+                  className={`mode-btn${mode === m.value ? ' mode-btn-active' : ''}`}
+                  onClick={() => setMode(m.value)}
+                  disabled={isLoading}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+            {(mode === 'partial' || mode === 'clear') && (
+              <div className="mode-hint">
+                Тестовая маска: белый прямоугольник 50% в центре. Впоследствии будет заменена на загружаемую или рисуемую пользователем маску.
+              </div>
+            )}
+          </div>
 
           {/* Status */}
           {status === 'error' && <div className="status-box error show">{statusMsg}</div>}

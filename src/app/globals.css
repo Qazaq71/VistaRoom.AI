@@ -352,6 +352,34 @@ h1 em { font-style: italic; color: var(--warm); }
 .gen-btn:hover:not(:disabled) { opacity: .9; transform: translateY(-1px); }
 .gen-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
+/* ── Mode switcher ── */
+.mode-switcher { display: flex; gap: 6px; }
+.mode-btn {
+  flex: 1;
+  padding: 7px 8px;
+  font-size: 12px;
+  font-family: inherit;
+  background: var(--paper);
+  color: var(--muted);
+  border: 1px solid rgba(0,0,0,.15);
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: border-color .15s, color .15s, background .15s;
+  white-space: nowrap;
+}
+.mode-btn:hover { border-color: var(--warm); color: var(--ink); }
+.mode-btn-active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.mode-btn-active:hover { border-color: var(--ink); color: var(--paper); }
+.mode-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--warm-light);
+  border-radius: var(--r);
+  padding: 6px 10px;
+  line-height: 1.45;
+}
+
 /* ── Status messages ── */
 .status-box {
   border-radius: var(--r);
