@@ -53,10 +53,10 @@ async function submitCanny(imageUrl: string, prompt: string, negative: string): 
       image_url: imageUrl,        // replaces control_image_url (ControlNet-specific param)
       prompt,
       negative_prompt: negative,
-      strength: 0.62,             // 0.62 = conservative rework, ~38% structural anchor — tighter room geometry preservation
+      strength: 0.52,             // 0.52 = aggressive structural anchor — windows, doors and room proportions stay nearly unchanged
       num_images: 1,
       num_inference_steps: 28,    // FLUX Pro v1.1 quality sweet spot (28–30 steps)
-      guidance_scale: 5.0,        // raised from 4.5 — stronger prompt adherence to compensate for lower strength
+      guidance_scale: 5.3,        // raised to compensate for lower strength — keeps style/material changes effective
       safety_tolerance: '5',
     }),
   })
