@@ -6,6 +6,8 @@ import { getRateLimit } from '@/lib/rateLimit'
 import { InteriorService } from '@/services/InteriorService'
 import { FalImageProvider } from '@/providers/image/FalImageProvider'
 import type { InteriorMode } from '@/types/image'
+import type { InteriorEditRequest } from '@/domain/interior/InteriorEditRequest'
+import type { InteriorEditResult } from '@/domain/interior/InteriorEditResult'
 
 export const maxDuration = 60
 
@@ -151,25 +153,44 @@ export async function POST(req: NextRequest) {
 
     const tFalStart = Date.now()
     let promptUsed = ''
-    let submitResult
+    let editRequest: InteriorEditRequest
 
     if (mode === 'clear' && maskUrl) {
       // erase accepts no prompt — model fills background autonomously
-      submitResult = await interiorService.submit({ mode: mode as InteriorMode, imageUrl, maskUrl })
+      editRequest = {
+        operation: 'erase',
+        mode: mode as InteriorMode,
+        image:     imageUrl,
+        mask:      maskUrl,
+        prompt:    '',
+      }
     } else if (mode === 'partial' && maskUrl) {
       const { positive } = buildEditPrompt(room, style, details, 'partial')
       const colorPrefix  = buildColorPrefix(details, style)
       promptUsed = (colorPrefix + positive).substring(0, 950)
-      submitResult = await interiorService.submit({ mode: mode as InteriorMode, imageUrl, maskUrl, prompt: promptUsed })
+      editRequest = {
+        operation: 'replace',
+        mode:      mode as InteriorMode,
+        image:     imageUrl,
+        mask:      maskUrl,
+        prompt:    promptUsed,
+      }
     } else {
       const { positive } = buildEditPrompt(room, style, details, 'style')
       const colorPrefix  = buildColorPrefix(details, style)
       promptUsed = (colorPrefix + positive).substring(0, 950)
       const aspectRatio = nearestAspectRatio(imgWidth, imgHeight)
-      submitResult = await interiorService.submit({
-        mode: mode as InteriorMode, imageUrl, prompt: promptUsed, aspectRatio, guidanceScale: 7,
-      })
+      editRequest = {
+        operation:     'redesign',
+        mode:          mode as InteriorMode,
+        image:         imageUrl,
+        prompt:        promptUsed,
+        aspectRatio,
+        guidanceScale: 7,
+      }
     }
+
+    const submitResult: InteriorEditResult = await interiorService.submit(editRequest)
 
     console.log(`[Timing] Submit to Fal.ai Queue: ${Date.now() - tFalStart}ms`)
 

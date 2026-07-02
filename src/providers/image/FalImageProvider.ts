@@ -9,10 +9,23 @@ import {
   FAL_DEFAULT_GUIDANCE_SCALE,
   FAL_ERASE_DILATE_PIXELS,
 } from '@/config/image'
-import type { ImageProviderSubmitRequest, ImageProviderSubmitResult, FalSubmitResult } from '@/types/image'
+import type { InteriorEditRequest } from '@/domain/interior/InteriorEditRequest'
+import type { InteriorEditResult } from '@/domain/interior/InteriorEditResult'
 import type { ImageProvider } from './ImageProvider'
 
-// The only module allowed to talk to queue.fal.run or read FAL_API_KEY.
+// Fal.ai's queue submit response wire shape — Fal-specific naming stays local
+// to this file; nothing outside FalImageProvider should ever see it.
+interface FalSubmitResponse {
+  request_id: string
+  response_url: string
+  status_url: string
+  cancel_url: string
+}
+
+// The only module allowed to talk to queue.fal.run, read FAL_API_KEY, or know
+// about Fal's payload naming (image_url, mask_url, request_id, guidance_scale, ...).
+// It is the adapter between VisataRoom AI's InteriorEditRequest/-Result domain
+// model and Fal.ai's wire format.
 function falHeaders(): Record<string, string> {
   return {
     Authorization: `Key ${process.env.FAL_API_KEY}`,
@@ -21,7 +34,7 @@ function falHeaders(): Record<string, string> {
   }
 }
 
-async function submitToFal(url: string, body: Record<string, unknown>): Promise<ImageProviderSubmitResult> {
+async function submitToFal(url: string, body: Record<string, unknown>): Promise<InteriorEditResult> {
   const res = await fetch(url, {
     method: 'POST',
     headers: falHeaders(),
@@ -34,7 +47,7 @@ async function submitToFal(url: string, body: Record<string, unknown>): Promise<
     throw new Error('fal.ai request failed: ' + errText)
   }
 
-  const data = await res.json() as FalSubmitResult
+  const data = await res.json() as FalSubmitResponse
   console.log('[fal.ai queue response]', JSON.stringify(data))
 
   if (!data.request_id) {
@@ -46,18 +59,19 @@ async function submitToFal(url: string, body: Record<string, unknown>): Promise<
     requestId: data.request_id,
     statusUrl: data.status_url,
     responseUrl: data.response_url,
+    provider: 'fal',
     raw: data,
   }
 }
 
 export class FalImageProvider implements ImageProvider {
-  async submit(request: ImageProviderSubmitRequest): Promise<ImageProviderSubmitResult> {
+  async submit(request: InteriorEditRequest): Promise<InteriorEditResult> {
     switch (request.operation) {
       case 'redesign': {
-        const aspectRatio = (request.metadata?.aspectRatio as string | undefined) ?? '1:1'
-        const guidanceScale = (request.metadata?.guidanceScale as number | undefined) ?? FAL_DEFAULT_GUIDANCE_SCALE
+        const aspectRatio = request.aspectRatio ?? '1:1'
+        const guidanceScale = request.guidanceScale ?? FAL_DEFAULT_GUIDANCE_SCALE
         return submitToFal(REDESIGN_MODEL_URL, {
-          image_url: request.imageUrl,
+          image_url: request.image,
           prompt: request.prompt,
           guidance_scale: guidanceScale,
           aspect_ratio: aspectRatio,
@@ -70,8 +84,8 @@ export class FalImageProvider implements ImageProvider {
       // fal-ai/flux-pro/v1/fill — inpainting for partial furniture/decor replacement.
       case 'replace':
         return submitToFal(REPLACE_MODEL_URL, {
-          image_url: request.imageUrl,
-          mask_url: request.maskUrl,
+          image_url: request.image,
+          mask_url: request.mask,
           prompt: request.prompt,
           safety_tolerance: FAL_SAFETY_TOLERANCE,
           enhance_prompt: false,
@@ -84,8 +98,8 @@ export class FalImageProvider implements ImageProvider {
       // background. No prompt: the model inpaints autonomously.
       case 'erase':
         return submitToFal(ERASE_MODEL_URL, {
-          image_url: request.imageUrl,
-          mask_url: request.maskUrl,
+          image_url: request.image,
+          mask_url: request.mask,
           dilate_pixels: FAL_ERASE_DILATE_PIXELS,
           output_format: FAL_OUTPUT_FORMAT,
           sync_mode: false,

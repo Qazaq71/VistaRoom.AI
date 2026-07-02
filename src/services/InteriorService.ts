@@ -1,38 +1,14 @@
 import type { ImageProvider } from '@/providers/image/ImageProvider'
-import type { InteriorMode, InteriorOperation, ImageProviderSubmitResult } from '@/types/image'
+import type { InteriorEditRequest } from '@/domain/interior/InteriorEditRequest'
+import type { InteriorEditResult } from '@/domain/interior/InteriorEditResult'
 
-export interface InteriorSubmitParams {
-  mode: InteriorMode
-  imageUrl: string
-  maskUrl?: string | null
-  prompt?: string
-  aspectRatio?: string
-  guidanceScale?: number
-}
-
-// Routes a generation request to the provider via a single submit() call.
-// Knows nothing about Fal.ai, URLs, or payload shapes — those live in the provider.
+// Thin domain-facing orchestration layer between route.ts and the configured
+// ImageProvider. Works exclusively with the InteriorEditRequest/-Result domain
+// model — knows nothing about Fal.ai, URLs, or provider payload shapes.
 export class InteriorService {
   constructor(private readonly provider: ImageProvider) {}
 
-  async submit(params: InteriorSubmitParams): Promise<ImageProviderSubmitResult> {
-    const { mode, imageUrl, maskUrl, prompt, aspectRatio, guidanceScale } = params
-
-    // Same fallback as before: 'partial'/'clear' without a mask degrades to 'redesign'.
-    let operation: InteriorOperation = 'redesign'
-    if (mode === 'clear' && maskUrl) {
-      operation = 'erase'
-    } else if (mode === 'partial' && maskUrl) {
-      operation = 'replace'
-    }
-
-    return this.provider.submit({
-      operation,
-      mode,
-      imageUrl,
-      prompt: prompt ?? '',
-      maskUrl: maskUrl ?? undefined,
-      metadata: { aspectRatio, guidanceScale },
-    })
+  async submit(request: InteriorEditRequest): Promise<InteriorEditResult> {
+    return this.provider.submit(request)
   }
 }

@@ -1,5 +1,6 @@
-import type { ImageProviderSubmitRequest, ImageProviderSubmitResult } from '@/types/image'
+import type { InteriorEditRequest } from '@/domain/interior/InteriorEditRequest'
+import type { InteriorEditResult } from '@/domain/interior/InteriorEditResult'
 
 export interface ImageProvider {
-  submit(request: ImageProviderSubmitRequest): Promise<ImageProviderSubmitResult>
+  submit(request: InteriorEditRequest): Promise<InteriorEditResult>
 }
