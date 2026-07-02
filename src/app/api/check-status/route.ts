@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// TODO: deprecated. Prefer /api/poll. Must validate statusUrl host before use.
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const statusUrl = searchParams.get('url');

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isAllowedFalUrl, falStatusUrl, falResultUrl } from '@/config/image'
 
 export const dynamic    = 'force-dynamic'
 export const maxDuration = 55
@@ -23,9 +24,16 @@ export async function GET(req: NextRequest) {
 
     if (!id) return NextResponse.json({ error: 'Missing prediction ID' }, { status: 400 })
 
-    const pollUrl = statusUrl
-      ? decodeURIComponent(statusUrl)
-      : `https://queue.fal.run/fal-ai/flux-pro/kontext/requests/${id}/status`
+    let pollUrl: string
+    if (statusUrl) {
+      const decoded = decodeURIComponent(statusUrl)
+      if (!isAllowedFalUrl(decoded)) {
+        return NextResponse.json({ error: 'Invalid statusUrl' }, { status: 400 })
+      }
+      pollUrl = decoded
+    } else {
+      pollUrl = falStatusUrl(id)
+    }
 
     // Step 1: lightweight status check — should complete in < 1s
     const statusRes = await fetch(pollUrl, {
@@ -55,7 +63,7 @@ export async function GET(req: NextRequest) {
     // No image download, no Blob upload — return Fal.ai URL directly
     const responseUrl =
       statusData.response_url ??
-      `https://queue.fal.run/fal-ai/flux-pro/requests/${id}`
+      falResultUrl(id)
 
     const resultRes = await fetch(responseUrl, {
       headers: { Authorization: `Key ${process.env.FAL_API_KEY}` },

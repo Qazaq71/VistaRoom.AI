@@ -3,6 +3,9 @@ import sharp from 'sharp'
 import { put } from '@vercel/blob'
 import { buildEditPrompt, RoomDetails } from '@/lib/prompts'
 import { getRateLimit } from '@/lib/rateLimit'
+import { InteriorService } from '@/services/InteriorService'
+import { FalImageProvider } from '@/providers/image/FalImageProvider'
+import type { InteriorMode } from '@/types/image'
 
 export const maxDuration = 60
 
@@ -57,74 +60,7 @@ function nearestAspectRatio(width: number, height: number): string {
   return best
 }
 
-async function submitRedesign(
-  imageUrl: string,
-  prompt: string,
-  aspectRatio: string,
-  guidanceScale: number = 7,
-): Promise<Response> {
-  return fetch('https://queue.fal.run/fal-ai/flux-pro/kontext', {
-    method: 'POST',
-    headers: {
-      Authorization: `Key ${process.env.FAL_API_KEY}`,
-      'Content-Type': 'application/json',
-      'X-Fal-Request-Timeout': '300',
-    },
-    body: JSON.stringify({
-      image_url: imageUrl,
-      prompt,
-      guidance_scale: guidanceScale,
-      aspect_ratio: aspectRatio,
-      safety_tolerance: '2',
-      output_format: 'jpeg',
-      num_images: 1,
-    }),
-  })
-}
-
-// fal-ai/flux-pro/v1/fill — inpainting for partial furniture/decor replacement.
-// image_url and mask_url are resized to identical dimensions before upload.
-async function submitReplace(imageUrl: string, maskUrl: string, prompt: string): Promise<Response> {
-  return fetch('https://queue.fal.run/fal-ai/flux-pro/v1/fill', {
-    method: 'POST',
-    headers: {
-      Authorization: `Key ${process.env.FAL_API_KEY}`,
-      'Content-Type': 'application/json',
-      'X-Fal-Request-Timeout': '300',
-    },
-    body: JSON.stringify({
-      image_url: imageUrl,
-      mask_url: maskUrl,
-      prompt,
-      safety_tolerance: '2',
-      enhance_prompt: false,
-      num_images: 1,
-      output_format: 'jpeg',
-      sync_mode: false,
-    }),
-  })
-}
-
-// fal-ai/flux-pro/v1/erase — erases the masked region and fills with plausible
-// background (walls/floor). No prompt: the model inpaints autonomously.
-// image_url and mask_url are resized to identical dimensions before upload.
-async function submitErase(imageUrl: string, maskUrl: string): Promise<Response> {
-  return fetch('https://queue.fal.run/fal-ai/flux-pro/v1/erase', {
-    method: 'POST',
-    headers: {
-      Authorization: `Key ${process.env.FAL_API_KEY}`,
-      'Content-Type': 'application/json',
-      'X-Fal-Request-Timeout': '300',
-    },
-    body: JSON.stringify({
-      image_url: imageUrl,
-      mask_url: maskUrl,
-      dilate_pixels: 10,
-      output_format: 'jpeg',
-      sync_mode: false,
-    }),
-  })
-}
+const interiorService = new InteriorService(new FalImageProvider())
 
 export async function POST(req: NextRequest) {
   const t0 = Date.now()
@@ -214,54 +150,34 @@ export async function POST(req: NextRequest) {
     }
 
     const tFalStart = Date.now()
-    let falRes: Response
     let promptUsed = ''
+    let submitResult
 
     if (mode === 'clear' && maskUrl) {
       // erase accepts no prompt — model fills background autonomously
-      falRes = await submitErase(imageUrl, maskUrl)
+      submitResult = await interiorService.submit({ mode: mode as InteriorMode, imageUrl, maskUrl })
     } else if (mode === 'partial' && maskUrl) {
       const { positive } = buildEditPrompt(room, style, details, 'partial')
       const colorPrefix  = buildColorPrefix(details, style)
       promptUsed = (colorPrefix + positive).substring(0, 950)
-      falRes = await submitReplace(imageUrl, maskUrl, promptUsed)
+      submitResult = await interiorService.submit({ mode: mode as InteriorMode, imageUrl, maskUrl, prompt: promptUsed })
     } else {
       const { positive } = buildEditPrompt(room, style, details, 'style')
       const colorPrefix  = buildColorPrefix(details, style)
       promptUsed = (colorPrefix + positive).substring(0, 950)
       const aspectRatio = nearestAspectRatio(imgWidth, imgHeight)
-      falRes = await submitRedesign(imageUrl, promptUsed, aspectRatio, 7)
+      submitResult = await interiorService.submit({
+        mode: mode as InteriorMode, imageUrl, prompt: promptUsed, aspectRatio, guidanceScale: 7,
+      })
     }
 
     console.log(`[Timing] Submit to Fal.ai Queue: ${Date.now() - tFalStart}ms`)
 
-    if (!falRes.ok) {
-      const errText = await falRes.text()
-      console.error('[fal.ai submit error]', errText)
-      console.log(`[Timing] Total Generate Time (error): ${Date.now() - t0}ms`)
-      return NextResponse.json({ error: 'fal.ai request failed: ' + errText }, { status: 500 })
-    }
-
-    const falData = await falRes.json() as {
-      request_id:   string
-      response_url: string
-      status_url:   string
-      cancel_url:   string
-    }
-
-    console.log('[fal.ai queue response]', JSON.stringify(falData))
-
-    if (!falData.request_id) {
-      console.error('[fal.ai] missing request_id:', JSON.stringify(falData))
-      console.log(`[Timing] Total Generate Time (error): ${Date.now() - t0}ms`)
-      return NextResponse.json({ error: 'Сервис генерации не вернул ID задачи. Попробуйте снова.' }, { status: 500 })
-    }
-
     console.log(`[Timing] Total Generate Time (task queued): ${Date.now() - t0}ms`)
     return NextResponse.json({
-      predictionId: falData.request_id,
-      statusUrl:    falData.status_url,
-      responseUrl:  falData.response_url,
+      predictionId: submitResult.requestId,
+      statusUrl:    submitResult.statusUrl,
+      responseUrl:  submitResult.responseUrl,
       outputUrl:    null,
       status:       'processing',
       mode,
