@@ -2,33 +2,14 @@
 
 import { useState, useRef, useCallback, useMemo } from 'react'
 import { buildEditPrompt, detectConflicts, type RoomDetails } from '@/lib/prompts'
+import { useImageGeneration } from '@/hooks/useImageGeneration'
 import StylePicker from '@/app/components/StylePicker'
 import RoomTypeSelector from '@/app/components/RoomTypeSelector'
 import RoomSettings, { StepHeader, type MyStyleStep } from '@/app/components/RoomSettings'
 import MyStylePalette from '@/app/components/MyStylePalette'
 import ResultPanel from '@/app/components/ResultPanel'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type Status = 'idle' | 'uploading' | 'processing' | 'done' | 'error'
-
-// ─────────────────────────────────────────────────────────────────────────────
-
 // ─── Main component ───────────────────────────────────────────────────────────
-
-const delay = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
-
-function createTestMask(): Promise<Blob> {
-  const canvas = document.createElement('canvas')
-  canvas.width = 1024
-  canvas.height = 1024
-  const ctx = canvas.getContext('2d')!
-  ctx.fillStyle = '#000000'
-  ctx.fillRect(0, 0, 1024, 1024)
-  ctx.fillStyle = '#ffffff'
-  ctx.fillRect(256, 256, 512, 512)
-  return new Promise(resolve => canvas.toBlob(b => resolve(b!), 'image/png'))
-}
 
 export default function Home() {
   const [imageFile, setImageFile]       = useState<File | null>(null)
@@ -59,18 +40,19 @@ export default function Home() {
   const [appliances, setAppliances]   = useState<string[]>([])
 
 
-  const [status, setStatus]       = useState<Status>('idle')
-  const [statusMsg, setStatusMsg] = useState('')
-  const [outputUrl, setOutputUrl] = useState<string | null>(null)
-  const [remaining, setRemaining] = useState<number | null>(null)
   const [dragOver, setDragOver]   = useState(false)
   const [promptPreviewOpen, setPromptPreviewOpen] = useState(false)
   const [mode, setMode] = useState<'style' | 'partial' | 'clear'>('style')
 
-  const fileRef      = useRef<HTMLInputElement>(null)
-  const activeGenRef = useRef(0)   // incremented on each generate() call; stale upload completions check this
+  const fileRef = useRef<HTMLInputElement>(null)
 
-  const POLL_TIMEOUT_MS = 5 * 60 * 1000
+  const {
+    status, statusMsg, outputUrl, remaining, isLoading, generate, download, reset,
+  } = useImageGeneration({
+    imageFile, room, style, isMyStyle, mode,
+    wallColorHex, wallFinish, floorMaterial, floorColorHex,
+    tilezone, tileColorHex, furniture, lighting, appliances, extraNotes,
+  })
 
   // Computed for prompts
   const liveDetails: Partial<RoomDetails> = useMemo(() => ({
@@ -100,14 +82,14 @@ export default function Home() {
     const r = new FileReader()
     r.onload = e => setImagePreview(e.target?.result as string)
     r.readAsDataURL(file)
-    setOutputUrl(null); setStatus('idle')
-  }, [])
+    reset()
+  }, [reset])
 
   const [billingYearly, setBillingYearly] = useState(false)
 
   const clearImage = () => {
-    activeGenRef.current++
-    setImageFile(null); setImagePreview(null); setOutputUrl(null); setStatus('idle')
+    setImageFile(null); setImagePreview(null)
+    reset()
     if (fileRef.current) fileRef.current.value = ''
   }
 
@@ -123,110 +105,6 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-
-  const generate = useCallback(async () => {
-    if (!imageFile) { setStatus('error'); setStatusMsg('Загрузите фотографию помещения'); return }
-
-    const currentGenId = ++activeGenRef.current
-
-    setStatus('uploading'); setStatusMsg('Отправляю изображение...'); setOutputUrl(null)
-
-    const sendDetails = isMyStyle
-    const form = new FormData()
-    form.append('image',         imageFile)
-    form.append('room',          room)
-    form.append('style',         isMyStyle ? 'my_style' : style)
-    form.append('mode',          mode)
-    form.append('size',          '')
-    form.append('ceilingHeight', '')
-    form.append('wallColorHex',  sendDetails ? wallColorHex : '')
-    form.append('wallFinish',    sendDetails ? JSON.stringify(wallFinish) : '[]')
-    form.append('floorMaterial', sendDetails ? floorMaterial : '')
-    form.append('floorColorHex', sendDetails ? floorColorHex : '')
-    form.append('tilezone',      sendDetails ? JSON.stringify(tilezone) : '[]')
-    form.append('tileColorHex',  sendDetails ? tileColorHex : '')
-    form.append('furniture',     sendDetails ? JSON.stringify(furniture) : '[]')
-    form.append('lighting',      sendDetails ? JSON.stringify(lighting) : '[]')
-    form.append('appliances',    sendDetails ? JSON.stringify(appliances) : '[]')
-    form.append('extraNotes',    sendDetails ? extraNotes : '')
-
-    try {
-      if (mode === 'partial' || mode === 'clear') {
-        const maskBlob = await createTestMask()
-        form.append('mask', maskBlob, 'mask.png')
-      }
-
-      const res = await fetch('/api/generate', { method: 'POST', body: form })
-
-      if (activeGenRef.current !== currentGenId) return
-
-      if (!res.ok) {
-        const errBody = await res.json().catch(() => ({}))
-        setStatus('error'); setStatusMsg(errBody.error || 'Ошибка сервера')
-        return
-      }
-      const data = await res.json()
-      setRemaining(data.remaining)
-      if (data.outputUrl) {
-        setOutputUrl(data.outputUrl); setStatus('done')
-      } else if (data.predictionId && data.statusUrl) {
-        if (activeGenRef.current !== currentGenId) return
-        setStatus('processing'); setStatusMsg('Генерирую дизайн...')
-
-        const deadline = Date.now() + POLL_TIMEOUT_MS
-        while (true) {
-          await delay(3000)
-          if (activeGenRef.current !== currentGenId) return
-
-          if (Date.now() > deadline) {
-            setStatus('error')
-            setStatusMsg('Генерация заняла слишком долго (более 5 минут). Попробуйте ещё раз.')
-            return
-          }
-
-          try {
-            const pollRes = await fetch(
-              `/api/poll?id=${encodeURIComponent(data.predictionId)}&statusUrl=${encodeURIComponent(data.statusUrl)}`
-            )
-            if (!pollRes.ok) { await delay(2000); continue }
-
-            const pollData = await pollRes.json()
-            if (activeGenRef.current !== currentGenId) return
-
-            if (pollData.status === 'succeeded' && pollData.outputUrl) {
-              setOutputUrl(pollData.outputUrl)
-              setStatus('done')
-              return
-            } else if (pollData.status === 'failed') {
-              setStatus('error')
-              setStatusMsg(pollData.error || 'Ошибка генерации на сервере fal.ai')
-              return
-            }
-            // 'processing' → loop continues
-          } catch (err) {
-            if (activeGenRef.current !== currentGenId) return
-            console.error('Polling error, retrying...', err)
-            await delay(4000)
-          }
-        }
-      } else {
-        setStatus('error'); setStatusMsg(data.error || 'Ошибка запуска генерации.')
-      }
-    } catch { setStatus('error'); setStatusMsg('Нет соединения с сервером.') }
-  }, [imageFile, room, style, isMyStyle, mode, wallColorHex, wallFinish,
-      floorMaterial, floorColorHex, tilezone, tileColorHex,
-      furniture, lighting, appliances, extraNotes])
-
-  const download = async () => {
-    if (!outputUrl) return
-    try {
-      const blob = await (await fetch(outputUrl)).blob()
-      const a = document.createElement('a')
-      a.href = URL.createObjectURL(blob); a.download = `spaceai-${style}-${Date.now()}.png`; a.click()
-    } catch { window.open(outputUrl, '_blank') }
-  }
-
-  const isLoading = status === 'uploading' || status === 'processing'
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
