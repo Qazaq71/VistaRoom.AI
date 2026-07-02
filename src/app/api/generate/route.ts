@@ -4,7 +4,7 @@ import { put } from '@vercel/blob'
 import { buildEditPrompt, RoomDetails } from '@/lib/prompts'
 import { getRateLimit } from '@/lib/rateLimit'
 import { InteriorService } from '@/services/InteriorService'
-import { FalImageProvider } from '@/providers/image/FalImageProvider'
+import { createImageProvider } from '@/providers/image/createImageProvider'
 import type { InteriorMode } from '@/types/image'
 import type { InteriorEditRequest } from '@/domain/interior/InteriorEditRequest'
 import type { InteriorEditResult } from '@/domain/interior/InteriorEditResult'
@@ -62,7 +62,7 @@ function nearestAspectRatio(width: number, height: number): string {
   return best
 }
 
-const interiorService = new InteriorService(new FalImageProvider())
+const interiorService = new InteriorService(createImageProvider())
 
 export async function POST(req: NextRequest) {
   const t0 = Date.now()
