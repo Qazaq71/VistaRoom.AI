@@ -7,8 +7,8 @@ export type InteriorMode = 'style' | 'partial' | 'clear'
 // otherwise be unimportable together under the same identifier.
 export type ImageProviderName = 'fal'
 
-// Not used by the Fal provider yet — reserved for providers (e.g. GPT Image)
-// that support a quality/cost tradeoff parameter.
+// GPTImageProvider always submits 'medium' for now — 'low'/'high' are reserved
+// for a future quality-tier feature.
 export type ImageQuality = 'low' | 'medium' | 'high'
 
 // Not used by the Fal provider yet — reserved for providers that accept an
