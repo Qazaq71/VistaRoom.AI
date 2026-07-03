@@ -1,5 +1,6 @@
 import { developerConfig } from "../../config/developer.config";
 import { GenerationEngine } from "../../engines/GenerationEngine";
+import { INTERIOR_STYLE_REGISTRY } from "@/lib/interior/styles";
 import type {
   BenchmarkCategory,
   BenchmarkImage,
@@ -59,7 +60,8 @@ const MOCK_IMAGES: BenchmarkImage[] = [
   },
 ];
 
-// TODO: Replace mock styles with shared project styles source.
+// Superseded by INTERIOR_STYLE_REGISTRY (src/lib/interior/styles) — see getStyles()/generate() below.
+// Left in place, unused, for easy rollback.
 const MOCK_STYLES: BenchmarkStyle[] = [
   { id: "japandi", name: "Japandi" },
   { id: "scandinavian", name: "Scandinavian" },
@@ -68,6 +70,12 @@ const MOCK_STYLES: BenchmarkStyle[] = [
   { id: "coastal", name: "Coastal" },
   { id: "industrial", name: "Industrial" },
 ];
+
+const REGISTRY_STYLES: BenchmarkStyle[] = INTERIOR_STYLE_REGISTRY.map((style) => ({
+  id: style.slug,
+  name: style.displayName,
+  description: style.description,
+}));
 
 export type GenerateInput = {
   categoryId: string;
@@ -85,13 +93,13 @@ export const BenchmarkService = {
   },
 
   async getStyles(): Promise<BenchmarkStyle[]> {
-    return MOCK_STYLES;
+    return REGISTRY_STYLES;
   },
 
   async generate(input: GenerateInput): Promise<BenchmarkSession> {
     const category = MOCK_CATEGORIES.find((item) => item.id === input.categoryId);
     const image = MOCK_IMAGES.find((item) => item.id === input.imageId);
-    const style = MOCK_STYLES.find((item) => item.id === input.styleId);
+    const style = REGISTRY_STYLES.find((item) => item.id === input.styleId);
 
     if (!category || !image || !style) {
       return {
