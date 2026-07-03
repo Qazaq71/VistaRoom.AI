@@ -18,6 +18,24 @@ interface FalSubmitResponse {
   cancel_url: string
 }
 
+// Structured, production-safe logging confined to this file (no project-wide
+// logger exists yet). Full diagnostic detail goes here; only sanitized
+// messages are ever thrown up to the API route / client.
+const PROVIDER_NAME = 'fal'
+const MODEL_NAME = 'openai/gpt-image-2/edit'
+
+function logInfo(event: string, fields: Record<string, unknown>): void {
+  console.info(JSON.stringify({ level: 'info', source: 'OpenAIImageProvider', event, ...fields }))
+}
+
+function logError(event: string, fields: Record<string, unknown>): void {
+  console.error(JSON.stringify({ level: 'error', source: 'OpenAIImageProvider', event, ...fields }))
+}
+
+// User-facing fallback message — never includes upstream response bodies,
+// URLs, or payloads. Full detail is always logged via logError() above.
+const GENERIC_FAILURE_MESSAGE = 'Сервис генерации временно недоступен. Попробуйте позже.'
+
 // The only module allowed to talk to queue.fal.run, read FAL_API_KEY, or know
 // about the GPT Image 2 Edit payload shape (image_urls, mask_url, request_id, ...).
 // It is the adapter between VisataRoom AI's InteriorEditRequest/-Result domain
@@ -32,26 +50,64 @@ function falHeaders(): Record<string, string> {
   }
 }
 
-async function submitToFal(url: string, body: Record<string, unknown>): Promise<InteriorEditResult> {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: falHeaders(),
-    body: JSON.stringify(body),
-  })
+async function submitToFal(
+  url: string,
+  body: Record<string, unknown>,
+  operation: string,
+): Promise<InteriorEditResult> {
+  const startedAt = Date.now()
+
+  let res: Response
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      headers: falHeaders(),
+      body: JSON.stringify(body),
+    })
+  } catch (err: unknown) {
+    logError('generation_request_error', {
+      provider: PROVIDER_NAME,
+      model: MODEL_NAME,
+      operation,
+      durationMs: Date.now() - startedAt,
+      error: err instanceof Error ? err.message : String(err),
+    })
+    throw new Error(GENERIC_FAILURE_MESSAGE)
+  }
 
   if (!res.ok) {
     const errText = await res.text()
-    console.error('[fal.ai submit error]', errText)
-    throw new Error('fal.ai request failed: ' + errText)
+    logError('generation_failed', {
+      provider: PROVIDER_NAME,
+      model: MODEL_NAME,
+      operation,
+      status: res.status,
+      durationMs: Date.now() - startedAt,
+      responseBody: errText,
+    })
+    throw new Error(GENERIC_FAILURE_MESSAGE)
   }
 
   const data = await res.json() as FalSubmitResponse
-  console.log('[fal.ai queue response]', JSON.stringify(data))
 
   if (!data.request_id) {
-    console.error('[fal.ai] missing request_id:', JSON.stringify(data))
-    throw new Error('Сервис генерации не вернул ID задачи. Попробуйте снова.')
+    logError('generation_missing_request_id', {
+      provider: PROVIDER_NAME,
+      model: MODEL_NAME,
+      operation,
+      durationMs: Date.now() - startedAt,
+      responseBody: JSON.stringify(data),
+    })
+    throw new Error(GENERIC_FAILURE_MESSAGE)
   }
+
+  logInfo('generation_finished', {
+    provider: PROVIDER_NAME,
+    model: MODEL_NAME,
+    operation,
+    durationMs: Date.now() - startedAt,
+    outputFormat: FAL_OUTPUT_FORMAT,
+  })
 
   return {
     requestId: data.request_id,
@@ -84,6 +140,13 @@ export class OpenAIImageProvider implements ImageProvider {
     }
     if (request.mask) payload.mask_url = request.mask
 
-    return submitToFal(OPENAI_IMAGE_MODEL_URL, payload)
+    logInfo('generation_started', {
+      provider: PROVIDER_NAME,
+      model: MODEL_NAME,
+      operation: request.operation,
+      quality: OPENAI_IMAGE_DEFAULT_QUALITY,
+    })
+
+    return submitToFal(OPENAI_IMAGE_MODEL_URL, payload, request.operation)
   }
 }

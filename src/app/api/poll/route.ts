@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
     if (!statusRes.ok) {
       const errText = await statusRes.text()
       console.error(`[/api/poll] status error ${statusRes.status} id=${id}:`, errText)
-      return NextResponse.json({ error: 'Status check failed: ' + errText }, { status: 500 })
+      return NextResponse.json({ error: 'Не удалось проверить статус генерации. Попробуйте позже.' }, { status: 500 })
     }
 
     const statusData: FalStatusResponse = await statusRes.json()
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
     if (!resultRes.ok) {
       const errText = await resultRes.text()
       console.error(`[/api/poll] result error ${resultRes.status} id=${id}:`, errText)
-      return NextResponse.json({ error: 'Result fetch failed: ' + errText }, { status: 500 })
+      return NextResponse.json({ error: 'Не удалось получить результат генерации. Попробуйте позже.' }, { status: 500 })
     }
 
     const resultData: FalResultResponse = await resultRes.json()
@@ -90,6 +90,6 @@ export async function GET(req: NextRequest) {
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error('[/api/poll] exception:', message)
-    return NextResponse.json({ error: 'Poll error: ' + message }, { status: 500 })
+    return NextResponse.json({ error: 'Ошибка проверки статуса генерации.' }, { status: 500 })
   }
 }

@@ -1,6 +1,7 @@
 // TODO(Stage 3+): future operations may include upscale, expand, outpaint,
-// restyle, replace_furniture, clear_room. Do not add them here until the
-// domain/service/provider logic actually supports them.
+// restyle, replace_furniture, clear_room, and prompt intelligence (automatic
+// prompt enhancement/validation before submission). Do not add them here
+// until the domain/service/provider logic actually supports them.
 export type InteriorOperation = 'redesign' | 'replace' | 'erase'
 
 export type InteriorMode = 'style' | 'partial' | 'clear'
