@@ -67,6 +67,9 @@ const interiorService = new InteriorService(createImageProvider())
 export async function POST(req: NextRequest) {
   const t0 = Date.now()
   console.log('[Timing] Generate START')
+  // Hoisted so the catch-all below can log them without exposing them to the client.
+  let mode: string | undefined
+  let operation: InteriorEditRequest['operation'] | undefined
   try {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '127.0.0.1'
     const { ok, remaining, limit } = await getRateLimit(ip)
@@ -82,7 +85,7 @@ export async function POST(req: NextRequest) {
     const maskFile  = form.get('mask')  as File | null
     const room      = (form.get('room')  as string) || 'living'
     const style     = (form.get('style') as string) || 'minimalist'
-    const mode      = (form.get('mode')  as string) || 'style'
+    mode = (form.get('mode')  as string) || 'style'
 
     let wallFinish: string[]
     let tilezone:   string[]
@@ -190,6 +193,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    operation = editRequest.operation
+
     const submitResult: InteriorEditResult = await interiorService.submit(editRequest)
 
     console.log(`[Timing] Submit to Fal.ai Queue: ${Date.now() - tFalStart}ms`)
@@ -210,9 +215,22 @@ export async function POST(req: NextRequest) {
     })
 
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Internal server error'
-    console.error('[/api/generate]', message)
+    const error = err instanceof Error ? err : new Error(String(err))
+
+    // Full detail stays server-side only — never forwarded to the client.
+    console.error(JSON.stringify({
+      event: 'generation_route_failed',
+      operation,
+      mode,
+      errorName: error.name,
+      errorMessage: error.message,
+      stack: error.stack,
+    }))
     console.log(`[Timing] Total Generate Time (exception): ${Date.now() - t0}ms`)
-    return NextResponse.json({ error: message }, { status: 500 })
+
+    return NextResponse.json(
+      { error: 'Image generation failed. Please try again.' },
+      { status: 500 },
+    )
   }
 }
