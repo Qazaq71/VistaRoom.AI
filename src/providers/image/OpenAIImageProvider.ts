@@ -1,6 +1,6 @@
 import {
-  GPT_IMAGE_MODEL_URL,
-  GPT_IMAGE_DEFAULT_QUALITY,
+  OPENAI_IMAGE_MODEL_URL,
+  OPENAI_IMAGE_DEFAULT_QUALITY,
   FAL_REQUEST_TIMEOUT_HEADER,
   FAL_OUTPUT_FORMAT,
   FAL_NUM_IMAGES,
@@ -10,7 +10,7 @@ import type { InteriorEditResult } from '@/domain/interior/InteriorEditResult'
 import type { ImageProvider } from './ImageProvider'
 
 // Fal.ai's queue submit response wire shape — Fal-specific naming stays local
-// to this file; nothing outside GPTImageProvider should ever see it.
+// to this file; nothing outside OpenAIImageProvider should ever see it.
 interface FalSubmitResponse {
   request_id: string
   response_url: string
@@ -21,7 +21,9 @@ interface FalSubmitResponse {
 // The only module allowed to talk to queue.fal.run, read FAL_API_KEY, or know
 // about the GPT Image 2 Edit payload shape (image_urls, mask_url, request_id, ...).
 // It is the adapter between VisataRoom AI's InteriorEditRequest/-Result domain
-// model and Fal.ai's wire format for openai/gpt-image-2/edit.
+// model and Fal.ai's wire format for openai/gpt-image-2/edit. Named after the
+// OpenAI image model family (not the specific "gpt-image-2" version) so a
+// future GPT Image 3/4 edit endpoint only requires a config change here.
 function falHeaders(): Record<string, string> {
   return {
     Authorization: `Key ${process.env.FAL_API_KEY}`,
@@ -66,19 +68,22 @@ async function submitToFal(url: string, body: Record<string, unknown>): Promise<
 const ERASE_FALLBACK_PROMPT =
   'Remove the object inside the masked area completely and realistically fill the region to match the surrounding background, textures, lighting and perspective.'
 
-export class GPTImageProvider implements ImageProvider {
+export class OpenAIImageProvider implements ImageProvider {
   async submit(request: InteriorEditRequest): Promise<InteriorEditResult> {
     const prompt = request.prompt || (request.operation === 'erase' ? ERASE_FALLBACK_PROMPT : '')
 
+    // Fields match Fal.ai's openai/gpt-image-2/edit input schema exactly:
+    // image_urls (list, required), mask_url (string, optional), prompt,
+    // quality, num_images, output_format.
     const payload: Record<string, unknown> = {
       image_urls: [request.image],
       prompt,
-      quality: GPT_IMAGE_DEFAULT_QUALITY,
+      quality: OPENAI_IMAGE_DEFAULT_QUALITY,
       num_images: FAL_NUM_IMAGES,
       output_format: FAL_OUTPUT_FORMAT,
     }
     if (request.mask) payload.mask_url = request.mask
 
-    return submitToFal(GPT_IMAGE_MODEL_URL, payload)
+    return submitToFal(OPENAI_IMAGE_MODEL_URL, payload)
   }
 }

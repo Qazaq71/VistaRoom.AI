@@ -1,3 +1,6 @@
+// TODO(Stage 3+): future operations may include upscale, expand, outpaint,
+// restyle, replace_furniture, clear_room. Do not add them here until the
+// domain/service/provider logic actually supports them.
 export type InteriorOperation = 'redesign' | 'replace' | 'erase'
 
 export type InteriorMode = 'style' | 'partial' | 'clear'
@@ -7,8 +10,8 @@ export type InteriorMode = 'style' | 'partial' | 'clear'
 // otherwise be unimportable together under the same identifier.
 export type ImageProviderName = 'fal'
 
-// GPTImageProvider always submits 'medium' for now — 'low'/'high' are reserved
-// for a future quality-tier feature.
+// OpenAIImageProvider always submits 'medium' for now — 'low'/'high' are
+// reserved for a future quality-tier feature.
 export type ImageQuality = 'low' | 'medium' | 'high'
 
 // Not used by the Fal provider yet — reserved for providers that accept an
