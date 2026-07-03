@@ -1,4 +1,5 @@
 import { developerConfig } from "../../config/developer.config";
+import { GenerationEngine } from "../../engines/GenerationEngine";
 import type {
   BenchmarkCategory,
   BenchmarkImage,
@@ -74,14 +75,6 @@ export type GenerateInput = {
   styleId: string;
 };
 
-function randomDelayMs(): number {
-  return 700 + Math.floor(Math.random() * (1200 - 700));
-}
-
-function buildMockPrompt(category: BenchmarkCategory, image: BenchmarkImage, style: BenchmarkStyle): string {
-  return `Mock prompt: redesign "${category.name}" scene (${image.name}) in "${style.name}" style.`;
-}
-
 export const BenchmarkService = {
   async getCategories(): Promise<BenchmarkCategory[]> {
     return MOCK_CATEGORIES;
@@ -100,10 +93,6 @@ export const BenchmarkService = {
     const image = MOCK_IMAGES.find((item) => item.id === input.imageId);
     const style = MOCK_STYLES.find((item) => item.id === input.styleId);
 
-    const startedAt = Date.now();
-    const delayMs = randomDelayMs();
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
-
     if (!category || !image || !style) {
       return {
         id: crypto.randomUUID(),
@@ -117,17 +106,25 @@ export const BenchmarkService = {
       };
     }
 
+    const result = await GenerationEngine.generate({
+      categoryId: category.id,
+      imageId: image.id,
+      styleId: style.id,
+      originalImageSrc: image.src,
+    });
+
     return {
       id: crypto.randomUUID(),
       categoryId: category.id,
       imageId: image.id,
       styleId: style.id,
       originalImageSrc: image.src,
-      generatedImageSrc: image.src,
-      prompt: buildMockPrompt(category, image, style),
-      model: "mock",
-      generationTimeMs: Date.now() - startedAt,
-      status: "success",
+      generatedImageSrc: result.generatedImageSrc,
+      prompt: result.prompt,
+      model: result.model,
+      generationTimeMs: result.generationTimeMs,
+      status: result.status,
+      error: result.error,
       createdAt: new Date().toISOString(),
     };
   },
