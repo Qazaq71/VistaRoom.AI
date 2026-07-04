@@ -1,11 +1,13 @@
 import type { GenerationProviderType } from "../engines/GenerationEngine/types";
+import type { BenchmarkSource } from "../benchmark/types/benchmark";
+import { DEVELOPER_STUDIO_NAME } from "../constants/developer";
 
 export const developerConfig = {
-  studioName: "Developer Studio",
+  studioName: DEVELOPER_STUDIO_NAME,
   version: "1.0",
   debug: true,
   benchmark: {
-    source: "mock" as "mock" | "public" | "local" | "blob" | "s3",
+    source: "mock" as BenchmarkSource,
     root: "",
     publicPath: "/benchmark",
   },

@@ -55,6 +55,32 @@ Studio.
   `negativePrompt?: string` — только тип, без логики. `InteriorEditRequest`
   (production) не менялся.
 
+## Phase 5.2 — AI Core Final Polish (DS-5.2)
+
+Финальная полировка AI Core перед DS-6: закрытие мелкого архитектурного
+долга, который можно было устранить безопасно. Фундамент AI Core (Style
+Registry, Prompt Domain, Generation Engine, Developer Studio, Benchmark)
+после этого этапа считается завершённым. См.
+[ADR-000 — Architecture Principles](adr/ADR-000-Architecture-Principles.md)
+и [AI_CORE_CHECKLIST.md](AI_CORE_CHECKLIST.md).
+
+- Зафиксирован главный документ принципов — `ADR-000`.
+- Устранены 3 небольших magic-string/SSOT дублирования внутри Developer
+  Studio (не в Prompt Domain, который в этом этапе не менялся):
+  `developerConfig.benchmark.source` теперь типизирован через
+  `BenchmarkSource` вместо повторного инлайн-юниона; `developerConfig.studioName`
+  теперь ссылается на `DEVELOPER_STUDIO_NAME` вместо повторной строки;
+  новая константа `DEVELOPER_ROOT_PATH` (`constants/developer.ts`) заменила
+  три независимых литерала `"/developer"` в `lib/navigation.ts`,
+  `hooks/useDeveloperNavigation.ts` и `page.tsx`; `DeveloperTopBar.tsx`
+  теперь читает версию из `developerConfig.version` вместо второй
+  захардкоженной строки `"Version 1.0"`.
+- Проведён полный аудит (dead code, magic strings, naming, imports) по
+  Developer Studio, Prompt Domain, Generation Engine, Benchmark и Style
+  Registry — результаты и то, что сознательно оставлено без изменений,
+  задокументированы в ADR-000 и в истории проекта. Prompt Domain, Generation
+  Engine (перенос) и production не менялись, как и требовалось.
+
 ## Phase 6 — Prompt Engine
 
 Соберёт `PromptContext` в финальный текстовый промпт/negative prompt для
@@ -84,11 +110,16 @@ Studio.
 
 ## Architecture Decisions
 
-Зафиксированные архитектурные решения (ADR). ADR-001/002/003 изначально
-были только документацией; в DS-5.1 часть направлений из них была
-частично и безопасно применена в коде (см. Phase 5.1 выше и разделы
-"Update — DS-5.1 Architecture Cleanup" в каждом ADR):
+Зафиксированные архитектурные решения (ADR). `ADR-000` — верхнеуровневые
+принципы; `ADR-001/002/003` — их конкретные применения. `ADR-001/002/003`
+изначально были только документацией; в DS-5.1 и DS-5.2 часть направлений
+из них была частично и безопасно применена в коде (см. Phase 5.1/5.2 выше
+и разделы "Update" в каждом ADR):
 
+- [ADR-000 — Architecture Principles](adr/ADR-000-Architecture-Principles.md)
 - [ADR-001 — Provider Terminology](adr/ADR-001-Provider-Terminology.md)
 - [ADR-002 — MY_STYLE Identifier](adr/ADR-002-MyStyle-Identifier.md)
 - [ADR-003 — PromptContext Contracts](adr/ADR-003-PromptContext-Contracts.md)
+
+См. также [AI_CORE_CHECKLIST.md](AI_CORE_CHECKLIST.md) — чек-лист перед
+каждым новым архитектурным этапом (начиная с DS-6).

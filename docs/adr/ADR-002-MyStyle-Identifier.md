@@ -84,3 +84,14 @@ scope):**
   `'my_style'` literal untouched, as required (no production/public-site
   changes in DS-5.1). Migrating these five files to `MY_STYLE_ID` remains
   future work, to be done in one pass per the Decision above.
+
+## Update — DS-5.2 AI Core Final Polish
+
+Re-audited; no change. DS-5.2's explicit constraint was "не менять Prompt
+Domain," so `src/lib/interior/prompt-domain/**` (including
+`types.ts`'s `typeof MY_STYLE_ID` usage from DS-5.1) was left exactly as
+is. `src/lib/interior/styles/types.ts`'s standalone `"my_style"` literal
+type and the five production call sites listed above remain unmigrated,
+same as DS-5.1. This ADR's concrete direction is now folded under
+[ADR-000](ADR-000-Architecture-Principles.md) principle 11
+("Минимизировать magic strings").

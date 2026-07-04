@@ -1,4 +1,5 @@
 import { DEVELOPER_STUDIO_NAME } from "../constants/developer";
+import { developerConfig } from "../config/developer.config";
 
 export default function DeveloperTopBar() {
   return (
@@ -6,7 +7,7 @@ export default function DeveloperTopBar() {
       <span className="text-sm font-semibold tracking-tight">
         {DEVELOPER_STUDIO_NAME}
       </span>
-      <span className="text-xs text-neutral-400">Version 1.0</span>
+      <span className="text-xs text-neutral-400">Version {developerConfig.version}</span>
     </header>
   );
 }

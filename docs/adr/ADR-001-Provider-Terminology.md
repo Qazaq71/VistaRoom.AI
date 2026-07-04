@@ -2,8 +2,11 @@
 
 ## Status
 
-Accepted. Partially applied in DS-5.1 (see "Update — DS-5.1 Architecture
-Cleanup" below); the remaining direction is still not a migration plan.
+Accepted. Partially applied in DS-5.1 and DS-5.2 (see "Update" sections
+below); the remaining direction is still not a migration plan. This ADR
+is the concrete implementation of
+[ADR-000](ADR-000-Architecture-Principles.md) principles 8–9
+("Provider — интеграция с AI" / "Source — источник данных").
 
 ## Context
 
@@ -113,3 +116,17 @@ inputs, and any future generic storage abstraction).
   Refactoring 2.0 concern if ever pursued.
 - `ImageProvider`, `OpenAIImageProvider`, `ImageProviderName` — unchanged;
   production code, explicitly out of scope for DS-5.1.
+
+## Update — DS-5.2 AI Core Final Polish
+
+`BenchmarkSource` now has its first real consumer:
+`developerConfig.benchmark.source` in `developer.config.ts` is typed as
+`"mock" as BenchmarkSource` (imported from `benchmark/types/benchmark.ts`)
+instead of re-declaring the same union inline. This closes the
+"declared-but-never-imported" dead-code gap noted in the DS-5.2 audit
+without changing the type's shape or any runtime value.
+
+No further renames. `GenerationProvider`/`ImageProvider` unification
+(`AIProvider`) and the reserved `StorageProvider` name remain future,
+undecided direction — see ADR-000 principle 12 ("Domain важнее UI" /
+scope discipline) for why this stays out of a "final polish" stage.

@@ -1,10 +1,11 @@
 import type { DeveloperSection } from "../types/developer";
+import { DEVELOPER_ROOT_PATH } from "../constants/developer";
 
 export const developerNavigation: DeveloperSection[] = [
   {
     title: "Dashboard",
     description: "Overview of all Developer Studio tools and modules.",
-    href: "/developer",
+    href: DEVELOPER_ROOT_PATH,
     icon: "🏠",
     status: "ready",
   },

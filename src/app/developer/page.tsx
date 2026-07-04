@@ -1,11 +1,11 @@
 import SectionHeader from "./components/SectionHeader";
 import DashboardCard from "./components/DashboardCard";
 import { developerNavigation } from "./lib/navigation";
-import { DEVELOPER_STUDIO_DESCRIPTION } from "./constants/developer";
+import { DEVELOPER_STUDIO_DESCRIPTION, DEVELOPER_ROOT_PATH } from "./constants/developer";
 
 export default function DeveloperDashboardPage() {
   const sections = developerNavigation.filter(
-    (item) => item.href !== "/developer"
+    (item) => item.href !== DEVELOPER_ROOT_PATH
   );
 
   return (

@@ -160,3 +160,14 @@ until Production Integration.
 
 **Contract 2 — unchanged:** `generationMode` remains untouched and
 undecided; no options were selected, no fields renamed.
+
+## Update — DS-5.2 AI Core Final Polish
+
+Re-audited; no change. DS-5.2's explicit constraints ("не менять Prompt
+Domain," "не менять Generation Engine," "не начинать DS-6") mean both
+contracts stay exactly as DS-5.1 left them: Contract 1 has its type-only
+`negativePrompt?: string` stub and no logic; Contract 2 has three
+documented options and no decision. Both remain DS-6 work. This ADR is
+folded under [ADR-000](ADR-000-Architecture-Principles.md) principles
+4–6 (Prompt Domain is data-only; Prompt Engine/Formatter own text
+assembly) and 7 (Generation Engine doesn't know about styles).
