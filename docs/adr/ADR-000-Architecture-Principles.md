@@ -137,6 +137,18 @@ and the module READMEs were already each independently enforcing.
     through an existing Entity/Feature/Relation/Context/Registry. See
     "Update — DS-6.4.3" below for the full rule, examples, and exceptions.
 
+20. **Evolution over Rewrite.** AI Core architecture changes by
+    incremental migration, not disruptive rewrite. A new implementation
+    is introduced *alongside* the one it will eventually replace —
+    through an adapter, a compatibility layer, a staged migration, or
+    plain temporary coexistence — and the old implementation keeps
+    working until the new one has actually taken over. Breaking a
+    working layer outright is acceptable only when no reasonable
+    compatibility strategy exists, or when the long-term architectural
+    benefit clearly outweighs the migration cost. See "Update — DS-6.5.3"
+    below for the full rule, examples, and the pre-breaking-change
+    checklist.
+
 ## Consequences
 
 - ADR-001 (Provider Terminology), ADR-002 (MY_STYLE Identifier), and
@@ -403,4 +415,150 @@ when a concrete new vertical (not a hypothetical one) makes the fixed
 field list demonstrably too large to maintain — see "Future Evolution"
 above for the trigger condition. `docs/ARCHITECTURE.md` (Phase 6.5.2) and
 `docs/AI_CORE_CHECKLIST.md` gained matching entries. No implementation
+changed.
+
+## Update — DS-6.5.3 Principle 20: Evolution over Rewrite
+
+Documentation-only stage, no code changed. Adds Principle 20 above and
+elaborates it here in full: motivation, the rule itself, good/bad
+examples from this project's own history, and a checklist to run before
+any breaking architectural change. (Requested as "DS-6.5.2" — renamed to
+DS-6.5.3 in this document's history because DS-6.5.2 was already used for
+the "PromptDraft Evolution Strategy" update directly above; keeping one
+stage number per concept follows Principle 10, "Один термин = одна
+концепция", applied to stage numbering itself.)
+
+### Мотивация
+
+Principle 15 (`PromptContext` immutable) and Principle 19 (Composition
+over Duplication) both describe how a single step or a single new model
+should behave. Neither says anything about how the architecture as a
+whole is allowed to *change over time* — and by DS-6.5.1, every stage
+that has actually shipped in this project has, in practice, already
+answered that question the same way: something new was added next to
+what existed, not instead of it, until the new thing was proven and the
+old thing could be safely retired (or simply never was, because it still
+had a job). Principle 20 names that pattern explicitly so it stops being
+an unstated habit and starts being a rule reviewers can hold new work to.
+
+### Основное правило
+
+Architectural evolution favors incremental migration over disruptive
+rewrite. Whenever reasonably possible, an existing implementation keeps
+working — through an adapter, a compatibility layer, a staged migration,
+or plain temporary coexistence of old and new — while the new
+implementation is introduced, exercised, and proven alongside it. Old and
+new representations may coexist for as long as the migration takes; nothing
+requires collapsing them into one on day one. A breaking change — removing
+or replacing a working layer outright, with no coexistence window — is
+acceptable only when:
+
+- there is no reasonable compatibility strategy, **or**
+- the long-term architectural benefit clearly outweighs the migration
+  cost.
+
+Both are judgment calls, not checkboxes — which is exactly why the
+checklist below exists: to force that judgment to be argued explicitly
+before a breaking change is made, not asserted after the fact.
+
+### Хорошие примеры (уже в этом проекте)
+
+Every one of these is a real, already-shipped stage, not a hypothetical:
+
+- **Style Registry появился раньше полной миграции.** `INTERIOR_STYLE_REGISTRY`
+  (Phase 4) was built as the new single source of truth for style data
+  while the older, scattered `STYLE_DISPLAY`/`STYLE_DESCRIPTIONS`/
+  `MOCK_STYLES` kept existing until each caller was ready to move —
+  no atomic flip-the-switch rewrite.
+- **Prompt Domain существовал отдельно.** `PromptContext` (Phase 5, DS-5)
+  was designed and built while `buildEditPrompt()`/`prompts.ts`
+  (production) kept running unmodified — the new domain model didn't
+  require production to change to exist.
+- **Prompt Engine строился поверх существующего production.** DS-6.1
+  onward built Builder/Rules/Formatter/Pipeline as pure `PromptContext`
+  →`PromptContext`/`PromptResult` contracts, callable from anywhere,
+  without touching `buildEditPrompt()`, `prompts.ts`, or the public site
+  — production and the new engine coexist today, deliberately.
+- **`PromptDraft` сначала стал новой моделью, не ломая `PromptContext`.**
+  DS-6.5/DS-6.5.1 added a whole new intermediate representation without
+  changing a single field, type, or contract of `PromptContext` — the
+  existing `PromptBuilder`/`PromptContext` path still works exactly as
+  it did before `PromptDraft` existed.
+- **Knowledge Core развивается отдельно до подключения.** DS-6.4/6.4.1/6.4.2
+  built `KnowledgeEntity`/`KnowledgeFeature`/`KnowledgeGraph` fully
+  isolated under `knowledge/core/**`, explicitly not wired into Prompt
+  Domain, Prompt Engine, or production — proven in isolation before any
+  future stage connects it.
+- **Feature Foundation создан заранее.** The `<Domain>Feature` types
+  (`knowledge/core/Feature.ts`) were built and the older `<Domain>Knowledge`
+  types were only turned into aliases afterward (DS-6.4.2) — the
+  consuming `registry.ts` files never had to change.
+- **Rule Engine подключается постепенно.** `RuleEngine`/`DefaultRuleEngine`
+  (DS-6.3) work against `PromptContext` today and are not yet retargeted
+  to `PromptDraft` (DS-6.5.1) — that retargeting is future work, done
+  when Formatter needs it, not forced now just because `PromptDraft`
+  exists.
+
+### Плохие примеры (что запретил бы Principle 20)
+
+- ✗ Deleting `PromptContext` and rewriting Prompt Domain, Prompt Engine,
+  and production all at once instead of introducing any new shape
+  alongside it.
+- ✗ Replacing Style Registry with no compatibility period — cutting over
+  every caller in one commit instead of letting old and new style sources
+  coexist until each caller migrates.
+- ✗ Deleting `DefaultPromptBuilder`/`PromptBuilder` before `PromptDraft`
+  and whatever consumes it are actually ready to fully replace that path.
+- ✗ Breaking `buildEditPrompt()`/`prompts.ts` or the public API just to
+  make room for a new internal model, when the new model could instead be
+  built to not require that.
+- ✗ A "let's just rewrite it properly this time" pass across Prompt
+  Engine/Prompt Domain/Knowledge Core in one stage, instead of the
+  incremental, one-layer-at-a-time stages (DS-6.1 → DS-6.5.1) this
+  project has actually used.
+
+### Checklist перед Breaking Rewrite
+
+Before introducing a change that breaks or replaces a working
+implementation instead of letting it coexist, answer these in order:
+
+1. Можно ли использовать существующую модель/слой вместо новой?
+2. Можно ли добавить Adapter/compatibility layer вместо прямой замены?
+3. Можно ли выполнить миграцию поэтапно, а не одним шагом?
+4. Можно ли какое-то время поддерживать обе реализации параллельно?
+5. Является ли полный Rewrite действительно единственным вариантом?
+
+A breaking rewrite is justified only when the honest answer to all five
+is "no" — and that reasoning should be written down (in the ADR update or
+stage doc for that change), not just asserted.
+
+### Связь с другими принципами
+
+- **Principle 15** (`PromptContext` immutable) — Principle 20 is the
+  same discipline at a larger grain: where 15 says a single step must
+  not mutate its input and must return a new instance, 20 says an
+  architectural migration must not mutate the existing system in place
+  either — it grows a new instance alongside the old one.
+- **Principle 19** (Composition over Duplication) — the two principles
+  govern different axes of the same instinct to avoid destructive
+  change: 19 stops you from building a *parallel model* that duplicates
+  an existing one; 20 stops you from *destroying* an existing
+  implementation before its replacement has actually earned that. A
+  change can satisfy 19 (compose, don't duplicate) and still violate 20
+  if it rips out the old implementation on the same commit instead of
+  coexisting through a migration window.
+- **Principle 12** (Избегать циклических импортов) — staged coexistence
+  under Principle 20 must not introduce a cyclical dependency between the
+  old and new implementation while both exist; an adapter/compatibility
+  layer depends on both, never the reverse.
+- **Principle 2** (Developer Studio использует AI Core, но не определяет
+  его) — Developer Studio is exactly where a new implementation
+  introduced under Principle 20 gets exercised and benchmarked against
+  the old one before any production cutover, per Phase 1/2's original
+  purpose.
+
+`docs/ARCHITECTURE.md` and `docs/AI_CORE_CHECKLIST.md` gained matching
+sections/checks. `src/lib/interior/prompt-engine/README.md` gained a
+short "Architecture Evolution" note applying this principle to
+Builder/Rules/Formatter/Pipeline specifically. No implementation
 changed.

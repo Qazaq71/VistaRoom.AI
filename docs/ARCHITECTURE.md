@@ -541,7 +541,7 @@ Registry, Generation Engine, Provider, Developer Studio, Benchmark,
 production-кода. `npm run build` проходит. Следующий этап — **DS-6.6
 Formatter**.
 
-### Phase 6.5.2 — ADR Update: PromptDraft Evolution Strategy (DS-6.5.2, текущий этап, документация)
+### Phase 6.5.2 — ADR Update: PromptDraft Evolution Strategy (DS-6.5.2, завершён, документация)
 
 Документационный этап, без единой строки кода. Фиксирует, где сегодняшняя
 фиксированная композиция `PromptDraft` (DS-6.5.1) может перестать
@@ -589,8 +589,49 @@ Formatter**.
 Pipeline, Prompt Domain, Knowledge Core, Style Registry, Generation
 Engine, Provider, Developer Studio, Benchmark, публичный сайт, API,
 `buildEditPrompt()`, `prompts.ts` — ни один runtime-файл не изменён,
-изменена только документация. `npm run build` проходит. Следующий этап —
-**DS-6.6 Formatter**.
+изменена только документация. `npm run build` проходит.
+
+### Phase 6.5.3 — ADR-000 Principle 20: Evolution over Rewrite (DS-6.5.3, текущий этап, документация)
+
+Документационный этап, без единой строки кода. Запрошен как "DS-6.5.2";
+переименован в истории документации в DS-6.5.3, потому что номер DS-6.5.2
+уже занят предыдущим этапом (Phase 6.5.2 выше) — один номер этапа на одну
+концепцию, то же правило Principle 10 ("Один термин = одна концепция"),
+применённое к нумерации этапов.
+
+В AI Core действует **Principle 20 — Evolution over Rewrite** (см.
+[ADR-000 — Architecture Principles](adr/ADR-000-Architecture-Principles.md)):
+архитектура эволюционирует через постепенную миграцию, а не через
+разрушительный переписывание — новая реализация вводится рядом со старой
+(через adapter, compatibility layer, staged migration или временное
+сосуществование), и старая продолжает работать, пока новая не доказала
+себя. Breaking-изменение допустимо только если разумной стратегии
+совместимости не существует, либо долгосрочная архитектурная выгода явно
+перевешивает стоимость миграции.
+
+- `docs/adr/ADR-000-Architecture-Principles.md` — добавлен Principle 20 в
+  список принципов и раздел "Update — DS-6.5.3" с мотивацией, основным
+  правилом, хорошими примерами из истории самого проекта (Style Registry,
+  Prompt Domain, Prompt Engine, `PromptDraft`, Knowledge Core, Feature
+  Foundation, Rule Engine — все уже введены рядом со старой реализацией,
+  не вместо неё), плохими примерами (удаление `PromptContext`/Style
+  Registry/`Builder`/API без периода совместимости, "переписать всё
+  правильно с нуля" вместо поэтапных стадий), чек-листом перед breaking
+  rewrite (5 вопросов) и связью с Principle 2, 12, 15, 19.
+- `docs/AI_CORE_CHECKLIST.md` — добавлены проверки перед крупными
+  архитектурными изменениями: есть ли стратегия миграции, нужен ли
+  Adapter, можно ли сохранить backward compatibility, можно ли провести
+  staged migration.
+- `src/lib/interior/prompt-engine/README.md` — добавлен подраздел
+  "Architecture Evolution": Prompt Engine развивается эволюционно,
+  Builder/Rules/Formatter/Pipeline могут заменяться независимо, новые
+  реализации предпочтительно вводятся параллельно старым до завершения
+  миграции.
+
+Prompt Engine, Prompt Domain, Knowledge Core, Builder, Rule Engine,
+Formatter, Pipeline, Developer Studio, Benchmark, публичный сайт и API не
+затронуты — изменена только документация. `npm run build` проходит.
+Следующий этап — **DS-6.6 Formatter**.
 
 ## Phase 7 — Prompt Lab
 
