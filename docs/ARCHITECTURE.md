@@ -163,7 +163,7 @@ Generation Engine, Provider, Developer Studio и Benchmark не затронут
 `buildEditPrompt()`, `prompts.ts`, Generation Engine, Provider, Prompt
 Domain, Style Registry, Developer Studio и Benchmark не затронуты.
 
-### Phase 6.3 — Rule Engine Foundation (DS-6.3, завершён, текущий этап)
+### Phase 6.3 — Rule Engine Foundation (DS-6.3, завершён)
 
 Первая рабочая реализация Rule Engine:
 `src/lib/interior/prompt-engine/rules/`.
@@ -196,8 +196,50 @@ Generation Engine, Developer Studio или Benchmark. Ни одного наст
 создано — только пустой `DEFAULT_RULE_SET`. Не подключён к реальной
 генерации — публичный сайт, API, `buildEditPrompt()`, `prompts.ts`,
 Prompt Domain, Builder, Formatter, Pipeline, Generation Engine, Provider,
-Developer Studio и Benchmark не затронуты. Следующий этап —
-**DS-6.4 Universal Interior Rules**.
+Developer Studio и Benchmark не затронуты.
+
+### Phase 6.3.1 — Rule Engine Diagnostics & Metadata (DS-6.3.1, текущий этап)
+
+Небольшое, чисто архитектурное расширение контрактов Rule Engine перед
+DS-6.4 (Universal Interior Knowledge Base) — без единой строки логики и
+без изменения поведения `RuleEngine`/`DefaultRuleEngine`/`RuleRegistry`.
+
+- **Rule Metadata.** `PromptRule` (`prompt-engine/types.ts`) расширен
+  обязательным `readonly metadata: PromptRuleMetadata`:
+  `{ id, name, description, enabled, priority }`, все поля `readonly`.
+  `id`/`name`/`description` — только документация. `enabled` и
+  `priority` зарезервированы на будущее (например, для Pipeline,
+  который сможет пропускать отключённые правила или сортировать по
+  приоритету) — на DS-6.3.1 ни одно из этих полей нигде не читается, и
+  ни одно правило не имеет права читать `enabled`/`priority` (своё или
+  чужое) для изменения своего поведения.
+- **`RuleResult`.** Будущая, более богатая альтернатива тому, что
+  сегодня возвращает `RuleEngine.applyRules` (голый `PromptContext`):
+  `{ context: PromptContext; diagnostics?: RuleDiagnostics[]; warnings?:
+  string[]; metrics?: RuleMetrics }`. Не производится и не принимается
+  нигде — `RuleEngine` продолжает работать напрямую с `PromptContext`.
+- **`RuleDiagnostics`/`RuleMetrics`.** `RuleDiagnostics` — `{ ruleId,
+  message, severity: RuleDiagnosticSeverity }` (`"info" | "warning" |
+  "error"`). `RuleMetrics` — `{ executionTime, changes }`. Оба — типы
+  без реализации; ни одно правило их не производит.
+- **`RuleTraceOptions`.** `{ enableTrace: boolean }` — контракт будущего
+  флага трассировки прохождения `PromptContext` через `RuleSet`.
+  `RuleEngine`/`DefaultRuleEngine` не принимают такую опцию и не пишут
+  trace никуда.
+- `rules/README.md` — добавлен раздел "Diagnostics", объясняющий
+  metadata/`RuleResult`/`RuleDiagnostics`/`RuleMetrics`/`RuleTraceOptions`
+  и их назначение: Developer Studio, Benchmark, будущий анализ качества
+  Prompt Engine — не сам Rule Engine.
+- `docs/AI_CORE_CHECKLIST.md` — добавлены пункты: все `PromptRule` имеют
+  metadata; `RuleEngine` не использует metadata/diagnostics/trace
+  напрямую; diagnostics предназначены только для будущего анализа.
+
+`rules/RuleEngine.ts`, `rules/DefaultRuleEngine.ts`,
+`rules/RuleRegistry.ts` **не изменялись** — Rule Engine работает точно
+так же, как в DS-6.3. `PromptBuilder`, `PromptFormatter`, `PromptPipeline`,
+Prompt Domain, Generation Engine, Provider, Developer Studio, Benchmark,
+публичный сайт, API, `buildEditPrompt()` и `prompts.ts` не затронуты.
+Следующий этап — **DS-6.4 Universal Interior Knowledge Base**.
 
 ## Phase 7 — Prompt Lab
 

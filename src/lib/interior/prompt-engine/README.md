@@ -1,4 +1,4 @@
-# Prompt Engine (DS-6.1 Foundation + DS-6.1.1 Contracts + DS-6.2 Builder MVP + DS-6.2.1 Rule Engine Preparation + DS-6.3 Rule Engine Foundation)
+# Prompt Engine (DS-6.1 Foundation + DS-6.1.1 Contracts + DS-6.2 Builder MVP + DS-6.2.1 Rule Engine Preparation + DS-6.3 Rule Engine Foundation + DS-6.3.1 Rule Engine Diagnostics & Metadata)
 
 ## 1. Что это такое
 
@@ -47,12 +47,17 @@ Model
   возвращает `PromptContext`. Ничего не знает про строки.
 - **Rules** (`./rules`) — маленькие композируемые шаги трансформации
   `PromptContext` (ограничения, нормализация, доменные корректировки).
-  Получает и возвращает `PromptContext`. Правила можно логически
-  группировать в **`RuleSet`** (тип `PromptRuleSet`, DS-6.2.1;
-  например, будущие `InteriorRuleSet`, `LightingRuleSet`,
-  `FurnitureRuleSet`, `MaterialRuleSet`, `DecorRuleSet`,
-  `ConstraintRuleSet`, `MyStyleRuleSet`) — группировка не даёт правилам
-  внутри набора знания друг о друге или о порядке выполнения, см.
+  Получает и возвращает `PromptContext`. Каждое правило несёт
+  `readonly metadata` (`PromptRuleMetadata`: `id`, `name`, `description`,
+  `enabled`, `priority`, DS-6.3.1) — сейчас только документация/резерв на
+  будущее, ничем не используется. Правила можно логически группировать в
+  **`RuleSet`** (тип `PromptRuleSet`, DS-6.2.1; например, будущие
+  `InteriorRuleSet`, `LightingRuleSet`, `FurnitureRuleSet`,
+  `MaterialRuleSet`, `DecorRuleSet`, `ConstraintRuleSet`,
+  `MyStyleRuleSet`) — группировка не даёт правилам внутри набора знания
+  друг о друге или о порядке выполнения. С DS-6.3 в `./rules` есть также
+  **Rule Engine** (`RuleEngine`/`DefaultRuleEngine`/`RuleRegistry`) —
+  применяет `PromptRule`ы одного `RuleSet` по порядку. См.
   `rules/README.md`.
 - **Formatter** (`./formatter`) — единственное место, где в будущем
   появится логика построения текста. Получает `PromptContext`,
@@ -122,7 +127,7 @@ Rules, Formatter и Pipeline:
   сортировки. Ни одно правило не читает свой или чужой `priority`;
   сортировка по нему не реализована.
 
-## 7. Статус на DS-6.1 / DS-6.1.1 / DS-6.2 / DS-6.2.1
+## 7. Статус на DS-6.1 / DS-6.1.1 / DS-6.2 / DS-6.2.1 / DS-6.3 / DS-6.3.1
 
 DS-6.1 (Foundation) + DS-6.1.1 (Architecture Contracts) — только
 структура и контракты:
@@ -176,12 +181,34 @@ DS-6.1 (Foundation) + DS-6.1.1 (Architecture Contracts) — только
   `rules/README.md`.
 
 Настоящих правил (`LightingRule`, `MaterialRule`, `FurnitureRule`,
-`StyleRule`) по-прежнему нет — это DS-6.4 (Universal Interior Rules).
-`formatter/`, `pipeline/`, `validators/`, `templates/` — всё ещё только
-контракты, без реализации.
+`StyleRule`) по-прежнему нет — это DS-6.4 (Universal Interior Knowledge
+Base). `formatter/`, `pipeline/`, `validators/`, `templates/` — всё ещё
+только контракты, без реализации.
+
+**DS-6.3.1 (текущий этап) — Rule Engine Diagnostics & Metadata:**
+
+- `types.ts` — `PromptRule` расширен обязательным `readonly metadata:
+  PromptRuleMetadata` (`id`, `name`, `description`, `enabled`,
+  `priority` — всё `readonly`). `enabled`/`priority` зарезервированы на
+  будущее и нигде не читаются; `id`/`name`/`description` — только
+  документация.
+- `types.ts` — добавлены `RuleResult` (`context`, опциональные
+  `diagnostics`/`warnings`/`metrics`), `RuleDiagnostics` (`ruleId`,
+  `message`, `severity: RuleDiagnosticSeverity`), `RuleMetrics`
+  (`executionTime`, `changes`), `RuleTraceOptions` (`enableTrace`) —
+  контракты для будущего Developer Studio / Benchmark / анализа качества
+  Prompt Engine.
+- `rules/RuleEngine.ts`, `rules/DefaultRuleEngine.ts`,
+  `rules/RuleRegistry.ts` — **не изменялись**. `RuleEngine` продолжает
+  работать напрямую с `PromptContext`: не читает `metadata`, не
+  производит и не принимает `RuleResult`/`RuleDiagnostics`/`RuleMetrics`,
+  не пишет trace. См. `rules/README.md` (раздел "Diagnostics").
+- `docs/AI_CORE_CHECKLIST.md` — добавлены пункты, фиксирующие, что
+  Rule Engine не использует metadata/diagnostics/trace.
 
 Никакого текста, никакой интеграции. Публичный сайт, API, Developer
 Studio, `buildEditPrompt()`, `prompts.ts`, Generation Engine, Provider,
 Style Registry, Prompt Domain, Builder, Formatter, Pipeline и Benchmark
-не затронуты. Rule Engine не вызывается из production-кода. Следующий
-этап — **DS-6.4 Universal Interior Rules**.
+не затронуты. Rule Engine не вызывается из production-кода и работает
+так же, как в DS-6.3. Следующий этап — **DS-6.4 Universal Interior
+Knowledge Base**.

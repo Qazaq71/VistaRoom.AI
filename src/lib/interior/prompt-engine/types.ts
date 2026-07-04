@@ -39,16 +39,39 @@ export interface PromptFormatter {
 }
 
 /**
+ * Descriptive metadata every `PromptRule` must carry (DS-6.3.1). Entirely
+ * readonly — a rule's metadata is fixed identity/documentation, not
+ * mutable state. `id`/`name`/`description` are documentation only; they
+ * are not read by `RuleEngine` or `PromptPipeline` today. `enabled` and
+ * `priority` are reserved for future use (e.g. a future Pipeline that
+ * skips disabled rules, or sequences by priority) — as of DS-6.3.1
+ * neither field is read anywhere, and no rule may read its own or
+ * another rule's `enabled`/`priority` to change its behavior (that would
+ * turn metadata into rule logic, which ADR-000 Principle 18 forbids for
+ * `priority` specifically, and which this contract forbids for `enabled`
+ * by the same reasoning). See `rules/README.md`.
+ */
+export interface PromptRuleMetadata {
+  readonly id: string;
+  readonly name: string;
+  readonly description: string;
+  readonly enabled: boolean;
+  readonly priority: number;
+}
+
+/**
  * Contract for a single, composable transformation of a `PromptContext`
  * (e.g. a constraint, a normalization, a domain-specific adjustment).
  * Takes a `PromptContext`, returns a new `PromptContext`. The input is
  * `Readonly` — implementations must not mutate it (ADR-000 Principle 15).
  * Rules are independent: a rule must not know about, call, or depend on
  * the order of other rules (ADR-000 Principle 16) — sequencing is owned
- * exclusively by `PromptPipeline`. No string logic. See
+ * exclusively by `PromptPipeline`. No string logic. `metadata` (DS-6.3.1)
+ * is descriptive only — see `PromptRuleMetadata` above and
  * `rules/README.md`. No implementation yet.
  */
 export interface PromptRule {
+  readonly metadata: PromptRuleMetadata;
   apply(context: Readonly<PromptContext>): PromptContext;
 }
 
@@ -72,6 +95,67 @@ export interface PromptRuleSet {
   name: string;
   rules: PromptRule[];
   priority?: number;
+}
+
+/**
+ * How serious a single `RuleDiagnostics` entry is. Purely descriptive —
+ * nothing in Prompt Engine branches on it yet (DS-6.3.1).
+ */
+export type RuleDiagnosticSeverity = "info" | "warning" | "error";
+
+/**
+ * One diagnostic note a `PromptRule` run could in the future attach to
+ * its `RuleResult` — e.g. "this rule found nothing to normalize" or "this
+ * constraint would have removed all furniture". DS-6.3.1: type only. No
+ * rule produces `RuleDiagnostics` yet, and `RuleEngine`/`DefaultRuleEngine`
+ * do not read, collect, or forward them — this is a contract for a future
+ * Developer Studio / Benchmark-facing analysis layer, not for Rule Engine
+ * itself. See `rules/README.md`.
+ */
+export interface RuleDiagnostics {
+  readonly ruleId: string;
+  readonly message: string;
+  readonly severity: RuleDiagnosticSeverity;
+}
+
+/**
+ * Measurements a single `PromptRule` run could in the future report
+ * alongside its `RuleResult` — how long it took, how many fields it
+ * changed. DS-6.3.1: type only, nothing computes or reads these values
+ * yet. See `rules/README.md`.
+ */
+export interface RuleMetrics {
+  readonly executionTime: number;
+  readonly changes: number;
+}
+
+/**
+ * The richer, future return shape of running a `PromptRule` (or a whole
+ * `PromptRuleSet`) — the resulting `PromptContext` plus optional
+ * diagnostics/warnings/metrics for Developer Studio, Benchmark, or future
+ * Prompt Engine quality analysis to consume. DS-6.3.1: type only.
+ * `RuleEngine`/`DefaultRuleEngine` (`rules/RuleEngine.ts`,
+ * `rules/DefaultRuleEngine.ts`) are unchanged by this type and continue
+ * to work directly with `PromptContext` — `RuleResult` is not produced,
+ * returned, or consumed anywhere yet. See `rules/README.md`.
+ */
+export interface RuleResult {
+  context: PromptContext;
+  diagnostics?: RuleDiagnostics[];
+  warnings?: string[];
+  metrics?: RuleMetrics;
+}
+
+/**
+ * Future flag(s) for asking `RuleEngine` to record a trace of how a
+ * `PromptContext` changed as it passed through a `PromptRuleSet`.
+ * DS-6.3.1: type only — `RuleEngine`/`DefaultRuleEngine` accept no such
+ * option today and write no trace anywhere. Reserved for Developer
+ * Studio / Benchmark tooling that wants to inspect rule-by-rule changes.
+ * See `rules/README.md`.
+ */
+export interface RuleTraceOptions {
+  readonly enableTrace: boolean;
 }
 
 /**

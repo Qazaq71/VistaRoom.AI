@@ -54,3 +54,19 @@ Not automated — reviewed by hand.
 - [ ] RuleSet группирует правила по смыслу, но не даёт им знать друг о
       друге или о порядке выполнения — Principle 16 продолжает
       действовать внутри каждого `PromptRuleSet`
+- [ ] Все `PromptRule` имеют `metadata` (`PromptRuleMetadata`: `id`,
+      `name`, `description`, `enabled`, `priority`, все `readonly`) —
+      никакая реализация правила не пропускает это поле (DS-6.3.1)
+- [ ] `RuleEngine` не использует `metadata` напрямую — ни
+      `enabled`, ни `priority`, ни любое другое поле `PromptRuleMetadata`
+      не читается и не влияет на `RuleEngine.applyRules` (DS-6.3.1)
+- [ ] `RuleEngine` не использует `diagnostics` — `RuleResult`,
+      `RuleDiagnostics`, `RuleMetrics` нигде не производятся и не
+      принимаются `RuleEngine`/`DefaultRuleEngine` (DS-6.3.1)
+- [ ] `RuleEngine` не использует `trace` — `RuleTraceOptions` не
+      принимается ни одним методом `RuleEngine`, никакой trace нигде не
+      пишется (DS-6.3.1)
+- [ ] Diagnostics (`RuleResult`, `RuleDiagnostics`, `RuleMetrics`,
+      `RuleTraceOptions`) предназначены только для будущего анализа
+      (Developer Studio, Benchmark, качество Prompt Engine) — не для
+      логики самого Rule Engine (DS-6.3.1)
