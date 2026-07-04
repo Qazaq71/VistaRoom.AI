@@ -70,3 +70,16 @@ Not automated — reviewed by hand.
       `RuleTraceOptions`) предназначены только для будущего анализа
       (Developer Studio, Benchmark, качество Prompt Engine) — не для
       логики самого Rule Engine (DS-6.3.1)
+- [ ] Knowledge Base (`src/lib/interior/knowledge/**`) не дублирует
+      Style Registry — `StyleKnowledge.styleId` ссылается на
+      `InteriorStyle.id`, но не копирует его поля и не читает
+      `INTERIOR_STYLE_REGISTRY` (DS-6.4)
+- [ ] Knowledge Base не подключена к Prompt Domain, Prompt Engine
+      (Builder/Rules/Formatter/Pipeline), Generation Engine, Provider,
+      Developer Studio, Benchmark, публичному сайту, API,
+      `buildEditPrompt()` или `prompts.ts` — ничего из перечисленного не
+      импортирует `src/lib/interior/knowledge/**` (DS-6.4)
+- [ ] Knowledge Base не содержит логики — `registry.ts`/
+      `KnowledgeRegistry.ts` только lookup-функции по `id`, ни одна не
+      строит текст промпта или не трансформирует `PromptContext`
+      (DS-6.4)

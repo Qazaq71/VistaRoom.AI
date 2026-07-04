@@ -198,7 +198,7 @@ Generation Engine, Developer Studio или Benchmark. Ни одного наст
 Prompt Domain, Builder, Formatter, Pipeline, Generation Engine, Provider,
 Developer Studio и Benchmark не затронуты.
 
-### Phase 6.3.1 — Rule Engine Diagnostics & Metadata (DS-6.3.1, текущий этап)
+### Phase 6.3.1 — Rule Engine Diagnostics & Metadata (DS-6.3.1, завершён)
 
 Небольшое, чисто архитектурное расширение контрактов Rule Engine перед
 DS-6.4 (Universal Interior Knowledge Base) — без единой строки логики и
@@ -239,7 +239,72 @@ DS-6.4 (Universal Interior Knowledge Base) — без единой строки 
 так же, как в DS-6.3. `PromptBuilder`, `PromptFormatter`, `PromptPipeline`,
 Prompt Domain, Generation Engine, Provider, Developer Studio, Benchmark,
 публичный сайт, API, `buildEditPrompt()` и `prompts.ts` не затронуты.
-Следующий этап — **DS-6.4 Universal Interior Knowledge Base**.
+
+### Phase 6.4 — Modular Interior Knowledge Base Foundation (DS-6.4, текущий этап)
+
+Новый, полностью изолированный модуль
+`src/lib/interior/knowledge/` — база знаний о **смысле** каждого
+интерьерного стиля, отдельная и от Style Registry (каталог), и от Prompt
+Domain/Prompt Engine (сборка промпта). Это **не** Prompt Engine, **не**
+Rule Engine, **не** Formatter, **не** production-интеграция — только
+данные (типы + литералы) и тривиальные lookup-функции.
+
+Архитектурная схема с учётом Knowledge Base:
+
+```
+Style Registry              (src/lib/interior/styles, DS-4)
+  ↓
+Knowledge Base                (src/lib/interior/knowledge, DS-6.4) — этот этап
+  ↓
+Prompt Domain                  (src/lib/interior/prompt-domain, DS-5)
+  ↓
+Prompt Builder                   (prompt-engine/builder, DS-6.2)
+  ↓
+Rule Engine                       (prompt-engine/rules, DS-6.3/DS-6.3.1)
+  ↓
+Formatter                          (prompt-engine/formatter — не реализован)
+  ↓
+Generation Engine
+  ↓
+Provider
+```
+
+- **`types.ts`** — `KnowledgeCategory` (union из 13 доменов: `style` +
+  12 sub-доменов), универсальный указатель `KnowledgeReference` (`id`,
+  `name`, `category`, `weight?`, `notes?`), `StyleKnowledge` (`id`,
+  `styleId`, `displayName`, `description`, `designGoals`,
+  `corePrinciples`, `knowledgeRefs` (`StyleKnowledgeRefs` — один
+  `KnowledgeReference[]` на домен), `promptFragments`
+  (`StylePromptFragments`), `negativeCharacteristics`, `qualityNotes`,
+  `references`), плюс двенадцать минимальных доменных типов
+  (`MaterialKnowledge`, `FurnitureKnowledge`, `LightingKnowledge`,
+  `DecorKnowledge`, `ColorKnowledge`, `CompositionKnowledge`,
+  `ConstraintKnowledge`, `RenderingKnowledge`, `ArchitectureKnowledge`,
+  `SpaceKnowledge`, `MoodKnowledge`, `QualityKnowledge`). Все поля
+  `readonly`.
+- **`styles/`** — по одному файлу на каждый из 20 каталожных стилей
+  (`minimalist` … `japanese_zen`), каждый экспортирует один
+  заполненный `StyleKnowledge`. `styleId` совпадает с `InteriorStyle.id`
+  (`styles/registry.ts`), но `StyleKnowledge` не импортирует
+  `INTERIOR_STYLE_REGISTRY` и не дублирует его поля. `my_style`
+  намеренно не имеет `StyleKnowledge` (см. `knowledge/README.md` §5).
+  `styles/index.ts` агрегирует все 20 в `ALL_STYLE_KNOWLEDGE`.
+- **`registry/KnowledgeRegistry.ts`** — `getStyleKnowledge(styleId)`,
+  `getAllStyleKnowledge()`, простой lookup по `ALL_STYLE_KNOWLEDGE`, тем
+  же по духу, что и `RuleRegistry.getRuleSet` (DS-6.3).
+- **12 доменов-заготовок** (`materials/`, `furniture/`, `lighting/`,
+  `decor/`, `colors/`, `composition/`, `constraints/`, `rendering/`,
+  `architecture/`, `space/`, `mood/`, `quality/`) — каждый с пустым
+  `registry.ts` (`<DOMAIN>_KNOWLEDGE_REGISTRY: []` + два lookup-метода),
+  `index.ts` и `README.md` с пометкой `TODO: Future expansion domain.`
+  Наполнение реальными записями — задача будущих этапов.
+
+Knowledge Base **нигде не используется** — не импортируется из Prompt
+Domain, Prompt Engine (Builder/Rules/Formatter/Pipeline), Style Registry,
+Generation Engine, Provider, Developer Studio, Benchmark, публичного
+сайта, API, `buildEditPrompt()` или `prompts.ts`. Ничего в
+`src/lib/interior/styles/**` не изменено. Следующий этап — **DS-6.5
+Universal Interior Rules**.
 
 ## Phase 7 — Prompt Lab
 

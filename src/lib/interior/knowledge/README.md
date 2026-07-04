@@ -1,0 +1,137 @@
+# Knowledge Base (DS-6.4)
+
+## 1. Что это такое
+
+Knowledge Base — модульная база знаний о том, **что означает** каждый
+интерьерный стиль и из каких доменов (материалы, мебель, освещение,
+декор, цвета, композиция, ограничения, рендеринг, архитектура,
+пространство, настроение, качество) складывается его смысл.
+
+Это **не** Prompt Engine, **не** Rule Engine, **не** Formatter и **не**
+production-интеграция. Здесь нет функций, собирающих текст промпта, нет
+правил трансформации `PromptContext`, нет обращений к Style Registry на
+запись. Это чистые данные (`types.ts` + литералы в `styles/*.ts`) и
+несколько тривиальных lookup-функций (`registry/KnowledgeRegistry.ts`,
+`<domain>/registry.ts`) — без единой строки бизнес-логики.
+
+## 2. Knowledge Base не содержит логики
+
+Ни один файл в этой директории не строит текст промпта, не вызывает
+Prompt Domain, Prompt Engine, Rule Engine, Generation Engine или Provider.
+`KnowledgeRegistry`/`<domain>/registry.ts` — это таблицы с одной функцией
+поиска по `id`, ничем не отличающиеся по духу от `RuleRegistry.getRuleSet`
+(`prompt-engine/rules/RuleRegistry.ts`, DS-6.3).
+
+## 3. Style Registry — каталог, Knowledge Base — смысл
+
+`src/lib/interior/styles` (Style Registry, DS-4) — это **каталог**:
+список стилей с `id`, `displayName`, `emoji`, `previewImage`,
+`promptFragment` для UI (`StylePicker`) и legacy-промптов
+(`prompts.ts`). Knowledge Base **не дублирует** этот каталог и не
+добавляет туда новых стилей.
+
+`knowledge/styles/*.ts` — это **смысл**: почему стиль выглядит так, каких
+целей он добивается, какие принципы за ним стоят, и на какие другие
+domains (materials/furniture/lighting/...) он опирается.
+`StyleKnowledge.styleId` — единственная связь между двумя моделями: он
+обязан совпадать с `InteriorStyle.id` из `styles/registry.ts`, но
+`StyleKnowledge` не импортирует и не читает `INTERIOR_STYLE_REGISTRY`.
+
+## 4. StyleKnowledge ссылается на другие knowledge domains
+
+`StyleKnowledge` не хранит "всё внутри себя". Вместо `materials: string[]`
+и подобных плоских списков он хранит `knowledgeRefs` —
+`KnowledgeReference[]` на домен (`materials`, `furniture`, `lighting`,
+`decor`, `colors`, `composition`, `constraints`, `rendering`,
+`architecture`, `space`, `mood`, `quality`). `KnowledgeReference` — это
+универсальный указатель (`id`, `name`, `category`, `weight?`, `notes?`),
+а не сама сущность. На DS-6.4 домены за пределами `styles/` — пустые
+заготовки (см. §6), поэтому ссылки пока не резолвятся ни во что реальное;
+это ожидаемо и позволяет добавлять новые стили уже сейчас, без ожидания
+наполнения остальных доменов.
+
+## 5. "Мой стиль" (`my_style`) — намеренно отсутствует
+
+Knowledge Base описывает только каталожные (preset) стили. У `my_style`
+("Мой стиль", `MY_STYLE_ID` в `src/lib/interior/constants.ts`) нет и не
+может быть `StyleKnowledge` — это пользовательский промпт, а не
+предустановленный смысл, который можно было бы формализовать в базе
+знаний. В будущем "Мой стиль" будет собираться из knowledge-модулей
+(materials/furniture/lighting/...) напрямую, а не через `StyleKnowledge`.
+
+## 6. Остальные домены — расширяемые заготовки
+
+`materials/`, `furniture/`, `lighting/`, `decor/`, `colors/`,
+`composition/`, `constraints/`, `rendering/`, `architecture/`, `space/`,
+`mood/`, `quality/` — на DS-6.4 это только:
+
+- тип домена в `../types.ts` (например `MaterialKnowledge`);
+- пустой `registry.ts` (`<DOMAIN>_KNOWLEDGE_REGISTRY: [] `+ пара
+  lookup-функций);
+- `index.ts`, реэкспортирующий тип и registry;
+- `README.md` с пометкой `TODO: Future expansion domain.`
+
+Наполнение реальными записями — задача будущих этапов, не DS-6.4.
+
+## 7. Архитектурная схема
+
+```
+Style Registry              (src/lib/interior/styles)
+  ↓
+Knowledge Base                (src/lib/interior/knowledge) — этот этап (DS-6.4)
+  ↓
+Prompt Domain                  (src/lib/interior/prompt-domain)
+  ↓
+Prompt Builder                  (src/lib/interior/prompt-engine/builder)
+  ↓
+Rule Engine                      (src/lib/interior/prompt-engine/rules)
+  ↓
+Formatter                         (src/lib/interior/prompt-engine/formatter)
+  ↓
+Generation Engine
+  ↓
+Provider
+```
+
+Knowledge Base на DS-6.4 **не подключена** ни к одному из следующих
+слоёв — ни к Prompt Domain, ни к Prompt Builder, ни к Rule Engine.
+Ничего в публичном сайте, API, `buildEditPrompt()`, `prompts.ts`,
+`StylePicker`, Benchmark, Developer Studio или Generation Engine не
+импортирует `src/lib/interior/knowledge/**`.
+
+## 8. Как добавить новый стиль
+
+1. Убедиться, что стиль уже существует в Style Registry
+   (`src/lib/interior/styles/registry.ts`) — Knowledge Base не создаёт
+   новые `id` стилей.
+2. Создать `styles/<styleId>.ts`, экспортирующий один объект
+   `StyleKnowledge` с `styleId`, равным `InteriorStyle.id`.
+3. Заполнить `description`, `designGoals`, `corePrinciples`,
+   `knowledgeRefs`, `promptFragments`, `negativeCharacteristics`,
+   `qualityNotes` — кратко (10–20 строк смысла на стиль), без длинных
+   статей.
+4. Добавить экспорт в `styles/index.ts` (`ALL_STYLE_KNOWLEDGE`).
+   `KnowledgeRegistry.getStyleKnowledge`/`getAllStyleKnowledge` подхватят
+   его автоматически — ничего в `registry/KnowledgeRegistry.ts` менять не
+   нужно.
+
+## 9. Как расширять другие домены (materials, lighting, furniture, ...)
+
+1. Добавить конкретный тип-запись в `../types.ts`, если текущего
+   `<Domain>Knowledge` недостаточно (сохраняя `readonly` на всех полях).
+2. Наполнить `<domain>/registry.ts` реальными записями
+   (`<DOMAIN>_KNOWLEDGE_REGISTRY: <Domain>Knowledge[]`).
+3. `<domain>/index.ts` не менять — он уже реэкспортирует тип и registry.
+4. Опционально — сослаться на новые записи из `styles/*.ts` через
+   `knowledgeRefs.<domain>`.
+
+Ни один из этих шагов не требует правок Prompt Domain, Prompt Engine,
+Rule Engine, Style Registry, `prompts.ts`, API или Developer Studio.
+
+## 10. Статус на DS-6.4
+
+Создана структура `knowledge/` с типами, заполненными `StyleKnowledge`
+для всех 20 каталожных стилей и пустыми заготовками для остальных 12
+доменов. Knowledge Base нигде не используется — ни в production, ни в
+Prompt Domain, ни в Prompt Engine, ни в Rule Engine. Следующий этап —
+**DS-6.5 Universal Interior Rules**.
