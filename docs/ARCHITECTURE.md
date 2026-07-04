@@ -1114,3 +1114,48 @@ Engine, Prompt Domain, Knowledge, Knowledge Core, Design Domain, Style
 Registry, Rule Engine, Formatter, Pipeline, Builder, Developer Studio,
 Benchmark, the public site, API, and Production are not affected. `npm run
 build` passes.
+
+### Phase 7.2.1 — Space Type Governance & Evolution Foundation (DS-7.2.1, документация)
+
+Governance-этап перед DS-7.3, без единой строки runtime-кода —
+`space-type/{types,space-types,registry,index}.ts` не изменены. **Space
+Type Foundation (DS-7.2) считается архитектурно завершённым** для этого
+уровня детализации: контракт `SpaceType`/`SpaceTypeMetadata`, состав
+`SPACE_TYPE_REGISTRY` и публичная поверхность модуля зафиксированы как
+стабильные.
+
+`space-type/README.md` получил восемь governance-разделов: Space Type
+Governance (единственная ответственность — семантическая классификация,
+явно НЕ user input/prompt data/knowledge/rendering/generation/business
+logic), Canonical Registry Policy (реестр содержит только канонические
+типы; персонализированные/стилевые/временные/AI-сгенерированные варианты
+никогда не становятся `SpaceTypeId`), Metadata Evolution Strategy
+(расширенный иллюстративный список будущих разделов `metadata` —
+`classification`, `behavior`, `analysis`, `generation`, `rendering`,
+`constraints`, `capabilities`, `workflow`, `accessibility`,
+`lightingScenario`, `occupancy`, `privacy`, `acoustics`, `climate` —
+ничего не реализовано), Space Type Boundary Invariant (постоянное
+закрепление ADR-004 Boundary Invariant для этого модуля: `RoomContext →
+Mapping/Adapter → SpaceType`, граница никогда не стирается), Future
+Spatial Stack (иллюстративная полная цепочка `User Input → RoomContext →
+Room Analyzer → SpaceType → Knowledge → Prompt Engine → Generation`; явно
+зафиксировано, что реально существуют только `RoomContext`, `SpaceType` и
+Design Domain — всё остальное будущая работа), Future Spatial Axes
+(иллюстративная будущая ортогональная ось `SpaceCategory`: Indoor,
+Outdoor, Floating, Flying, Underground, Mixed — явно НЕ Space Types, без
+реализации), Evolution Rules (единственный официальный Decision Flow —
+`Reuse → Metadata → Composition → Registry → Top-level Contract` —
+применён к Space Type), и Registry Protection / "What MUST NEVER happen"
+(`SpaceType` никогда не становится `PromptContext`, не хранит prompt
+fragments/style data/provider hints/generation settings/business logic, не
+импортирует Prompt Engine/Knowledge/`RoomContext`).
+
+Future stages extend Space Type through Room/Space Analyzer (mapping from
+`RoomContext`), Knowledge Integration (DS-7.3), and Prompt Integration
+(DS-7.4) — not by redesigning `SpaceType`'s own contract or registry.
+`docs/AI_CORE_CHECKLIST.md` получил соответствующие governance-проверки.
+Prompt Engine, Prompt Domain, Knowledge Core, Design Domain, Rule Engine,
+Builder, Formatter, Pipeline, Developer Studio, Benchmark, API, and
+Production are not affected. `PromptContext`, `RoomContext`,
+`KnowledgeFeature`, and Style Registry are unchanged. `npm run build`
+passes.

@@ -267,6 +267,37 @@ Not automated — reviewed by hand.
 - [ ] Между `RoomContext` и `SpaceType` по-прежнему нет ничего, кроме
       будущего явного Mapping/Adapter (DS-7.4) — DS-7.2 намеренно не
       вводит Mapping (ADR-004)
+- [ ] Registry remains canonical — `SPACE_TYPE_REGISTRY` содержит только
+      канонические типы пространств; персонализированные, стилевые,
+      временные, клиентские и AI-сгенерированные варианты никогда не
+      становятся `SpaceTypeId` (DS-7.2.1, Canonical Registry Policy)
+- [ ] Metadata remains minimal — `SpaceTypeMetadata` не расширен новыми
+      полями по факту документирования иллюстративного списка
+      (`classification`, `behavior`, `analysis`, `generation`,
+      `rendering`, `constraints`, `capabilities`, `workflow`,
+      `accessibility`, `lightingScenario`, `occupancy`, `privacy`,
+      `acoustics`, `climate`) — все перечисленные названия иллюстративны,
+      ни одно не реализовано (DS-7.2.1, Metadata Evolution Strategy)
+- [ ] Boundary invariant preserved — `RoomContext → Mapping/Adapter →
+      SpaceType` остаётся постоянной границей; `RoomContext` не становится
+      `SpaceType`, `SpaceType` не заменяет `RoomContext` (DS-7.2.1, Space
+      Type Boundary Invariant; ADR-004 Section 3)
+- [ ] SpaceType isolated — Space Type по-прежнему нигде не используется и
+      не импортирует Prompt Engine, Prompt Domain (`RoomContext`,
+      `PromptContext`), Knowledge (`KnowledgeFeature` и др.), Style
+      Registry, Developer Studio, Benchmark, Provider, Generation Engine,
+      публичный сайт или API (DS-7.2.1)
+- [ ] Future evolution documented — Future Spatial Stack (`User Input →
+      RoomContext → Room Analyzer → SpaceType → Knowledge → Prompt Engine
+      → Generation`) и Future Spatial Axes (иллюстративная `SpaceCategory`:
+      Indoor/Outdoor/Floating/Flying/Underground/Mixed) задокументированы
+      как исключительно будущая работа — без реализации, без типов, без
+      реестра (DS-7.2.1)
+- [ ] Registry Protection — `SpaceType` никогда не становится
+      `PromptContext`, не хранит prompt fragments, style-данные, provider
+      hints, generation settings или бизнес-логику, и не импортирует
+      Prompt Engine, Knowledge или `RoomContext` (DS-7.2.1, "What MUST
+      NEVER happen")
 - [ ] Is there an ADR for this architectural decision?
 - [ ] Is the ADR registered in [ADR_INDEX](adr/ADR_INDEX.md)?
 - [ ] Does an existing ADR already own this responsibility?
