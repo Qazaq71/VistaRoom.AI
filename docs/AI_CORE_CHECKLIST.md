@@ -240,3 +240,11 @@ Not automated — reviewed by hand.
 - [ ] Новые пространственные модели (`SpaceType` и любые будущие) не
       изменяют `PromptContext` напрямую — интеграция происходит только
       через явный Adapter/Mapping, вводимый на DS-7.4 (ADR-004)
+- [ ] Is there an ADR for this architectural decision?
+- [ ] Is the ADR registered in [ADR_INDEX](adr/ADR_INDEX.md)?
+- [ ] Does an existing ADR already own this responsibility?
+- [ ] Is a new ADR truly necessary?
+- [ ] If a boundary/invariant was added, is it listed in ADR_INDEX's Local
+      Invariants Registry?
+- [ ] If a new ADR was created, were `ARCHITECTURE.md` and
+      `AI_CORE_CHECKLIST.md` updated if needed?
