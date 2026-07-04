@@ -159,6 +159,21 @@ and the module READMEs were already each independently enforcing.
     gates or contains one. See "Update — DS-7.1" below for the full rule
     and rationale.
 
+22. **Evolution through Composition.** New capability on any AI Core
+    model — Design Domain, Space Type, Knowledge, Prompt Domain, Prompt
+    Engine, Room Analyzer, Material Engine, Style Engine, Furniture
+    Planner, Object Detection, Automatic Masks, and future modules — is
+    added by extending existing structure before introducing a new
+    top-level property or a new independent model. The evaluation order
+    is: reuse an existing model, then express the capability through
+    composition, then extend that model's own `metadata`, then add a
+    registry entry — changing a top-level contract is the last resort,
+    considered only when none of the above can express the new
+    capability. This does not replace Principles 3, 19, or 20 — it names
+    the single ordered process those three principles already implied
+    together. See "Update — DS-7.1.1" below for the full rule, the
+    decision flow, and worked examples.
+
 ## Consequences
 
 - ADR-001 (Provider Terminology), ADR-002 (MY_STYLE Identifier), and
@@ -679,3 +694,154 @@ Pipeline, Style Registry, Developer Studio, Benchmark, the public site,
 the API, and Production are untouched — `design-domain/**` is not
 imported from anywhere. Space Type is intentionally not part of this
 stage — it is DS-7.2.
+
+## Update — DS-7.1.1 Design Domain Evolution Foundation
+
+Documentation-only stage, no code/runtime change. Adds Principle 22
+above and elaborates it here in full. `src/lib/interior/design-domain/`
+(`types.ts`, `domains.ts`, `registry.ts`, `index.ts`) is **not modified**
+— `DesignDomainMetadata` (`{ priority, enabled, notes? }`) already
+existed as of DS-7.1 and already satisfied "an extension point with no
+real fields yet"; there was nothing to add.
+
+### Мотивация
+
+DS-7.1 built `Design Domain` as the topmost node of the spatial
+hierarchy and gave it a `metadata` field, but never stated *why* that
+field exists or *how* the module is expected to grow. Without that
+statement, the natural failure mode for any small, stable top-level
+contract is incremental erosion: each future stage (DS-7.2 onward, or an
+unrelated future module) adds "just one more field" directly to
+`DesignDomain` because there's no documented alternative, and the
+contract that every consumer (Space Type, Style, a future Room Analyzer,
+Material Engine, ...) depends on keeps changing shape. DS-7.1.1 closes
+that gap *before* DS-7.2 starts, by naming `metadata` as the official
+extension point and writing down the order in which any AI Core model —
+not only Design Domain — should be extended.
+
+### Основное правило
+
+Future evolution should extend `DesignDomain` through composition and
+metadata before introducing new top-level properties. Breaking changes
+to the `DesignDomain` contract should be considered only when composition
+can no longer express the new capability.
+
+Generalized to the rest of AI Core (Principle 22): any new capability on
+any model is evaluated in this order, stopping at the first step that
+can express it —
+
+```
+Reuse
+  ↓
+Composition
+  ↓
+Metadata
+  ↓
+Registry
+  ↓
+Top-level Contract
+```
+
+`Composition` precedes `Metadata` in this general form because it
+restates Principle 19 (Composition over Duplication), which already
+governs modules that have no dedicated `metadata` field of their own.
+Once a module has an established `metadata` field — as Design Domain has
+had since DS-7.1 — that module's *own* decision flow may check `metadata`
+immediately after `Reuse`, ahead of inventing a new composed object,
+because the extension point already exists and doesn't need to be built.
+Design Domain's local flow reflects that:
+
+```
+Need new capability
+        ↓
+Reuse existing model?  ── YES ──▶ Reuse
+        │ NO
+        ↓
+Extend metadata?        ── YES ──▶ Metadata
+        │ NO
+        ↓
+Compose new object?     ── YES ──▶ Composition
+        │ NO
+        ↓
+Registry?               ── YES ──▶ Registry
+        │ NO
+        ↓
+Change top-level contract
+```
+
+Both flows agree on the two ends (`Reuse` first, `Top-level Contract`
+change last) and on the same four intermediate options — they differ
+only in which of `Metadata`/`Composition` is checked first, depending on
+whether the model being extended already has an established `metadata`
+field. Neither flow skips a step, and no capability may jump straight to
+a top-level contract change without first failing all four earlier
+checks.
+
+### Illustrative examples (not a roadmap, not implemented)
+
+To show `metadata` can absorb domain-specific growth without touching
+`DesignDomain`'s top-level shape:
+
+```
+Commercial  → metadata → capabilities → branding / zoning / workflow /
+                                          accessibility / signage
+Residential → metadata → capabilities → comfort / decor / lighting /
+                                          storage
+Outdoor     → metadata → capabilities → terrain / vegetation /
+                                          irrigation / landscape
+```
+
+None of `capabilities`, `generation`, `analysis`, `providers`,
+`operations`, `quality`, `defaults`, `roomAnalyzerHints`,
+`renderingHints`, `aiHints`, or the examples above are implemented on
+DS-7.1.1 or scheduled for a specific future stage — they exist only to
+demonstrate that the current `metadata` extension point is sufficient for
+this class of growth.
+
+### Универсальность
+
+`Design Domain` deliberately carries no interior-specific field or
+literal. The contract (`id`, `displayName`, `description`, `icon`,
+`metadata`) is equally usable for Interior, Landscape, Architecture,
+Retail, Hospitality, Marine, Aircraft, Exhibition, Urban, Infrastructure,
+Industrial, Smart Building, Healthcare, Education, and any future
+vertical — each would reuse the same `DesignDomain`/`DesignDomainMetadata`
+contract with different `metadata` content, not a parallel contract.
+
+### Связь с другими принципами
+
+Principle 22 does not replace Principles 3, 19, or 20 — it names the one
+ordered process those three already implied together:
+
+- **Principle 3** (Style Registry — единственный источник знаний о
+  стилях) — the same Single Source of Truth discipline: growth happens
+  in one place (the existing model's `metadata`), not in a second,
+  competing source.
+- **Principle 19** (Composition over Duplication) — supplies the
+  `Composition` step directly; Principle 22 places it in a concrete
+  sequence relative to `Reuse`, `Metadata`, `Registry`, and `Top-level
+  Contract` rather than leaving it as the only named option.
+- **Principle 20** (Evolution over Rewrite) — the same incremental
+  instinct applied to a single model's own field list, not just to
+  whole-layer migrations: extend what exists, alongside it, before
+  replacing its shape.
+
+### Architecture Review — DS-7.1.1
+
+Confirmed unchanged: `design-domain/**` still does not import Prompt
+Engine, Prompt Domain, Knowledge, Knowledge Core, Style Registry, Space
+Type, Developer Studio, Benchmark, the API, or Production, and nothing
+outside `design-domain/**` imports it. The strategy documented here
+requires no migration, no refactor, and no public API change, and is
+fully compatible with DS-7.2, DS-7.3, DS-7.4, and any future Spatial
+Intelligence stage — it constrains *how* those stages should extend
+`Design Domain` (and every other AI Core model), not what they build.
+
+`docs/ARCHITECTURE.md` gained a short "Phase 7.1.1" note under Phase 7.
+`src/lib/interior/design-domain/README.md` gained matching sections
+("Evolution Strategy", "Evolution through Composition", "Decision Flow",
+"General AI Core Rule", "Future Capability", "Универсальность"). Prompt
+Engine, Prompt Domain, Knowledge, Knowledge Core, Rule Engine, Formatter,
+Pipeline, Builder, `PromptDraft`, Style Registry, Developer Studio,
+Benchmark, Production, the API, and the UI are untouched. `npm run build`
+passes.

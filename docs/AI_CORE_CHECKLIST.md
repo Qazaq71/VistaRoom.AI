@@ -182,3 +182,22 @@ Not automated — reviewed by hand.
       Knowledge, Prompt Domain, Prompt Engine, Generation Engine,
       Provider, Developer Studio, Benchmark, публичном сайте или API не
       импортирует `src/lib/interior/design-domain/**` (DS-7.1)
+- [ ] Evolution through Composition — перед добавлением любого нового
+      top-level поля к любой модели AI Core (Design Domain, Space Type,
+      Knowledge, Prompt Domain, Prompt Engine, Room Analyzer, Material
+      Engine, Style Engine, Furniture Planner, Object Detection,
+      Automatic Masks, будущие модули) проверено по порядку: можно ли
+      переиспользовать существующую модель, можно ли выразить через
+      композицию, можно ли расширить `metadata` этой модели, можно ли
+      добавить запись в registry — top-level контракт меняется только
+      если все четыре предыдущих пункта дали отрицательный ответ
+      (ADR-000 Principle 22, DS-7.1.1)
+- [ ] `DesignDomainMetadata` остаётся официальной, документированной
+      точкой расширения Design Domain — новые возможности (`capabilities`,
+      `generation`, `analysis`, `providers`, `operations`, `quality`,
+      `defaults`, `roomAnalyzerHints`, `renderingHints`, `aiHints`, ...)
+      добавляются туда, а не как новые поля верхнего контракта
+      `DesignDomain` (DS-7.1.1)
+- [ ] Верхний контракт `DesignDomain` (`id`, `displayName`, `description`,
+      `icon`, `metadata`) не менялся с DS-7.1 — ни одно новое поле не
+      добавлено напрямую (DS-7.1.1)

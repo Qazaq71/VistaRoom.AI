@@ -707,6 +707,31 @@ Next.js. Ничего не знает о SpaceType (SpaceType — предмет
 Prompt Domain, Knowledge, Style Registry, Developer Studio, Benchmark и
 Production не затронуты.
 
+### Phase 7.1.1 — Design Domain Evolution Foundation (DS-7.1.1, документация)
+
+Документационный этап перед DS-7.2, без единой строки runtime-кода.
+`design-domain/{types,domains,registry,index}.ts` не изменены —
+`DesignDomainMetadata` (DS-7.1) уже была официальной, но
+незадокументированной точкой расширения; DS-7.1.1 её документирует, а не
+меняет.
+
+Добавлен Principle 22 ADR-000 ("Evolution through Composition") и раздел
+"Update — DS-7.1.1": закрепляет, что новая функциональность любой модели
+AI Core (Design Domain, Space Type, Knowledge, Prompt Domain, Prompt
+Engine, Room Analyzer, Material Engine, Style Engine, Furniture Planner,
+Object Detection, Automatic Masks, будущие модули) расширяется в порядке
+`Reuse → Composition/Metadata → Registry → Top-level Contract`, а не
+через постоянное изменение верхнего контракта. `design-domain/README.md`
+получил шесть новых разделов (Evolution Strategy, Evolution through
+Composition, Decision Flow, General AI Core Rule, Future Capability,
+Универсальность) — иллюстративные, не roadmap.
+
+Prompt Engine, Prompt Domain, Knowledge, Knowledge Core, Rule Engine,
+Formatter, Pipeline, Builder, `PromptDraft`, Style Registry, Developer
+Studio, Benchmark, публичный сайт, API и Production не затронуты. Design
+Domain по-прежнему нигде не используется, верхний контракт `DesignDomain`
+не изменился, SpaceType по-прежнему отсутствует.
+
 ## Phase 8 — Prompt Lab
 
 Внутренний инструмент Developer Studio для итеративной отладки и
