@@ -1,4 +1,4 @@
-# Prompt Engine (DS-6.1 Foundation + DS-6.1.1 Contracts + DS-6.2 Builder MVP + DS-6.2.1 Rule Engine Preparation)
+# Prompt Engine (DS-6.1 Foundation + DS-6.1.1 Contracts + DS-6.2 Builder MVP + DS-6.2.1 Rule Engine Preparation + DS-6.3 Rule Engine Foundation)
 
 ## 1. Что это такое
 
@@ -145,10 +145,10 @@ DS-6.1 (Foundation) + DS-6.1.1 (Architecture Contracts) — только
   специализированным Builder (Interior/Furniture/Replace/CleanRoom/
   RoomAnalysis). См. `builder/README.md`.
 
-`formatter/`, `rules/`, `pipeline/`, `validators/`, `templates/` — всё
-ещё только контракты, без реализации.
+`formatter/`, `pipeline/`, `validators/`, `templates/` — всё ещё только
+контракты, без реализации.
 
-**DS-6.2.1 (текущий этап) — Rule Engine Preparation:**
+**DS-6.2.1 — Rule Engine Preparation:**
 
 - `types.ts` — добавлен тип `PromptRuleSet` (`{ id, name, rules:
   PromptRule[], priority?: number }`) — организационная группировка
@@ -163,8 +163,25 @@ DS-6.1 (Foundation) + DS-6.1.1 (Architecture Contracts) — только
 - Никакой реализации Rules, RuleEngine, RuleRegistry или сортировки не
   создано.
 
+**DS-6.3 (текущий этап) — Rule Engine Foundation:**
+
+- `rules/RuleEngine.ts` — контракт `RuleEngine.applyRules(context,
+  ruleSet)`; отдельный, более узкий контракт, чем `PromptPipeline` — он
+  владеет только шагом "Rules" будущего Pipeline.
+- `rules/DefaultRuleEngine.ts` — первая реализация: последовательно
+  применяет `ruleSet.rules`, корректно работает при пустом массиве
+  правил (возвращает новый `PromptContext` без изменений).
+- `rules/RuleRegistry.ts` — `getRuleSet(id)`, с единственным
+  зарегистрированным `DEFAULT_RULE_SET` (пустой `RuleSet`). См.
+  `rules/README.md`.
+
+Настоящих правил (`LightingRule`, `MaterialRule`, `FurnitureRule`,
+`StyleRule`) по-прежнему нет — это DS-6.4 (Universal Interior Rules).
+`formatter/`, `pipeline/`, `validators/`, `templates/` — всё ещё только
+контракты, без реализации.
+
 Никакого текста, никакой интеграции. Публичный сайт, API, Developer
 Studio, `buildEditPrompt()`, `prompts.ts`, Generation Engine, Provider,
-Style Registry, Prompt Domain и Benchmark не затронуты. Builder не
-вызывается из production-кода. Следующий этап — **DS-6.3 Rule Engine
-Foundation** (`rules/`).
+Style Registry, Prompt Domain, Builder, Formatter, Pipeline и Benchmark
+не затронуты. Rule Engine не вызывается из production-кода. Следующий
+этап — **DS-6.4 Universal Interior Rules**.

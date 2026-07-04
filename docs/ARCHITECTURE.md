@@ -130,7 +130,7 @@ Studio, Benchmark, React или Next.js. Не подключён к реальн
 — публичный сайт, API, `buildEditPrompt()`, `prompts.ts`, Prompt Domain,
 Generation Engine, Provider, Developer Studio и Benchmark не затронуты.
 
-### Phase 6.2.1 — Rule Engine Preparation (DS-6.2.1, текущий этап)
+### Phase 6.2.1 — Rule Engine Preparation (DS-6.2.1)
 
 Небольшие архитектурные уточнения перед DS-6.3, без единой строки
 реализации Rules/Rule Engine:
@@ -162,7 +162,42 @@ Generation Engine, Provider, Developer Studio и Benchmark не затронут
 `PromptBuilderFactory.ts`) не менялся. Публичный сайт, API,
 `buildEditPrompt()`, `prompts.ts`, Generation Engine, Provider, Prompt
 Domain, Style Registry, Developer Studio и Benchmark не затронуты.
-Следующий этап — **DS-6.3 Rule Engine Foundation** (`../rules`).
+
+### Phase 6.3 — Rule Engine Foundation (DS-6.3, завершён, текущий этап)
+
+Первая рабочая реализация Rule Engine:
+`src/lib/interior/prompt-engine/rules/`.
+
+- `RuleEngine.ts` — интерфейс `RuleEngine`: `applyRules(context:
+  Readonly<PromptContext>, ruleSet: PromptRuleSet): PromptContext`.
+  Отдельный, более узкий контракт, чем `PromptPipeline` (`../types.ts`)
+  — владеет только шагом "Rules" будущего прохода Builder → Rules →
+  Formatter, не всем прохождением целиком.
+- `DefaultRuleEngine.ts` — первая реализация: последовательно применяет
+  каждое правило из `ruleSet.rules` (`Array.reduce`), передавая
+  результат одного правила следующему, и возвращает новый
+  `PromptContext`. При `rules.length === 0` — единственный возможный
+  случай сейчас — возвращает новый `PromptContext`, идентичный входному
+  по данным, без изменений. Не мутирует вход (ADR-000 Principle 15).
+- `RuleRegistry.ts` — `getRuleSet(id): PromptRuleSet | undefined`,
+  простая фабрика-таблица. Зарегистрирован ровно один `RuleSet` —
+  `DEFAULT_RULE_SET` (`id: "default"`, `rules: []`).
+- `README.md` — переписан: описывает `PromptRule`, `RuleSet`,
+  `RuleEngine`, `RuleRegistry`, место Rule Engine между Builder и
+  Formatter, и явно фиксирует, что Rule Engine не знает про Formatter,
+  Prompt-как-строку, GPT/OpenAI/любую модель, Builder, Pipeline,
+  Provider, Generation Engine, Developer Studio, Benchmark.
+
+Rule Engine работает исключительно с `PromptContext`/`PromptRuleSet`: не
+создаёт строк, не знает про `positivePrompt`/`negativePrompt`, не
+импортирует React, Next.js, Builder, Formatter, Pipeline, Provider,
+Generation Engine, Developer Studio или Benchmark. Ни одного настоящего
+правила (`LightingRule`, `MaterialRule`, `FurnitureRule`, `StyleRule`) не
+создано — только пустой `DEFAULT_RULE_SET`. Не подключён к реальной
+генерации — публичный сайт, API, `buildEditPrompt()`, `prompts.ts`,
+Prompt Domain, Builder, Formatter, Pipeline, Generation Engine, Provider,
+Developer Studio и Benchmark не затронуты. Следующий этап —
+**DS-6.4 Universal Interior Rules**.
 
 ## Phase 7 — Prompt Lab
 
