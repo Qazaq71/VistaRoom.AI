@@ -719,18 +719,59 @@ Production не затронуты.
 "Update — DS-7.1.1": закрепляет, что новая функциональность любой модели
 AI Core (Design Domain, Space Type, Knowledge, Prompt Domain, Prompt
 Engine, Room Analyzer, Material Engine, Style Engine, Furniture Planner,
-Object Detection, Automatic Masks, будущие модули) расширяется в порядке
-`Reuse → Composition/Metadata → Registry → Top-level Contract`, а не
-через постоянное изменение верхнего контракта. `design-domain/README.md`
+Object Detection, Automatic Masks, будущие модули) расширяется через
+`metadata`/композицию раньше нового top-level поля, а не через
+постоянное изменение верхнего контракта. `design-domain/README.md`
 получил шесть новых разделов (Evolution Strategy, Evolution through
 Composition, Decision Flow, General AI Core Rule, Future Capability,
-Универсальность) — иллюстративные, не roadmap.
+Универсальность) — иллюстративные, не roadmap. (Порядок шагов Decision
+Flow, изначально описанный здесь двумя слегка разными версиями,
+консолидирован в DS-7.1.1a ниже.)
 
 Prompt Engine, Prompt Domain, Knowledge, Knowledge Core, Rule Engine,
 Formatter, Pipeline, Builder, `PromptDraft`, Style Registry, Developer
 Studio, Benchmark, публичный сайт, API и Production не затронуты. Design
 Domain по-прежнему нигде не используется, верхний контракт `DesignDomain`
 не изменился, SpaceType по-прежнему отсутствует.
+
+### Phase 7.1.1a — AI Core Evolution Consolidation (DS-7.1.1a, документация)
+
+Консолидационный этап — без единой строки runtime-кода. DS-7.1.1 назвал
+Principle 22 верно по сути, но показал **два** слегка разных порядка
+шагов для одной и той же идеи (Decision Flow для Design Domain — с
+`Metadata` перед `Composition`, и "общий" — с `Composition` перед
+`Metadata`), примирённых абзацем-объяснением. DS-7.1.1a убирает эту
+неоднозначность: во всей документации AI Core теперь ровно один
+официальный Decision Flow —
+
+```
+Reuse → Metadata (если модель уже её поддерживает) → Composition →
+Registry → Top-level Contract
+```
+
+Principle 22 (ADR-000) и раздел "Update — DS-7.1.1" исправлены на месте,
+чтобы использовать этот единственный порядок; `design-domain/README.md`
+§9–§10 переписаны так же. Добавлен новый раздел "Update — DS-7.1.1a"
+(ADR-000) с полной консолидацией: различие Metadata vs Composition,
+исключение "модели без `metadata`" (`PromptContext`, `KnowledgeFeature`,
+`KnowledgeRelation`, Style Registry), таблица реальных примеров
+(`DesignDomain` → Metadata, `PromptContext`/`KnowledgeFeature`/
+`PromptDraft` → Composition, Style Registry → Registry), таблица "одна
+ответственность на Principle" (3 — ownership, 19 — reuse, 20 —
+migration, 21 — spatial architecture, 22 — model evolution), **AI Core
+Evolution Axiom**, компактное **Architect Decision Tree**, **Principle
+Dependency Graph** (3 → 19 → 20 → 21 → 22 → Axiom), раздел "Architecture
+Maturity" (методология AI Core считается стабильной; новые Principle —
+только для принципиально новых концепций) и "Universal AI Core Rule"
+(Decision Flow — методология по умолчанию для всей платформы, не
+специфика Design Domain).
+
+`docs/AI_CORE_CHECKLIST.md` получил соответствующие проверки
+консолидации. Prompt Engine, Prompt Domain, Knowledge, Knowledge Core,
+Knowledge Registry, Rule Engine, Formatter, Pipeline, Builder,
+`PromptDraft`, Style Registry, Developer Studio, Benchmark, публичный
+сайт, API, UI и SpaceType не затронуты — изменена только документация.
+`npm run build` проходит.
 
 ## Phase 8 — Prompt Lab
 

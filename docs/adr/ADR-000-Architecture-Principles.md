@@ -164,15 +164,18 @@ and the module READMEs were already each independently enforcing.
     Engine, Room Analyzer, Material Engine, Style Engine, Furniture
     Planner, Object Detection, Automatic Masks, and future modules — is
     added by extending existing structure before introducing a new
-    top-level property or a new independent model. The evaluation order
-    is: reuse an existing model, then express the capability through
-    composition, then extend that model's own `metadata`, then add a
-    registry entry — changing a top-level contract is the last resort,
-    considered only when none of the above can express the new
+    top-level property or a new independent model. The single official
+    evaluation order is: reuse an existing model; if the model already
+    has a `metadata` field, extend it; otherwise (or if metadata cannot
+    express it) express the capability through composition; otherwise
+    add a registry entry — changing a top-level contract is the last
+    resort, considered only when none of the above can express the new
     capability. This does not replace Principles 3, 19, or 20 — it names
     the single ordered process those three principles already implied
-    together. See "Update — DS-7.1.1" below for the full rule, the
-    decision flow, and worked examples.
+    together. See "Update — DS-7.1.1a" below for the consolidated,
+    single official Decision Flow, the AI Core Evolution Axiom, and
+    worked examples (superseding the two slightly different orderings
+    first drafted in "Update — DS-7.1.1").
 
 ## Consequences
 
@@ -733,49 +736,29 @@ can express it —
 ```
 Reuse
   ↓
-Composition
+Metadata (only if the model already has it)
   ↓
-Metadata
+Composition
   ↓
 Registry
   ↓
 Top-level Contract
 ```
 
-`Composition` precedes `Metadata` in this general form because it
-restates Principle 19 (Composition over Duplication), which already
-governs modules that have no dedicated `metadata` field of their own.
-Once a module has an established `metadata` field — as Design Domain has
-had since DS-7.1 — that module's *own* decision flow may check `metadata`
-immediately after `Reuse`, ahead of inventing a new composed object,
-because the extension point already exists and doesn't need to be built.
-Design Domain's local flow reflects that:
+`Metadata` is checked immediately after `Reuse`, ahead of composing a new
+object, for any model that already has an established `metadata` field —
+Design Domain, since DS-7.1 — because extending an existing field is
+cheaper than composing a new one. For a model with no `metadata` field,
+that step is skipped entirely, not reordered, and the flow falls through
+to `Composition` (Principle 19).
 
-```
-Need new capability
-        ↓
-Reuse existing model?  ── YES ──▶ Reuse
-        │ NO
-        ↓
-Extend metadata?        ── YES ──▶ Metadata
-        │ NO
-        ↓
-Compose new object?     ── YES ──▶ Composition
-        │ NO
-        ↓
-Registry?               ── YES ──▶ Registry
-        │ NO
-        ↓
-Change top-level contract
-```
-
-Both flows agree on the two ends (`Reuse` first, `Top-level Contract`
-change last) and on the same four intermediate options — they differ
-only in which of `Metadata`/`Composition` is checked first, depending on
-whether the model being extended already has an established `metadata`
-field. Neither flow skips a step, and no capability may jump straight to
-a top-level contract change without first failing all four earlier
-checks.
+> **Note (DS-7.1.1a):** an earlier draft of this section additionally
+> showed a second, general-purpose ordering with `Composition` ahead of
+> `Metadata`. That second ordering has been retired — this is now the
+> single official AI Core Decision Flow, with no alternate version
+> anywhere in this document. See "Update — DS-7.1.1a" below for the full
+> consolidation, the Metadata-vs-Composition distinction, the
+> no-`metadata` exception, and worked examples.
 
 ### Illustrative examples (not a roadmap, not implemented)
 
@@ -845,3 +828,285 @@ Engine, Prompt Domain, Knowledge, Knowledge Core, Rule Engine, Formatter,
 Pipeline, Builder, `PromptDraft`, Style Registry, Developer Studio,
 Benchmark, Production, the API, and the UI are untouched. `npm run build`
 passes.
+
+## Update — DS-7.1.1a AI Core Evolution Consolidation
+
+Documentation-only stage, no code/runtime change. DS-7.1.1 introduced
+Principle 22 correctly in spirit but presented **two** slightly different
+step orderings for the same idea (a Design Domain-specific flow with
+`Metadata` before `Composition`, and a "general" flow with `Composition`
+before `Metadata`), reconciled only by a paragraph explaining why they
+differed. DS-7.1.1a is the consolidation stage that removes that
+duplication: from this point on, AI Core has exactly **one** official
+Decision Flow, stated once, with no alternate version anywhere in this
+document. Principle 22 and the DS-7.1.1 section above were edited in
+place to match (see the corrected text and the note inserted there); this
+section is the full elaboration.
+
+### 1. The single official Decision Flow
+
+```
+Need new capability
+        ↓
+Reuse existing model?             ── YES ──▶ Reuse
+        │ NO
+        ↓
+Can existing metadata express it? ── YES ──▶ Metadata
+        │ NO
+        ↓
+Can composition express it?       ── YES ──▶ Composition
+        │ NO
+        ↓
+Can a Registry express it?        ── YES ──▶ Registry
+        │ NO
+        ↓
+Create new Top-level Contract
+```
+
+This is the only Decision Flow in AI Core documentation. It applies to
+every model, with one conditional step: "Can existing metadata express
+it?" only applies to models that already have a `metadata` field — see
+§3 below for models that don't.
+
+### 2. Metadata vs. Composition — different problems
+
+The two middle steps are not interchangeable, and neither one is "the
+default" — each solves a different problem:
+
+- **Metadata extends an existing model.** It adds descriptive/operational
+  information *to* a single model that already exists, without changing
+  its identity or creating a new object (e.g. `DesignDomain.metadata`
+  growing a `capabilities` field — the domain is still the same domain).
+- **Composition combines existing models.** It builds a new, larger
+  structure *out of* other already-existing models, each keeping its own
+  identity (e.g. `PromptContext` being made of `RoomContext` +
+  `StyleContext` + ... — the whole is new, but nothing inside it is).
+
+Because they solve different problems, they are not ordered by
+preference — they're ordered by *applicability*: `Metadata` is evaluated
+first only when it is actually on the table (the model already supports
+it), because extending a field that already exists is strictly cheaper
+than composing a new object. When a model has no `metadata` field, there
+is nothing to evaluate at that step, so the flow moves on to
+`Composition` — see §3.
+
+### 3. Models without metadata — the exception
+
+If a model has no `metadata` field, its Decision Flow simplifies to:
+
+```
+Reuse
+  ↓
+Composition
+  ↓
+Registry
+  ↓
+Top-level Contract
+```
+
+The `Metadata` step is not reordered here — it is absent, because
+`metadata` does not exist for that model to extend. Examples of models
+that are `metadata`-less today, and therefore always start their
+evolution at `Composition`:
+
+- **`PromptContext`** (`src/lib/interior/prompt-domain`) — pure data
+  composed of `RoomContext`/`StyleContext`/`MaterialContext`/... sub-
+  contexts; no `metadata` field.
+- **`KnowledgeFeature`** (`src/lib/interior/knowledge/core/Feature.ts`) —
+  composition of `KnowledgeEntity` + `domain: FeatureType`; no `metadata`
+  field.
+- **`KnowledgeRelation`** (`src/lib/interior/knowledge/core/Relation.ts`)
+  — `{ from, to, type, weight? }`; no `metadata` field.
+- **Style Registry** (`INTERIOR_STYLE_REGISTRY`,
+  `src/lib/interior/styles`) — `InteriorStyle` entries have no `metadata`
+  field; growth happens by adding entries to the registry (§4).
+
+### 4. Real examples, with reasoning
+
+| Model | Mechanism | Why |
+|---|---|---|
+| `DesignDomain` | **Metadata** | Already has an established `metadata` field (DS-7.1) — new domain-specific capability (`capabilities`, `generation`, ...) extends it directly, per `design-domain/README.md` "Evolution Strategy". |
+| `PromptContext` | **Composition** | Has no `metadata` field; is already, and is meant to remain, a composition of sub-contexts (`RoomContext`, `StyleContext`, ...) — a new domain is added as a new sub-context, not a new field on the top-level type. |
+| `KnowledgeFeature` | **Composition** | Has no `metadata` field; is defined as `KnowledgeEntity` + `domain` — new feature domains are added by extending `FeatureType` (Principle 19), not by changing `KnowledgeFeature`'s own shape. |
+| Style Registry (`INTERIOR_STYLE_REGISTRY`) | **Registry** | Growth is "add one more reusable entry" (a new `InteriorStyle`), not "add a field to every style" — the registry array is the unit of extension, exactly what `Registry` in the Decision Flow names. |
+| `PromptDraft` | **Composition** | Has no `metadata` field; DS-6.5.1 rewrote it as a fixed composition of the nine Prompt Domain contexts by reference — the same composition-first reasoning as `PromptContext`. |
+
+### 5. Principle relationships — one responsibility each
+
+No two Principles below overlap; each answers a different question:
+
+| Principle | Question it answers |
+|---|---|
+| **3** — Style Registry, единственный источник знаний о стилях | **Ownership** — who owns a given piece of data? |
+| **19** — Composition over Duplication | **Reuse** — how do new features combine what already exists? |
+| **20** — Evolution over Rewrite | **Migration** — how does the system change over time without breaking? |
+| **21** — Design Domain, верхняя пространственная ось | **Spatial architecture** — what is the shape of the specific Design Domain → Space Type → Style hierarchy? |
+| **22** — Evolution through Composition | **Model evolution** — in what order should any single model be extended? |
+
+Principle 21 is the concrete spatial-hierarchy instance that Principle 22
+was later generalized from; Principle 22 is the general mechanism that
+Principle 21 (and every future model) must follow when it grows. Neither
+duplicates Principle 3, 19, or 20 — each of 21/22 depends on them (see
+§9) without restating them.
+
+### 6. AI Core Evolution Axiom
+
+> **AI Core Evolution Axiom**
+>
+> Metadata enriches an existing model.
+> Composition combines existing models.
+> Registry organizes reusable models.
+> Top-level contract changes are the last resort.
+
+This axiom is a one-line distillation of Principle 22 and the Decision
+Flow in §1 — it is **not** a new Principle (see §10, Architecture
+Maturity). It exists purely as the memorable, quotable form of the same
+single rule, for use in review discussions and future module READMEs.
+
+### 7. What the Axiom means
+
+- **Metadata adds information** to a model that already exists, without
+  changing what the model fundamentally is.
+- **Composition creates larger structures from existing models** — the
+  new whole is built out of parts that already have their own identity
+  and contract.
+- **Registry provides reusable organization** — a place where instances
+  of an existing model are collected and looked up, without changing the
+  model's shape.
+- **Top-level Contract changes only when every previous mechanism
+  becomes insufficient** — i.e. only after `Reuse`, `Metadata` (if
+  applicable), `Composition`, and `Registry` have all been tried and
+  failed to express the new capability.
+
+### 8. Architect Decision Tree (official, compact form)
+
+The same Decision Flow from §1, in the compact form used for quick
+reference during review — not a second flow, just a terser rendering of
+the one in §1:
+
+```
+Need new capability
+  ↓
+Reuse existing model?
+  ↓
+Metadata?
+  ↓
+Composition?
+  ↓
+Registry?
+  ↓
+Top-level Contract
+```
+
+This is the official decision algorithm for every future AI Core module.
+
+### 9. Principle Dependency Graph
+
+The Principles most relevant to model evolution form one coherent chain,
+not five independent rules:
+
+```
+Principle 3   (Ownership)
+  ↓
+Principle 19  (Reuse)
+  ↓
+Principle 20  (Migration)
+  ↓
+Principle 21  (Spatial architecture)
+  ↓
+Principle 22  (Model evolution)
+  ↓
+AI Core Evolution Axiom
+```
+
+Reading the chain: once a concept has exactly one owner (3), new needs
+must compose with that owner rather than duplicate it (19); composing
+in place, rather than replacing what exists, is how the whole
+architecture is allowed to change over time (20); Design Domain (21) is
+the first concrete spatial model built under that discipline; Principle
+22 generalizes the specific mechanism 21 used (`metadata`-first, then
+composition) into a rule for every model; the Axiom (§6) is that same
+rule compressed to four lines. No step in this chain repeats what an
+earlier step already established.
+
+### 10. Architecture Maturity
+
+As of DS-7.1.1a, AI Core's architectural methodology is considered
+**stable**. This is a deliberate, named milestone, not an incidental
+side effect of writing enough documentation:
+
+- Future modules (Space Type, Room Analyzer, Material Engine, Style
+  Engine, Furniture Planner, Object Detection, Automatic Masks, the
+  Provider Layer, Generation Engine, and anything not yet named) are
+  expected to follow Principles 1–22 and the Decision Flow (§1) **by
+  default** — restating them is not required for each new module's own
+  README, only applying them.
+- **New Principles are introduced only when a fundamentally new
+  architectural concept appears** — one that genuinely cannot be
+  expressed as an instance of an existing Principle. Principle 21 (a new
+  spatial hierarchy) and Principle 22 (a new evolution mechanism) each
+  met that bar; most future stages will not.
+- **Local implementation details must never create new Principles.** A
+  new field, a new helper function, a new file layout, or a
+  module-specific convention is documentation for that module — it does
+  not get promoted to ADR-000 unless it is a genuinely new axiom the
+  entire AI Core must follow.
+
+### 11. Universal AI Core Rule
+
+The Decision Flow (§1) and the Axiom (§6) are **not** specific to Design
+Domain — that was only where the pattern was first named (DS-7.1.1).
+They apply automatically, with no further documentation required per
+module, to: Prompt Engine, Knowledge Core, Room Analyzer, Material
+Engine, Furniture Planner, Style Engine, Object Detection, Automatic
+Masks, the Provider Layer, Generation Engine, and every future AI module.
+This is the default evolution methodology for the whole platform, not an
+opt-in convention.
+
+### Architecture Review — DS-7.1.1a
+
+- **No contradictory Decision Flows** — the dual ordering introduced in
+  DS-7.1.1 has been corrected in place (Principle 22 and the DS-7.1.1
+  section above) and is fully superseded by §1 here.
+- **No duplicated evolution strategies** — `design-domain/README.md`
+  (§8–§10 there) now states the strategy once and points here for the
+  full elaboration, rather than restating a second version.
+- **No Principle conflicts** — §5 confirms Principles 3/19/20/21/22 each
+  answer a distinct question with no overlap.
+- **No documentation inconsistencies found** — `docs/ARCHITECTURE.md`,
+  `docs/AI_CORE_CHECKLIST.md`, `design-domain/README.md`, and this ADR
+  now use identical terminology (`Reuse → Metadata → Composition →
+  Registry → Top-level Contract`) for the one official flow.
+  `src/lib/interior/prompt-engine/README.md` was reviewed and found
+  already consistent — it does not describe a Decision Flow of its own,
+  so there was nothing to reconcile there, and it was not modified (out
+  of scope for this stage per the forbidden list below).
+- Confirmed unchanged: `design-domain/**` (`types.ts`, `domains.ts`,
+  `registry.ts`, `index.ts`) — this stage touched documentation only.
+  `design-domain/**` still does not import Prompt Engine, Prompt Domain,
+  Knowledge, Knowledge Core, Style Registry, Space Type, Developer
+  Studio, Benchmark, the API, or Production.
+
+### Final Architecture Assessment
+
+As of DS-7.1.1a, AI Core has:
+
+- ✓ Stable architectural philosophy (Principles 1–22, one responsibility
+  each — §5).
+- ✓ Stable evolution methodology (Principle 22 + the Axiom — §6).
+- ✓ Stable decision process (one official Decision Flow — §1, §8).
+- ✓ Stable documentation (ADR-000, `docs/ARCHITECTURE.md`,
+  `docs/AI_CORE_CHECKLIST.md`, `design-domain/README.md` all consistent).
+- ✓ Stable Principle hierarchy (§9, Principle Dependency Graph).
+- ✓ Stable architectural vocabulary (`Reuse`/`Metadata`/`Composition`/
+  `Registry`/`Top-level Contract` used identically everywhere they
+  appear).
+
+`docs/ARCHITECTURE.md` gained a short "Phase 7.1.1a" note under Phase 7.
+`docs/AI_CORE_CHECKLIST.md` gained matching consolidation checks.
+`design-domain/README.md` §8–§10 were corrected to point at the single
+flow here instead of restating a second version. Prompt Engine, Prompt
+Domain, Knowledge Core, Knowledge Registry, Rule Engine, Formatter,
+Pipeline, Builder, `PromptDraft`, Style Registry, Developer Studio,
+Benchmark, Production, the API, the UI, and SpaceType are untouched — no
+runtime behavior changed anywhere. `npm run build` passes.

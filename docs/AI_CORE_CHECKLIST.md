@@ -186,12 +186,13 @@ Not automated — reviewed by hand.
       top-level поля к любой модели AI Core (Design Domain, Space Type,
       Knowledge, Prompt Domain, Prompt Engine, Room Analyzer, Material
       Engine, Style Engine, Furniture Planner, Object Detection,
-      Automatic Masks, будущие модули) проверено по порядку: можно ли
-      переиспользовать существующую модель, можно ли выразить через
-      композицию, можно ли расширить `metadata` этой модели, можно ли
+      Automatic Masks, будущие модули) проверено по единственному
+      официальному Decision Flow, по порядку: можно ли переиспользовать
+      существующую модель, можно ли расширить её `metadata` (если она у
+      модели есть), можно ли выразить через композицию, можно ли
       добавить запись в registry — top-level контракт меняется только
       если все четыре предыдущих пункта дали отрицательный ответ
-      (ADR-000 Principle 22, DS-7.1.1)
+      (ADR-000 Principle 22, DS-7.1.1, консолидировано в DS-7.1.1a)
 - [ ] `DesignDomainMetadata` остаётся официальной, документированной
       точкой расширения Design Domain — новые возможности (`capabilities`,
       `generation`, `analysis`, `providers`, `operations`, `quality`,
@@ -201,3 +202,33 @@ Not automated — reviewed by hand.
 - [ ] Верхний контракт `DesignDomain` (`id`, `displayName`, `description`,
       `icon`, `metadata`) не менялся с DS-7.1 — ни одно новое поле не
       добавлено напрямую (DS-7.1.1)
+- [ ] Ровно один официальный Decision Flow во всей документации AI Core
+      (`Reuse → Metadata (если поддерживается) → Composition → Registry
+      → Top-level Contract`) — ни в ADR-000, ни в `design-domain/README.md`,
+      ни в `docs/ARCHITECTURE.md` не описан альтернативный порядок шагов
+      (DS-7.1.1a)
+- [ ] Models Without Metadata — для моделей без собственного поля
+      `metadata` (`PromptContext`, `KnowledgeFeature`, `KnowledgeRelation`,
+      Style Registry) шаг `Metadata` пропускается, а не переставляется;
+      их поток — `Reuse → Composition → Registry → Top-level Contract`
+      (DS-7.1.1a)
+- [ ] AI Core Evolution Axiom ("Metadata enriches an existing model.
+      Composition combines existing models. Registry organizes reusable
+      models. Top-level contract changes are the last resort.")
+      задокументирован как сжатая формулировка Principle 22, а не как
+      новый, отдельный Principle (DS-7.1.1a)
+- [ ] Principles 3/19/20/21/22 не пересекаются по ответственности —
+      ownership (3) / reuse (19) / migration (20) / spatial architecture
+      (21) / model evolution (22), каждый отвечает ровно на один вопрос
+      (DS-7.1.1a)
+- [ ] Architecture Maturity — новый Principle добавляется только при
+      появлении принципиально новой архитектурной концепции; локальные
+      детали реализации конкретного модуля никогда не порождают новый
+      Principle (DS-7.1.1a)
+- [ ] Universal AI Core Rule — единственный Decision Flow и AI Core
+      Evolution Axiom применяются по умолчанию ко всем модулям AI Core
+      (Design Domain, Space Type, Knowledge, Prompt Engine, Room
+      Analyzer, Material Engine, Style Engine, Furniture Planner, Object
+      Detection, Automatic Masks, Provider Layer, Generation Engine,
+      будущие модули), без необходимости повторно документировать
+      правило в README каждого нового модуля (DS-7.1.1a)
