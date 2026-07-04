@@ -502,7 +502,7 @@ Review — DS-6.5" и обнаружила нарушение ADR-000 Principle 
 контексты. Рекомендации не были применены к коду на самом DS-6.5 —
 исправление выполнено отдельным этапом, DS-6.5.1, ниже.
 
-### Phase 6.5.1 — PromptDraft Composition Refactor (DS-6.5.1, текущий этап)
+### Phase 6.5.1 — PromptDraft Composition Refactor (DS-6.5.1, завершён)
 
 Исправление дублирования, найденного собственной ревизией DS-6.5.
 `builder/sections/*.ts` (`StyleSection`, `RoomSection`, `MaterialSection`,
@@ -540,6 +540,57 @@ Registry, Generation Engine, Provider, Developer Studio, Benchmark,
 `PromptDraft`/`PromptDraftBuilder` по-прежнему не вызываются из
 production-кода. `npm run build` проходит. Следующий этап — **DS-6.6
 Formatter**.
+
+### Phase 6.5.2 — ADR Update: PromptDraft Evolution Strategy (DS-6.5.2, текущий этап, документация)
+
+Документационный этап, без единой строки кода. Фиксирует, где сегодняшняя
+фиксированная композиция `PromptDraft` (DS-6.5.1) может перестать
+масштабироваться в будущем — и почему это решение сознательно не
+принимается сейчас.
+
+- `docs/adr/ADR-000-Architecture-Principles.md` — добавлен раздел "Update
+  — DS-6.5.2 PromptDraft Evolution Strategy" с двумя подразделами:
+  - **Future Evolution** — при существенном росте числа вертикалей/доменов
+    за пределами интерьера (иллюстративно: Landscape, Exterior,
+    Hospitality, Retail, Office, Yacht, Aircraft, Exhibition, Smart Home,
+    HVAC, Acoustics, Accessibility, Brand Identity, Lighting Scenarios)
+    фиксированный, перечислимый список полей `PromptDraft` перестаёт
+    масштабироваться — каждая новая вертикаль требовала бы правки самого
+    типа. В этом случае допустима эволюция в сторону открытой,
+    registry-подобной композиции (например, `Domain Registry` →
+    `Map<DomainId, PromptContext>`, или эквивалентная
+    `DomainComposition`/`PromptDomainGraph`). Форма намеренно не
+    зафиксирована — называть её точно сейчас значило бы проектировать
+    заранее, без объективной необходимости.
+  - **Decision Record** — почему это решение НЕ принимается на DS-6.5.2:
+    сегодня доменов всего девять; статическая модель проще для чтения и
+    сопровождения; типизация сильнее (`context.room: RoomContext`, а не
+    `map.get("room") as RoomContext`); меньше уровень косвенности —
+    `PromptDraftBuilder` остаётся пятистрочной, очевидно корректной
+    композицией (DS-6.5.1); компиляция и сопровождение дешевле — не
+    появляется новая абстракция (`DomainRegistry`, `DomainId`, обход
+    графа), которую нужно изучать, тестировать и синхронизировать с
+    `PromptContext`.
+- `docs/AI_CORE_CHECKLIST.md` — добавлены пункты, фиксирующие: эта
+  эволюция документирована, но не выполнена; она не технический долг, не
+  TODO и не дефект архитектуры; она пересматривается только при
+  появлении объективной необходимости (реальная новая вертикаль, а не
+  гипотетическая).
+- `src/lib/interior/prompt-engine/README.md` — добавлена короткая ссылка
+  на ADR-000 "Update — DS-6.5.2" в разделе Architecture Guarantees.
+
+Явно зафиксировано: это не рекомендация для текущей реализации, не
+рефакторинг, не технический долг и не проблема архитектуры — это
+документированное направление возможной будущей эволюции. До появления
+объективной необходимости фиксированная композиция `PromptDraft`
+(DS-6.5.1) остаётся эталонной.
+
+`PromptDraft`, `PromptDraftBuilder`, Builder, Rule Engine, Formatter,
+Pipeline, Prompt Domain, Knowledge Core, Style Registry, Generation
+Engine, Provider, Developer Studio, Benchmark, публичный сайт, API,
+`buildEditPrompt()`, `prompts.ts` — ни один runtime-файл не изменён,
+изменена только документация. `npm run build` проходит. Следующий этап —
+**DS-6.6 Formatter**.
 
 ## Phase 7 — Prompt Lab
 

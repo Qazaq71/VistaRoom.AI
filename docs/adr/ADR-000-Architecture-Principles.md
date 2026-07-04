@@ -310,3 +310,97 @@ Principle 19 усиливает:
 
 `docs/AI_CORE_CHECKLIST.md` gained a matching check. No implementation
 changed.
+
+## Update — DS-6.5.2 PromptDraft Evolution Strategy (Documentation Only)
+
+Documentation-only stage, no code changed. Follows DS-6.5 (`PromptDraft`
+introduced with independent Section models) and DS-6.5.1 (Section models
+removed; `PromptDraft` rewritten as a fixed composition of the nine
+existing Prompt Domain contexts, per Principle 19). This update records
+where that fixed composition could stop being the right shape, and — just
+as importantly — commits to *not* changing it now.
+
+### Future Evolution
+
+Today's `PromptDraft` (`src/lib/interior/prompt-engine/builder/PromptDraft.ts`)
+is a closed, enumerated composition:
+
+```
+PromptDraft
+  ├── room: RoomContext
+  ├── style: StyleContext
+  ├── materials: MaterialContext
+  ├── furniture: FurnitureContext
+  ├── lighting: LightingContext
+  ├── decor: DecorContext
+  ├── constraints: ConstraintContext
+  ├── negative: NegativePromptContext
+  └── metadata: PromptMetadata
+```
+
+For today's scope — one vertical (interior), nine domains — this is the
+correct shape, for the reasons in the Decision Record below. It is
+**not** expected to stay correct at arbitrary scale. If VisataRoom AI's
+AI Core grows to cover materially more verticals and domains beyond
+interior — illustrative examples: Landscape, Exterior, Hospitality,
+Retail, Office, Yacht, Aircraft, Exhibition, Smart Home, HVAC, Acoustics,
+Accessibility, Brand Identity, Lighting Scenarios — a fixed, enumerated
+field list on `PromptDraft` stops scaling: every new vertical would mean
+editing the `PromptDraft` type itself, and most concrete drafts would
+carry mostly-irrelevant fields for domains that vertical doesn't use.
+
+At that point — and only at that point — an open, registry-shaped
+composition becomes the better trade-off, for example (illustrative, not
+a spec):
+
+```
+PromptDraft
+  ↓
+Domain Registry
+  ↓
+Map<DomainId, PromptContext>
+```
+
+or an equivalent structure named `DomainComposition` or
+`PromptDomainGraph` — something where `PromptDraft` holds a lookup over
+domain contexts instead of one named field per domain, so adding a
+vertical means registering a new `DomainId`, not editing `PromptDraft`'s
+type. The exact shape is intentionally left open; naming it precisely now
+would be designing ahead of the need it's meant to serve.
+
+**This is explicitly not a recommendation for the current implementation.**
+It is not refactoring work, not technical debt, and not a defect in
+today's architecture. It is a documented direction `PromptDraft` may take
+*if and when* domain count makes it necessary — nothing more. Until that
+objective necessity exists, today's fixed, enumerated `PromptDraft`
+(DS-6.5.1) is the reference design, not a stopgap awaiting replacement.
+
+### Decision Record — why this is not decided now
+
+The registry-shaped alternative above is deliberately **not** adopted at
+DS-6.5.2, for reasons that hold as long as the domain count stays where
+it is today:
+
+- Only nine domains exist today — a `Map<DomainId, PromptContext>` earns
+  its complexity at a domain count this stage hasn't reached.
+- The static, enumerated model is simpler to read, write, and reason
+  about than a generic registry/graph.
+- Every field on `PromptDraft` is compiler-checked by name and type
+  (`context.room: RoomContext`, not `map.get("room") as RoomContext`) —
+  a registry shape trades this away for flexibility not yet needed.
+  Weaker typing is not an acceptable trade for a problem that does not
+  exist yet.
+- One less layer of indirection between `PromptContext` and `PromptDraft`
+  means `PromptDraftBuilder` stays a five-line, obviously-correct
+  composition (DS-6.5.1) instead of a lookup/registration mechanism.
+- Compilation and maintenance stay cheap: no new abstraction
+  (`DomainRegistry`, `DomainId` union, graph traversal) exists yet for
+  anyone to learn, test, or keep in sync with `PromptContext`.
+
+For all of these reasons, the current fixed-composition `PromptDraft`
+(DS-6.5.1) remains the reference design. This decision is revisited only
+when a concrete new vertical (not a hypothetical one) makes the fixed
+field list demonstrably too large to maintain — see "Future Evolution"
+above for the trigger condition. `docs/ARCHITECTURE.md` (Phase 6.5.2) and
+`docs/AI_CORE_CHECKLIST.md` gained matching entries. No implementation
+changed.
