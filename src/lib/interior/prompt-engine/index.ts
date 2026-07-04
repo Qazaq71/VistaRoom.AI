@@ -3,6 +3,7 @@ export type {
   PromptBuilder,
   PromptFormatter,
   PromptRule,
+  PromptRuleSet,
   PromptValidator,
   PromptTemplate,
   PromptPipeline,

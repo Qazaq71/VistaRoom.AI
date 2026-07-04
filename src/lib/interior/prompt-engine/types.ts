@@ -53,6 +53,28 @@ export interface PromptRule {
 }
 
 /**
+ * A named, logical grouping of independent `PromptRule`s — e.g. all rules
+ * concerning lighting, or all rules for a specific `PromptGenerationMode`
+ * (future instances: `InteriorRuleSet`, `LightingRuleSet`,
+ * `FurnitureRuleSet`, `MaterialRuleSet`, `DecorRuleSet`,
+ * `ConstraintRuleSet`, `MyStyleRuleSet`). Purely an organizational
+ * contract — grouping rules into a `PromptRuleSet` does not give them any
+ * knowledge of each other or of execution order; rules inside a set are
+ * still independent (ADR-000 Principle 16), and only `PromptPipeline`
+ * decides how sets/rules are sequenced. `priority` is optional metadata
+ * `PromptPipeline` may use for that sequencing later — it is not read or
+ * branched on by any `PromptRule` implementation, and no sorting logic is
+ * implemented yet (ADR-000 Principle 18). No implementation yet — see
+ * `rules/README.md`.
+ */
+export interface PromptRuleSet {
+  id: string;
+  name: string;
+  rules: PromptRule[];
+  priority?: number;
+}
+
+/**
  * Contract for checking whether a `PromptContext` is well-formed enough
  * to proceed through the pipeline. No string logic, no side effects —
  * the input is `Readonly` and is never written back to (ADR-000

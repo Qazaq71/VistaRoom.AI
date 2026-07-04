@@ -22,6 +22,13 @@ Builder отвечает за сборку/дополнение `PromptContext` 
 - **Не знает про Formatter.** Builder ничего не импортирует из
   `../formatter` и не вызывает его — Pipeline (`../pipeline`) решает, что
   вызывать после Builder, сам Builder об этом не знает.
+- **Никогда не вызывает Rules и не знает про Rule Engine** (`ADR-000`
+  [Principle 17 — Builder не вызывает Rules](../../../../../docs/adr/ADR-000-Architecture-Principles.md),
+  DS-6.2.1). Builder ничего не импортирует из `../rules` и не знает про
+  `PromptRule`, `PromptRuleSet` или `PromptPipeline`. Builder только
+  создаёт/нормализует `PromptContext` и возвращает его — где заканчивается
+  его работа и начинается Rule Engine (`../rules`), решает исключительно
+  Pipeline, а не Builder.
 - **Не знает про Style Registry, Developer Studio, Generation Engine,
   Provider, API, React, Next.js** — только про `PromptContext`
   (`src/lib/interior/prompt-domain`).
@@ -111,4 +118,9 @@ DS-6.1: только контракт `PromptBuilder` в `../types.ts`.
 `prompts.ts`, Prompt Domain, Generation Engine, Provider, Developer
 Studio и Benchmark не затронуты. Builder не вызывается из production-кода.
 
-Следующий этап — DS-6.3 Rule Engine (`../rules`).
+DS-6.2.1 (Rule Engine Preparation): реализация Builder (`PromptBuilder.ts`,
+`PromptBuilderFactory.ts`) не менялась — этап только зафиксировал границу
+"Builder не вызывает Rules" (`ADR-000` Principle 17) в документации, до
+того как появится Rule Engine.
+
+Следующий этап — **DS-6.3 Rule Engine Foundation** (`../rules`).

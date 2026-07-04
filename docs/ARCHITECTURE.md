@@ -104,7 +104,7 @@ Engine, Provider или Benchmark. Ни одной реализации (`Prompt
 API, `buildEditPrompt()`, `prompts.ts`, Generation Engine, Provider,
 Style Registry, Prompt Domain и Benchmark не затронуты.
 
-### Phase 6.2 — Prompt Builder MVP (DS-6.2, текущий этап)
+### Phase 6.2 — Prompt Builder MVP (DS-6.2)
 
 Первая рабочая реализация внутри Prompt Engine:
 `src/lib/interior/prompt-engine/builder/`.
@@ -129,7 +129,40 @@ Formatter, Rules, Pipeline, Provider, Generation Engine, Developer
 Studio, Benchmark, React или Next.js. Не подключён к реальной генерации
 — публичный сайт, API, `buildEditPrompt()`, `prompts.ts`, Prompt Domain,
 Generation Engine, Provider, Developer Studio и Benchmark не затронуты.
-Следующий этап — DS-6.3 Rule Engine (`../rules`).
+
+### Phase 6.2.1 — Rule Engine Preparation (DS-6.2.1, текущий этап)
+
+Небольшие архитектурные уточнения перед DS-6.3, без единой строки
+реализации Rules/Rule Engine:
+
+- **`RuleSet`** назван как будущая концепция: логическая группа
+  независимых `PromptRule` (например, будущие `InteriorRuleSet`,
+  `LightingRuleSet`, `FurnitureRuleSet`, `MaterialRuleSet`,
+  `DecorRuleSet`, `ConstraintRuleSet`, `MyStyleRuleSet`). Добавлен
+  type-only контракт `PromptRuleSet` (`prompt-engine/types.ts`):
+  `{ id, name, rules: PromptRule[], priority?: number }`. Ни один
+  конкретный `RuleSet` не реализован.
+- **Rule priority — metadata, не логика.** `PromptRule` не определяет
+  порядок выполнения сам; это по-прежнему исключительно решение
+  `PromptPipeline`. Опциональное поле `priority` на `PromptRuleSet` —
+  данные для будущего Pipeline, а не бизнес-логика внутри правила.
+  Сортировка не реализована.
+- **Builder boundary.** Зафиксировано: `PromptBuilder` никогда не
+  вызывает Rules и не знает о Rule Engine — он только создаёт/нормализует
+  `PromptContext`. После Builder начинается Rule Engine, но это знает
+  только Pipeline.
+- `ADR-000` — добавлены Principle 17 (Builder не вызывает Rules) и
+  Principle 18 (Rule priority — metadata, не логика).
+  `docs/AI_CORE_CHECKLIST.md` — добавлены соответствующие пункты.
+- Обновлена документация: `prompt-engine/README.md`,
+  `builder/README.md`, `rules/README.md`, `pipeline/README.md`.
+
+Не создано: `RuleEngine`, реальные `PromptRule`, `RuleRegistry`,
+`RulePipeline`, сортировка по `priority`. Builder (`PromptBuilder.ts`,
+`PromptBuilderFactory.ts`) не менялся. Публичный сайт, API,
+`buildEditPrompt()`, `prompts.ts`, Generation Engine, Provider, Prompt
+Domain, Style Registry, Developer Studio и Benchmark не затронуты.
+Следующий этап — **DS-6.3 Rule Engine Foundation** (`../rules`).
 
 ## Phase 7 — Prompt Lab
 

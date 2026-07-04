@@ -113,6 +113,22 @@ and the module READMEs were already each independently enforcing.
     order. `PromptPipeline` is the single place that decides the sequence
     rules run in — no rule, Builder, or Formatter sequences them.
 
+17. **Builder не вызывает Rules.** `PromptBuilder`
+    (`src/lib/interior/prompt-engine/builder/**`) only creates or
+    normalizes a `PromptContext` and returns it. It never imports, calls,
+    or otherwise depends on `PromptRule`, `PromptRuleSet`, or
+    `PromptPipeline` — it does not know Rule Engine exists. Where
+    Builder's job ends and Rule Engine's job begins is a hard boundary,
+    not a stylistic convention.
+
+18. **Rule priority — metadata, не логика.** If a `priority` field is
+    introduced anywhere in Prompt Engine (e.g. on `PromptRuleSet`), it
+    exists purely as data `PromptPipeline` may read to decide sequencing.
+    It must never be branched on inside a `PromptRule.apply()`
+    implementation, and no rule may read another rule's priority — doing
+    so would violate Principle 16. Ordering logic itself still lives
+    exclusively in `PromptPipeline`.
+
 ## Consequences
 
 - ADR-001 (Provider Terminology), ADR-002 (MY_STYLE Identifier), and
@@ -142,3 +158,23 @@ implementation cannot satisfy the contract while mutating its input —
 return types are unchanged (still a plain `PromptContext`/`PromptResult`,
 signalling "return a new instance"). `docs/AI_CORE_CHECKLIST.md` gained
 matching checks.
+
+## Update — DS-6.2.1 Rule Engine Preparation
+
+Ahead of DS-6.3 (named "Rule Engine Foundation" as of this update), two
+more principles are added — Builder/Rule Engine boundary (17) and rule
+priority as metadata, not logic (18) — and the `RuleSet` concept is named
+for the first time. No implementation changed; this is documentation and
+one additive type.
+
+`PromptRuleSet` (`src/lib/interior/prompt-engine/types.ts`) is introduced
+as a **type-only** contract: a named, logical grouping of independent
+`PromptRule`s (`{ id, name, rules: PromptRule[], priority?: number }`).
+Grouping rules into a `PromptRuleSet` does not give them any knowledge of
+each other or of execution order — Principle 16 (Rules независимы) still
+holds for every rule inside a set, and the optional `priority` field is
+governed by Principle 18 above (Pipeline-facing metadata only, no sorting
+logic implemented). No `PromptRuleSet` is implemented; `InteriorRuleSet`,
+`LightingRuleSet`, `FurnitureRuleSet`, `MaterialRuleSet`, `DecorRuleSet`,
+`ConstraintRuleSet`, and `MyStyleRuleSet` are named in
+`rules/README.md` as future instances only.

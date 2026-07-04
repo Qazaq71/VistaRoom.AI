@@ -43,3 +43,14 @@ Not automated — reviewed by hand.
 - [ ] Pipeline определяет порядок выполнения — rule/step ordering lives
       only in `PromptPipeline`, not in Builder, a Rule, or Formatter
       (ADR-000 Principle 16)
+- [ ] Builder не вызывает Rules — no `PromptBuilder` implementation
+      imports or calls `PromptRule`, `PromptRuleSet`, or `PromptPipeline`
+      (ADR-000 Principle 17)
+- [ ] Rule priority — если поле `priority` где-либо появляется, это
+      metadata, которое читает только `PromptPipeline`; ни один
+      `PromptRule.apply()` не читает свой или чужой `priority`, и
+      сортировка по нему не реализована как часть правила (ADR-000
+      Principle 18)
+- [ ] RuleSet группирует правила по смыслу, но не даёт им знать друг о
+      друге или о порядке выполнения — Principle 16 продолжает
+      действовать внутри каждого `PromptRuleSet`
