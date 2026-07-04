@@ -248,3 +248,19 @@ Not automated — reviewed by hand.
       Invariants Registry?
 - [ ] If a new ADR was created, were `ARCHITECTURE.md` and
       `AI_CORE_CHECKLIST.md` updated if needed?
+- [ ] Architecture Area assigned? (one of CORE, PROMPT, SPATIAL,
+      KNOWLEDGE, PROVIDER, STYLE, PRODUCTION, DEVELOPER, BENCHMARK — see
+      [ADR_INDEX Architecture Areas](adr/ADR_INDEX.md#architecture-areas))
+- [ ] Owner defined in the [ADR Registry](adr/ADR_INDEX.md#adr-registry)
+      `Owner` column?
+- [ ] ADR `Version` updated per the [ADR Versioning
+      Policy](adr/ADR_INDEX.md#adr-versioning-policy) (major for a new
+      invariant/boundary/ownership change, minor for clarification)?
+- [ ] ADR `Stability` still correct per the [ADR Stability
+      Policy](adr/ADR_INDEX.md#adr-stability-policy) (Stable / Growing /
+      Experimental / Deprecated)?
+- [ ] [ADR_MAP.md](adr/ADR_MAP.md) updated if the visual map's shape
+      changed (new Area, new future placeholder, new relationship)?
+- [ ] [Architecture Coverage
+      Dashboard](adr/ADR_INDEX.md#architecture-coverage-dashboard) updated
+      if this change affects an Area's coverage/owner/missing/priority?
