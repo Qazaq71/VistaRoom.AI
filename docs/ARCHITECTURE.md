@@ -59,3 +59,12 @@ Studio.
 - объединение Providers;
 - выделение Pipelines;
 - консолидация Shared Models.
+
+## Architecture Decisions
+
+Зафиксированные архитектурные решения (ADR) — только документация,
+без изменений кода:
+
+- [ADR-001 — Provider Terminology](adr/ADR-001-Provider-Terminology.md)
+- [ADR-002 — MY_STYLE Identifier](adr/ADR-002-MyStyle-Identifier.md)
+- [ADR-003 — PromptContext Contracts](adr/ADR-003-PromptContext-Contracts.md)
