@@ -102,8 +102,34 @@ Engine, Provider или Benchmark. Ни одной реализации (`Prompt
 `PromptFormatter`-логики, правил, валидаторов, шаблонов, pipeline) не
 написано — только контракты. Не подключён ни к чему: публичный сайт,
 API, `buildEditPrompt()`, `prompts.ts`, Generation Engine, Provider,
-Style Registry, Prompt Domain и Benchmark не затронуты. Следующий этап —
-DS-6.2 Prompt Builder (первая реализация).
+Style Registry, Prompt Domain и Benchmark не затронуты.
+
+### Phase 6.2 — Prompt Builder MVP (DS-6.2, текущий этап)
+
+Первая рабочая реализация внутри Prompt Engine:
+`src/lib/interior/prompt-engine/builder/`.
+
+- `PromptBuilder.ts` — `DefaultPromptBuilder`, первая реализация
+  контракта `PromptBuilder` (`../types.ts`). Identity builder: получает
+  `Readonly<PromptContext>`, возвращает новый `PromptContext` со всеми
+  теми же данными (`{ ...context }`) — ничего не добавляет, не выводит,
+  не сливает. Не мутирует вход (ADR-000 Principle 15).
+- `PromptBuilderFactory.ts` — `createPromptBuilder()`, пока всегда
+  возвращающая `DefaultPromptBuilder`; готовит место для будущих
+  специализированных Builder (`InteriorPromptBuilder`,
+  `FurniturePromptBuilder`, `ReplacePromptBuilder`,
+  `CleanRoomPromptBuilder`, `RoomAnalysisPromptBuilder`).
+- `README.md` — обновлён: описывает, что Builder не работает со
+  строками, не знает про GPT/OpenAI/Formatter, создаёт только
+  `PromptContext`.
+
+Builder работает исключительно с Domain-моделью: не создаёт строк, не
+знает про `positivePrompt`/`negativePrompt`, не импортирует GPT, OpenAI,
+Formatter, Rules, Pipeline, Provider, Generation Engine, Developer
+Studio, Benchmark, React или Next.js. Не подключён к реальной генерации
+— публичный сайт, API, `buildEditPrompt()`, `prompts.ts`, Prompt Domain,
+Generation Engine, Provider, Developer Studio и Benchmark не затронуты.
+Следующий этап — DS-6.3 Rule Engine (`../rules`).
 
 ## Phase 7 — Prompt Lab
 

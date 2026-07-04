@@ -1,4 +1,4 @@
-# Prompt Engine (DS-6.1 Foundation + DS-6.1.1 Architecture Contracts)
+# Prompt Engine (DS-6.1 Foundation + DS-6.1.1 Contracts + DS-6.2 Builder MVP)
 
 ## 1. Что это такое
 
@@ -106,9 +106,10 @@ Rules, Formatter и Pipeline:
   оркестратор: он и только он решает, в каком порядке вызывать Builder →
   Rules → Formatter. Сами Rules об этом порядке ничего не знают.
 
-## 7. Статус на DS-6.1 / DS-6.1.1 (Foundation + Architecture Contracts)
+## 7. Статус на DS-6.1 / DS-6.1.1 / DS-6.2
 
-Создана только структура и контракты:
+DS-6.1 (Foundation) + DS-6.1.1 (Architecture Contracts) — только
+структура и контракты:
 
 - `types.ts` — все семь типов (`PromptResult`, `PromptBuilder`,
   `PromptFormatter`, `PromptRule`, `PromptValidator`, `PromptTemplate`,
@@ -116,10 +117,23 @@ Rules, Formatter и Pipeline:
   `Readonly<PromptContext>` (DS-6.1.1, immutability на уровне типов).
 - `index.ts` — публичный экспорт этих типов.
 - `builder/`, `formatter/`, `rules/`, `pipeline/`, `validators/`,
-  `templates/` — по одному `README.md` с описанием ответственности,
-  без единой строки реализации.
+  `templates/` — по одному `README.md` с описанием ответственности.
 
-Никакой логики, никакого текста, никакой интеграции. Публичный сайт,
-API, Developer Studio, `buildEditPrompt()`, `prompts.ts`, Generation
-Engine, Provider, Style Registry, Prompt Domain и Benchmark не
-затронуты. Следующий этап — DS-6.2 Prompt Builder (первая реализация).
+**DS-6.2 (текущий этап) — Prompt Builder MVP:**
+
+- `builder/PromptBuilder.ts` — первая реализация контракта
+  `PromptBuilder`: `DefaultPromptBuilder`, identity builder (копирует
+  `PromptContext` без изменений, ничего не обогащает).
+- `builder/PromptBuilderFactory.ts` — `createPromptBuilder()`, пока
+  всегда возвращающая `DefaultPromptBuilder`; подготовка к будущим
+  специализированным Builder (Interior/Furniture/Replace/CleanRoom/
+  RoomAnalysis). См. `builder/README.md`.
+
+`formatter/`, `rules/`, `pipeline/`, `validators/`, `templates/` — всё
+ещё только контракты, без реализации.
+
+Никакого текста, никакой интеграции. Публичный сайт, API, Developer
+Studio, `buildEditPrompt()`, `prompts.ts`, Generation Engine, Provider,
+Style Registry, Prompt Domain и Benchmark не затронуты. Builder не
+вызывается из production-кода. Следующий этап — DS-6.3 Rule Engine
+(`rules/`).
