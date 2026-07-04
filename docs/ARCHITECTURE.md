@@ -33,6 +33,28 @@ Studio.
 негативные промпты, метаданные. Только типы, без бизнес-логики. Пока
 нигде не используется.
 
+## Phase 5.1 — Architecture Cleanup (DS-5.1)
+
+Небольшие, безопасные правки терминологии по итогам Architecture Review
+1.0, перед началом DS-6. Не рефакторинг, не Prompt Engine. См.
+"Architecture Decisions" ниже за деталями:
+
+- `MY_STYLE_ID` — новая константа (`src/lib/interior/constants.ts`),
+  единый источник истины для литерала `"my_style"`. Пока используется
+  только в `styles/myStyle.ts` и `prompt-domain/types.ts`; production-код
+  (`prompts.ts`, `route.ts`, `page.tsx`, `useImageGeneration.ts`,
+  `StylePicker.tsx`) не тронут — миграция отложена.
+- `BenchmarkProvider` → `BenchmarkSource`,
+  `developerConfig.benchmark.provider` → `developerConfig.benchmark.source`
+  — терминология "Provider = AI/model integration, Source = данные/сторедж"
+  зафиксирована и применена там, где это было безопасно (нулевые
+  дополнительные точки использования). `GenerationProvider` не
+  переименован.
+- `GenerationRequest`/`GenerationResponse`
+  (`GenerationEngine/types.ts`) получили опциональное поле
+  `negativePrompt?: string` — только тип, без логики. `InteriorEditRequest`
+  (production) не менялся.
+
 ## Phase 6 — Prompt Engine
 
 Соберёт `PromptContext` в финальный текстовый промпт/negative prompt для
@@ -62,8 +84,10 @@ Studio.
 
 ## Architecture Decisions
 
-Зафиксированные архитектурные решения (ADR) — только документация,
-без изменений кода:
+Зафиксированные архитектурные решения (ADR). ADR-001/002/003 изначально
+были только документацией; в DS-5.1 часть направлений из них была
+частично и безопасно применена в коде (см. Phase 5.1 выше и разделы
+"Update — DS-5.1 Architecture Cleanup" в каждом ADR):
 
 - [ADR-001 — Provider Terminology](adr/ADR-001-Provider-Terminology.md)
 - [ADR-002 — MY_STYLE Identifier](adr/ADR-002-MyStyle-Identifier.md)

@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted (direction only — no renaming performed yet).
+Accepted. Partially applied in DS-5.1 (see "Update — DS-5.1 Architecture
+Cleanup" below); the remaining direction is still not a migration plan.
 
 ## Context
 
@@ -81,3 +82,34 @@ change renames anything.
   own change (see `docs/ARCHITECTURE.md`, Phase 9 — Architecture
   Refactoring 2.0, "объединение Providers") and reviewed independently of
   feature work.
+
+## Update — DS-5.1 Architecture Cleanup
+
+**Rule fixed:** `Provider` is reserved exclusively for AI/model
+integrations. `Source` is used for data/image/storage origins (benchmark
+inputs, and any future generic storage abstraction).
+
+**Applied (safe — zero other call sites referenced the old names):**
+
+- `BenchmarkProvider` (`src/app/developer/benchmark/types/benchmark.ts`)
+  renamed to **`BenchmarkSource`**. The type was declared but never
+  imported anywhere else in the codebase, so this was a zero-call-site
+  rename.
+- `developerConfig.benchmark.provider`
+  (`src/app/developer/config/developer.config.ts`) renamed to
+  **`developerConfig.benchmark.source`**. The field was read nowhere else
+  (only `developerConfig.benchmark.publicPath` is consumed, by
+  `BenchmarkService.ts`), so this was also a zero-call-site rename.
+
+**Deliberately NOT renamed (deferred):**
+
+- `GenerationProvider`, `GenerationProviderType`,
+  `developerConfig.generation.provider` — left exactly as-is. Per the
+  table above, this is legitimately an AI/model-integration concept (the
+  "Provider" name is correct under the new rule), and it has multiple live
+  call sites (`GenerationEngine.ts`, `ProviderFactory.ts`,
+  `MockGenerationProvider.ts`, both `GenerationEngine` READMEs). Renaming
+  it is out of scope for a minimal cleanup and remains a Phase 9 /
+  Refactoring 2.0 concern if ever pursued.
+- `ImageProvider`, `OpenAIImageProvider`, `ImageProviderName` — unchanged;
+  production code, explicitly out of scope for DS-5.1.

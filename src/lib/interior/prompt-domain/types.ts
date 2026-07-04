@@ -8,12 +8,13 @@ import type { DecorContext } from "./contexts/DecorContext";
 import type { ConstraintContext } from "./contexts/ConstraintContext";
 import type { NegativePromptContext } from "./contexts/NegativePromptContext";
 import type { MetadataContext } from "./contexts/MetadataContext";
+import { MY_STYLE_ID } from "../constants";
 
 /**
  * Whether the prompt is being assembled from a catalog style (Style
- * Registry) or from a user-defined custom style ("my_style" mode).
+ * Registry) or from a user-defined custom style (`MY_STYLE_ID` mode).
  */
-export type PromptGenerationMode = "preset" | "my_style";
+export type PromptGenerationMode = "preset" | typeof MY_STYLE_ID;
 
 /**
  * Desired richness/fidelity of the assembled prompt itself — a Prompt

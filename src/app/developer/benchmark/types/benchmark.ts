@@ -1,4 +1,8 @@
-export type BenchmarkProvider = "mock" | "public" | "local" | "blob" | "s3";
+// Where Benchmark's input test images come from — a storage/data-source
+// selector, unrelated to AI vendor integration. See
+// docs/adr/ADR-001-Provider-Terminology.md ("Provider" is reserved for
+// AI/model integrations; this concept uses "Source" instead).
+export type BenchmarkSource = "mock" | "public" | "local" | "blob" | "s3";
 
 export type BenchmarkCategory = {
   id: string;

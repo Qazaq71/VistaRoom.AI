@@ -2,7 +2,10 @@
 
 ## Status
 
-Accepted (direction only — no constant created yet).
+Accepted. Partially applied in DS-5.1 (see "Update — DS-5.1 Architecture
+Cleanup" below) — the constant now exists and is used by the two
+domain-only modules; production call sites remain migrated in a later
+stage.
 
 ## Context
 
@@ -39,23 +42,45 @@ string params used in `prompts.ts`, `route.ts`, and `page.tsx`).
 
 ## Decision
 
-In a future stage (not this one), a single canonical constant — e.g.
-`MY_STYLE_ID` — should become the one source of truth for this literal,
-exported from `src/lib/interior/styles/myStyle.ts` (alongside, or as part
-of, the existing `MY_STYLE` object). Every comparison and assignment site
-listed above should import and reference that constant instead of
-retyping `"my_style"`.
-
-No constant is created and no call site is changed as part of this ADR.
-This document only fixes the direction so that DS-6 and later stages
-introduce new `"my_style"`-adjacent code against a known target instead of
-adding a ninth independent copy of the literal.
+A single canonical constant, `MY_STYLE_ID`, is the one source of truth for
+this literal. It is exported from a new shared module,
+`src/lib/interior/constants.ts` (not from `myStyle.ts` itself, so that
+both `styles/**` and `prompt-domain/**` can depend on it without depending
+on each other). Every comparison and assignment site listed above should
+eventually import and reference this constant instead of retyping
+`"my_style"`.
 
 ## Consequences
 
-- No code changes in this stage.
-- Future work that introduces a `MY_STYLE_ID` constant should update all
-  call sites listed above in the same change, not partially, to avoid
-  leaving two sources of truth active at once.
 - This is a narrower, concrete instance of the general terminology
   discipline described in ADR-001 — one literal, one owner.
+- Production call sites are migrated in a later stage in one pass (not
+  partially), to avoid two sources of truth being active at once (see
+  "Update" below for what remains).
+
+## Update — DS-5.1 Architecture Cleanup
+
+`MY_STYLE_ID` now exists: `src/lib/interior/constants.ts` exports
+`export const MY_STYLE_ID = "my_style" as const;`. It is now the future
+single source of truth referenced by this ADR.
+
+**Applied (new domain modules only, as scoped for this stage):**
+
+- `src/lib/interior/styles/myStyle.ts` — `MY_STYLE.id` now reads
+  `MY_STYLE_ID` instead of the raw literal.
+- `src/lib/interior/prompt-domain/types.ts` — `PromptGenerationMode` now
+  reads `"preset" | typeof MY_STYLE_ID` instead of
+  `"preset" | "my_style"`.
+
+**Deliberately NOT touched (deferred to a future stage, per DS-5.1
+scope):**
+
+- `src/lib/interior/styles/types.ts` (`InteriorMyStyle.id: "my_style"`
+  literal type) — not in the DS-5.1 scope (`myStyle.ts` and
+  `prompt-domain/**` only); left as its own literal type for now.
+- `src/lib/prompts.ts`, `src/app/api/generate/route.ts`,
+  `src/app/page.tsx`, `src/hooks/useImageGeneration.ts`,
+  `src/app/components/StylePicker.tsx` — all still use the raw
+  `'my_style'` literal untouched, as required (no production/public-site
+  changes in DS-5.1). Migrating these five files to `MY_STYLE_ID` remains
+  future work, to be done in one pass per the Decision above.

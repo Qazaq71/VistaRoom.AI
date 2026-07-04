@@ -2,8 +2,9 @@
 
 ## Status
 
-Proposed (documents contracts to be implemented in DS-6; nothing described
-here is implemented yet).
+Proposed. In DS-5.1, Contract 1 gained a type-only stub (see "Update —
+DS-5.1 Architecture Cleanup" below); no generation logic is implemented
+for either contract yet — that remains DS-6 (or later) work.
 
 ## Context
 
@@ -128,9 +129,34 @@ scratch or decided implicitly by whatever the first PR happens to do.
 
 ## Consequences
 
-- No code changes. `PromptContext`, `NegativePromptContext`, `StyleContext`,
-  `InteriorEditRequest`, `GenerationRequest`, `buildEditPrompt()`, and
-  `route.ts` are all unchanged by this ADR.
+- `PromptContext`, `NegativePromptContext`, `StyleContext`,
+  `InteriorEditRequest`, `buildEditPrompt()`, and `route.ts` are all
+  unchanged by this ADR. `GenerationRequest`/`GenerationResponse` gained a
+  type-only `negativePrompt?: string` field in DS-5.1 (see below) — no
+  logic changed.
 - DS-6 planning should treat "wire up `negativePrompt`" and "reconcile
   `generationMode` with `InteriorMode`/`InteriorOperation`" as two
   separate, explicit decisions to make before or during implementation.
+- `generationMode` remains its own Prompt Domain concept for now (Option
+  1/2/3 above are still all open) and will be explicitly mapped onto
+  production's `InteriorMode`/`InteriorOperation` at the Production
+  Integration stage (`docs/ARCHITECTURE.md`, Phase 8), not before.
+
+## Update — DS-5.1 Architecture Cleanup
+
+**Contract 1 — type-only stub added, no logic:**
+
+`src/app/developer/engines/GenerationEngine/types.ts` now declares
+`negativePrompt?: string` on both `GenerationRequest` and
+`GenerationResponse`. This is purely a type-level placeholder for the
+chain described above (`PromptContext` → Prompt Engine →
+`GenerationRequest.negativePrompt` → Provider → Model) — no code reads,
+builds, or forwards this field yet. `MockGenerationProvider` is unaffected
+(the field is optional, so its existing object literals remain valid) and
+was not edited. `InteriorEditRequest`/`InteriorEditResult` (the
+production, non-Developer-Studio request shape) were **not** touched —
+adding a matching field there is production-facing and stays out of scope
+until Production Integration.
+
+**Contract 2 — unchanged:** `generationMode` remains untouched and
+undecided; no options were selected, no fields renamed.

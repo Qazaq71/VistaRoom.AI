@@ -5,7 +5,7 @@ export const developerConfig = {
   version: "1.0",
   debug: true,
   benchmark: {
-    provider: "mock" as "mock" | "public" | "local" | "blob" | "s3",
+    source: "mock" as "mock" | "public" | "local" | "blob" | "s3",
     root: "",
     publicPath: "/benchmark",
   },
