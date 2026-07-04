@@ -426,6 +426,47 @@ Not automated — reviewed by hand.
       site, the API, and Production are unmodified; no new ADR was
       created (ADR-000 Principles 19–22 and ADR-004 already own this
       responsibility) (DS-7.3.1)
+- [ ] Spatial Foundation complete — `docs/ARCHITECTURE.md`'s Architecture
+      Milestone A2 declares Design Domain, Space Type, Spatial Knowledge,
+      Spatial Governance, Boundary Invariants, Evolution Strategy, Reuse
+      Strategy, Commercial-readiness foundation, Architecture
+      documentation, and Future evolution methodology architecturally
+      stable (DS-7.3.2)
+- [ ] Stable contracts documented — `DesignDomain`, `SpaceType`,
+      `KnowledgeFeature`, Knowledge Registry, Spatial Registry, and
+      Boundary Rules are listed in Milestone A2's "Stable Contracts" as
+      not to be redesigned by any future phase (DS-7.3.2)
+- [ ] Future extensions use composition — Milestone A2's "Future
+      Development" states that Room Analyzer, Prompt Integration,
+      Knowledge Enrichment, Furniture Planner, Material Engine, Object
+      Detection, Automatic Zoning, Developer Studio, Benchmark, and
+      Production Integration consume the Spatial Foundation and do not
+      redefine it (DS-7.3.2)
+- [ ] No redesign required — Milestone A2 introduces no new
+      responsibilities and no new top-level fields on `DesignDomain`,
+      `SpaceType`, or `KnowledgeFeature`; it only declares existing
+      contracts (DS-7.2, DS-7.2.1, DS-7.3, DS-7.3.1) stable (DS-7.3.2)
+- [ ] Governance frozen — the Spatial Foundation Freeze Policy (Milestone
+      A2) permits extend/compose/enrich/consume and forbids
+      rewrite/merge-responsibilities/collapse-layers/replace-contracts
+      unless a future ADR explicitly supersedes Milestone A2 (DS-7.3.2)
+- [ ] Architecture Milestones registered — [ADR_INDEX's Architecture
+      Milestones](adr/ADR_INDEX.md#architecture-milestones) lists both A1
+      and A2 with Status/Owner/Scope/Depends On/Affects/Reference; future
+      milestone labels (`Prompt Intelligence`, `Production Intelligence`,
+      `Refactoring 2.0`) are not registered until actually completed
+      (DS-7.3.2)
+- [ ] Architectural Comfort distinguished from architecture — Milestone
+      A2's tooling list (automatic `ADR_MAP` generation, CI consistency
+      validation, ADR dependency validation, HTML portal, search/index,
+      visualization, governance dashboard, cross-reference generation)
+      is documented as improving documentation only, not as an
+      architectural decision, requirement, or ADR (DS-7.3.2)
+- [ ] Milestone A2 introduces no new Principle and no new ADR — ADR-000
+      Principles 19–22 and ADR-004 already own every responsibility A2
+      declares stable; `docs/adr/ADR_INDEX.md`'s ADR Registry gained no
+      new ADR row, only a new Architecture Milestones table entry
+      (DS-7.3.2)
 - [ ] Is there an ADR for this architectural decision?
 - [ ] Is the ADR registered in [ADR_INDEX](adr/ADR_INDEX.md)?
 - [ ] Does an existing ADR already own this responsibility?
@@ -462,20 +503,26 @@ Not automated — reviewed by hand.
 - [ ] Tags updated for discoverability (navigation only — do not imply
       ownership)?
 
-## Governance Completion Checks (DS-7.1.3e)
+## Governance Completion Checks (DS-7.1.3e, extended DS-7.3.2)
 
 Verifies the [ARCHITECTURE.md Architecture Milestone
 A1](ARCHITECTURE.md#architecture-milestone-a1--ai-core-foundation-complete)
-closure stays intact — run once per future architectural stage, alongside
+and [Architecture Milestone
+A2](ARCHITECTURE.md#architecture-milestone-a2--spatial-intelligence-foundation-complete)
+closures stay intact — run once per future architectural stage, alongside
 the checks above:
 
-- [ ] Architecture Milestone recorded — `ARCHITECTURE.md` contains exactly
-      one "Architecture Milestone A1" section; no second milestone section
-      was added elsewhere
+- [ ] Architecture Milestones recorded — `ARCHITECTURE.md` contains
+      exactly one "Architecture Milestone A1" section and exactly one
+      "Architecture Milestone A2" section; no duplicate of either was
+      added elsewhere, and any future milestone (A3, ...) is a new,
+      distinctly-numbered section, never a rewrite of A1 or A2
 - [ ] Governance status updated — [ADR_INDEX's Architecture
-      Status](adr/ADR_INDEX.md#architecture-status) still reads `Foundation
-      Complete (A1)`, or has been deliberately advanced to a new milestone
-      alongside `ARCHITECTURE.md`
+      Status](adr/ADR_INDEX.md#architecture-status) reads `Spatial
+      Intelligence Foundation Complete (A2)`, or has been deliberately
+      advanced to a new milestone alongside `ARCHITECTURE.md` and
+      [ADR_INDEX's Architecture
+      Milestones](adr/ADR_INDEX.md#architecture-milestones) table
 - [ ] Governance Freeze respected — no change modifies the governance
       model itself (Registry shape, Versioning/Stability/Confidence/Review
       Frequency policies, Ownership/Governance Rules, Creation/Update/

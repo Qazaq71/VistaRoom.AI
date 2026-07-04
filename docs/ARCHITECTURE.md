@@ -997,7 +997,12 @@ milestone — the next one after A1.
 
 ### Architecture Milestone Timeline
 
-Historical orientation only — **this is not a roadmap**:
+Historical orientation only — **this is not a roadmap**. Updated for
+Milestone A2 (DS-7.3.2) — see [Architecture Milestone
+A2](#architecture-milestone-a2--spatial-intelligence-foundation-complete)
+below; `Prompt Intelligence`, `Production Intelligence`, and
+`Refactoring 2.0` remain illustrative future labels only, not committed
+Phase numbers or a roadmap:
 
 ```
 A0
@@ -1006,11 +1011,14 @@ Initial AI Core
 A1
 AI Core Foundation Complete
   ↓
-Future
-Spatial Intelligence
+A2
+Spatial Intelligence Foundation Complete
   ↓
 Future
-Production Integration
+Prompt Intelligence
+  ↓
+Future
+Production Intelligence
   ↓
 Future
 Refactoring 2.0
@@ -1308,3 +1316,155 @@ corresponding entries. `knowledge/spaces/{registry,index}.ts`,
 `RoomContext`, Rule Engine, Builder, Formatter, Pipeline, Style Registry,
 Developer Studio, Benchmark, the public site, the API, and Production are
 not affected. `npm run build` passes.
+
+## Architecture Milestone A2 — Spatial Intelligence Foundation Complete
+
+Documentation-only governance milestone (DS-7.3.2), immediately following
+the completion of DS-7.3.1. No runtime code, no new ADR, no new
+Principle, no architecture redesign — this section only **declares**
+that the Spatial Intelligence layer built across DS-7.1 → DS-7.3.1 has
+reached the same maturity level Milestone A1 declared for the rest of AI
+Core.
+
+### Official Foundation Scope
+
+The following are now considered stable architectural foundations —
+built, documented, and governed, not experimental:
+
+- Design Domain (`design-domain/**`, DS-7.1, DS-7.1.1, DS-7.1.1a)
+- Space Type (`space-type/**`, DS-7.2, DS-7.2.1)
+- Spatial Knowledge (`knowledge/spaces/**`, DS-7.3)
+- Spatial Governance (DS-7.2.1's Space Type governance sections, DS-7.3.1's
+  Spatial Knowledge governance sections)
+- Boundary Invariants (ADR-004's `RoomContext ↔ SpaceType` Boundary
+  Invariant; DS-7.3's Knowledge/SpaceType id-only boundary; DS-7.3.1's
+  Knowledge Boundary and Knowledge Identity)
+- Evolution Strategy (the single official Decision Flow, ADR-000
+  Principle 22, applied to Design Domain, Space Type, and Spatial
+  Knowledge alike)
+- Reuse Strategy (DS-7.3.1's Reuse Policy, ADR-000 Principles 19–22,
+  applied consistently across every Spatial Intelligence module)
+- Commercial-readiness foundation (DS-7.3 §9 / DS-7.3.1 — commercial
+  space types and knowledge emerge from reusable composition, no
+  commercial-specific architecture)
+- Architecture documentation (`design-domain/README.md`,
+  `space-type/README.md`, `knowledge/spaces/README.md`, this document)
+- Future evolution methodology (Future Spatial Intelligence chain,
+  Future Knowledge Layers, Metadata Evolution — all documented as
+  illustrative, non-implemented direction)
+
+### Stable Contracts
+
+The following contracts are considered stable as of Milestone A2. No
+future phase should redesign them; future work extends them through
+composition, exactly as ADR-000 Principle 22 already requires:
+
+- `DesignDomain` (`design-domain/types.ts`)
+- `SpaceType` (`space-type/types.ts`)
+- `KnowledgeFeature` (`knowledge/core/Feature.ts`)
+- Knowledge Registry (`knowledge/registry/KnowledgeRegistry.ts` and every
+  `knowledge/<domain>/registry.ts`, including `knowledge/spaces/registry.ts`)
+- Spatial Registry (`space-type/registry.ts`, `design-domain/registry.ts`)
+- Boundary Rules (ADR-004's Boundary Invariant; DS-7.3/DS-7.3.1's
+  Knowledge ↔ SpaceType id-only boundary; DS-7.2.1's Registry Protection)
+
+### Future Development
+
+Future development proceeds by **extending** the Spatial Intelligence
+Foundation through new modules — none of which exist yet:
+
+- Room Analyzer
+- Prompt Integration
+- Knowledge Enrichment
+- Furniture Planner
+- Material Engine
+- Object Detection
+- Automatic Zoning
+- Developer Studio
+- Benchmark
+- Production Integration
+
+These modules **consume** the Spatial Foundation. They do **not**
+redefine it — none of them is permitted to change the shape of
+`DesignDomain`, `SpaceType`, `KnowledgeFeature`, or any Spatial/Knowledge
+registry listed under Stable Contracts above; each reads through the
+existing lookup functions (`getDesignDomain`, `getSpaceType`,
+`getSpatialKnowledge`, ...) exactly as they exist today.
+
+### Spatial Foundation Freeze Policy
+
+Future work **may**: extend, compose, enrich, or consume the Spatial
+Foundation (Design Domain, Space Type, Spatial Knowledge, and their
+registries/boundaries).
+
+Future work **must not**: rewrite, merge responsibilities, collapse
+layers, or replace any Stable Contract listed above — unless a future ADR
+explicitly supersedes this milestone. This mirrors Milestone A1's own
+Governance Freeze Policy, scoped to the Spatial Intelligence layer
+specifically.
+
+### Current Architecture Status
+
+| Layer | Status |
+|---|---|
+| AI Core | Complete |
+| Spatial Intelligence | Complete |
+| Prompt Intelligence | Planned |
+| Production Integration | Planned |
+| Refactoring 2.0 | Future |
+
+### Architectural Statement
+
+> The Spatial Intelligence Foundation is considered architecturally
+> complete. Future development should primarily extend this foundation
+> rather than redesign it. Architectural redesign requires an explicit
+> future ADR.
+
+### Architectural Comfort
+
+The items below are **architectural comforts, not architectural
+requirements** — the same distinction Milestone A1 already drew in
+["Future Governance
+Automation"](#future-governance-automation), now reaffirmed for the
+Spatial Intelligence layer rather than restated as a second, competing
+list:
+
+- Automatic `ADR_MAP` generation from `ADR_INDEX`
+- ADR consistency validation in CI
+- ADR dependency validation
+- HTML Architecture Portal
+- Architecture search/index
+- Architecture visualization
+- Governance dashboard
+- Cross-reference generation
+
+These improve documentation. They do **not** change architecture — none
+of them represents an architectural decision, none requires an ADR, and
+none is implemented as part of this milestone.
+
+### Final Architecture Review — DS-7.3.2
+
+- Milestone A2 introduces no new responsibilities — every item under
+  "Official Foundation Scope" and "Stable Contracts" already existed
+  before this stage (DS-7.1 → DS-7.3.1); this stage only declares their
+  maturity.
+- No Principles duplicated — ADR-000 Principles 19–22 are referenced, not
+  restated or forked.
+- No ADR ownership conflicts — no new ADR was created; SPATIAL Area
+  ownership (ADR-004) and KNOWLEDGE Area (ADR-000 Principles 19/22,
+  `docs/adr/ADR_MAP.md`'s ADR Ownership Map) are unchanged.
+- No governance conflicts — this milestone extends Milestone A1's
+  Governance Freeze Policy to a second, narrower scope; it does not
+  redefine A1 or any governance document's existing rules.
+- No timeline conflicts — the Architecture Milestone Timeline above was
+  updated in place (A2 inserted between A1 and the future labels), not
+  duplicated.
+- No runtime changes — `design-domain/**`, `space-type/**`,
+  `knowledge/**`, Prompt Engine, Prompt Domain, `RoomContext`,
+  `PromptContext`, Rule Engine, Builder, Formatter, Pipeline, Developer
+  Studio, Benchmark, the public site, the API, and Production are
+  unmodified. Only `docs/ARCHITECTURE.md`, `docs/adr/ADR_INDEX.md`,
+  `docs/adr/ADR_MAP.md`, and `docs/AI_CORE_CHECKLIST.md` changed. `npm
+  run build` passes.
+
+---

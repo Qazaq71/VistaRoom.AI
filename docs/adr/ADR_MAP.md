@@ -61,6 +61,34 @@ own ADR or an extension of an existing one is decided when that stage
 starts, per [ADR_INDEX's ADR Creation
 Checklist](ADR_INDEX.md#adr-creation-checklist).
 
+## Architecture Milestone Map
+
+Coarser-grained than the [Architecture Map](#architecture-map) above (ADR
+by ADR) and the [Architecture Area Map](#architecture-area-map) below
+(Area by Area) — this chain tracks **milestones**, i.e. whole layers of
+the platform declared architecturally stable, per [ADR_INDEX's
+Architecture Milestones](ADR_INDEX.md#architecture-milestones):
+
+```
+AI Core                        (A1 — Completed)
+  ↓
+Spatial Intelligence Foundation  (A2 — Completed)
+  ↓
+Prompt Intelligence               (Future — illustrative label only)
+  ↓
+Production Integration             (Future — illustrative label only)
+```
+
+**A2 is the second completed milestone**, immediately following A1 — see
+[ARCHITECTURE.md's Architecture Milestone
+A2](../ARCHITECTURE.md#architecture-milestone-a2--spatial-intelligence-foundation-complete).
+`Prompt Intelligence` and `Production Integration` are not yet started
+and not yet owned by any ADR or milestone row in
+[ADR_INDEX](ADR_INDEX.md#architecture-milestones) — shown here only to
+mark where a future milestone would attach, exactly like the [Future
+placeholders](#future-placeholders) above. This map does not decide when
+or whether either becomes its own milestone.
+
 ## Architecture Area Map
 
 The same chain as the [Architecture Map](#architecture-map) above,
@@ -95,7 +123,7 @@ Map](#adr-ownership-map) below for all nine Areas together.
 | PROVIDER | ADR-001 | `Provider` (AI/model vendor) vs `Source` (data/storage origin) | Optional future rename pass unifying `ImageProvider`/`GenerationProvider` → `AIProvider` (Phase 10) |
 | STYLE | ADR-002 | `MY_STYLE_ID` as the single literal owner | Migrating remaining production call sites in one pass |
 | PROMPT | ADR-003 | Prompt Domain stays data-only; Prompt Engine owns text assembly | Contract 1 (`negativePrompt`) and Contract 2 (`generationMode`) resolutions, both deferred to DS-6+ |
-| SPATIAL | ADR-004 | `RoomContext` ↔ `SpaceType` (Boundary Invariant) | `SpaceType` (DS-7.2), Knowledge Integration (DS-7.3), Prompt Integration adapter (DS-7.4) |
+| SPATIAL | ADR-004 | `RoomContext` ↔ `SpaceType` (Boundary Invariant) | `SpaceType` (DS-7.2, done) and Spatial Knowledge (DS-7.3, done) are now part of Milestone A2 (Stable Contracts, frozen — see [ADR_INDEX's Architecture Milestones](ADR_INDEX.md#architecture-milestones)); remaining future work is the Prompt Integration adapter (DS-7.4) |
 | KNOWLEDGE | none yet (ADR-000 Principles 19/22) | Knowledge Core stays composition-based, not a parallel model hierarchy | Candidate: Knowledge Graph ADR if graph semantics become load-bearing |
 | PRODUCTION | none yet | (none yet) | Candidate: Production Integration ADR at Phase 9 |
 | DEVELOPER | none yet (ADR-000 Principle 2) | Developer Studio consumes AI Core, never defines it | Candidate ADR only if Developer Studio's own config/navigation grows a real invariant |
@@ -138,9 +166,11 @@ none does.
 
 ---
 
-**Architecture Governance Complete.** Current Milestone: **A1** (see
+**Architecture Governance Complete.** Current Milestone: **A2** (see
 [ARCHITECTURE.md's Architecture Milestone
-A1](../ARCHITECTURE.md#architecture-milestone-a1--ai-core-foundation-complete)
+A2](../ARCHITECTURE.md#architecture-milestone-a2--spatial-intelligence-foundation-complete),
+[Architecture Milestone
+A1](../ARCHITECTURE.md#architecture-milestone-a1--ai-core-foundation-complete),
 and [ADR_INDEX's Architecture Status](ADR_INDEX.md#architecture-status)).
 Future changes are expected to extend this map's graph — new Areas, new
 future placeholders, new relationships — rather than restructure it.

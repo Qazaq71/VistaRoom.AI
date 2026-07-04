@@ -12,17 +12,50 @@ pure navigation — this document (ADR_INDEX) is the governance record.
 
 ## Architecture Status
 
-**Current value: Foundation Complete (A1)**
+**Current value: Spatial Intelligence Foundation Complete (A2)**
 
 Single location indicating the current architectural maturity of the
-whole AI Core platform (Style Registry, Prompt Domain, Prompt Engine
-Foundation, Rule Engine, Knowledge Core, Design Domain, ADR Governance,
-Architecture Evolution Methodology) — see
-[ARCHITECTURE.md's Architecture Milestone
-A1](../ARCHITECTURE.md#architecture-milestone-a1--ai-core-foundation-complete).
+whole platform. Two milestones are complete to date — see the
+[Architecture Milestones](#architecture-milestones) registry below for
+both:
+
+- **A1 — AI Core Foundation Complete** (Style Registry, Prompt Domain,
+  Prompt Engine Foundation, Rule Engine, Knowledge Core, Design Domain,
+  ADR Governance, Architecture Evolution Methodology) — see
+  [ARCHITECTURE.md's Architecture Milestone
+  A1](../ARCHITECTURE.md#architecture-milestone-a1--ai-core-foundation-complete).
+- **A2 — Spatial Intelligence Foundation Complete** (Design Domain, Space
+  Type, Spatial Knowledge, Spatial Governance, Boundary Invariants,
+  Evolution/Reuse Strategy, Commercial-readiness foundation) — see
+  [ARCHITECTURE.md's Architecture Milestone
+  A2](../ARCHITECTURE.md#architecture-milestone-a2--spatial-intelligence-foundation-complete).
+
 This is distinct from the [Final Governance
 Statement](#final-governance-statement) below, which is scoped only to the
 ADR system itself, not the whole platform.
+
+## Architecture Milestones
+
+Registry of completed and future architecture-wide maturity milestones —
+distinct from individual ADRs (an ADR owns one architectural
+responsibility; a milestone declares a whole layer of the platform
+stable). Full narrative for each milestone lives in
+[ARCHITECTURE.md](../ARCHITECTURE.md); this table is the governance
+record of status, ownership, and scope, in the same spirit as the [ADR
+Registry](#adr-registry) below.
+
+| Milestone | Status | Owner | Scope | Depends On | Affects | Reference |
+|---|---|---|---|---|---|---|
+| A1 | Completed | Architecture | AI Core Foundation (Style Registry, Prompt Domain, Prompt Engine Foundation, Rule Engine, Knowledge Core, Design Domain, ADR Governance, Architecture Evolution Methodology) | — | Every subsequent AI Core stage, including A2 | [ARCHITECTURE.md §A1](../ARCHITECTURE.md#architecture-milestone-a1--ai-core-foundation-complete) |
+| A2 | Completed | Architecture | Spatial Intelligence Foundation (Design Domain, Space Type, Spatial Knowledge, Spatial Governance, Boundary Invariants, Evolution Strategy, Reuse Strategy, Commercial-readiness foundation, Architecture documentation, Future evolution methodology) | A1 | Future Spatial modules, Prompt Integration, Room Analyzer, Knowledge evolution | [ARCHITECTURE.md §A2](../ARCHITECTURE.md#architecture-milestone-a2--spatial-intelligence-foundation-complete) |
+
+Future milestones (`Prompt Intelligence`, `Production Intelligence`,
+`Refactoring 2.0` — see [ARCHITECTURE.md's Architecture Milestone
+Timeline](../ARCHITECTURE.md#architecture-milestone-timeline)) are
+illustrative labels only and are not registered here until each is
+actually declared complete — registering a row before completion would
+turn this table into a roadmap, which it is explicitly not (same rule as
+[Future ADR Backlog](#future-adr-backlog) below).
 
 ## Purpose
 
