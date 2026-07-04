@@ -454,8 +454,51 @@ AI Core действует **Principle 19 — Composition over Duplication**
 
 Prompt Engine, Builder, Rule Engine, Formatter, Pipeline, Knowledge Core,
 Generation Engine, Benchmark, Developer Studio, API и публичный сайт не
-затронуты — изменена только документация. Следующий этап —
-**DS-6.5 Universal Interior Rules**.
+затронуты — изменена только документация.
+
+### Phase 6.5 — Prompt Builder Intelligence Layer / Prompt Composition Engine (DS-6.5, текущий этап)
+
+Первая реализация внутри `builder/`, независимая от `PromptBuilder`
+(`../types.ts`, DS-6.2): новый тип `PromptDraft` — промежуточное
+представление (AST) будущего промпта — и `PromptDraftBuilder`, который
+копирует `PromptContext` в `PromptDraft` без единой строки логики.
+
+- `builder/PromptDraft.ts` — `PromptDraft`: объект из девяти строго
+  типизированных секций (`style`, `room`, `materials`, `furniture`,
+  `lighting`, `decor`, `constraints`, `negative`, `metadata`), по одной на
+  под-контекст `PromptContext`. Ни `string`, ни `string[]`, ни каких-либо
+  полей, предполагающих сборку текста.
+- `builder/sections/*.ts` — девять моделей секций (`StyleSection`,
+  `RoomSection`, `MaterialSection`, `FurnitureSection`, `LightingSection`,
+  `DecorSection`, `ConstraintSection`, `NegativeSection`,
+  `MetadataSection`). Поля каждой секции — прямая копия полей
+  соответствующего Prompt Domain контекста (`StyleContext`,
+  `RoomContext`, ...), без служебных полей `BaseDomainContext`
+  (`version`/`createdAt`/`metadata`) и без искусственных полей, для
+  которых нет источника данных в `PromptContext` сегодня.
+- `builder/PromptDraftBuilder.ts` — `PromptDraftBuilder.build(context)`:
+  один метод, который поле за полем копирует `Readonly<PromptContext>` в
+  `PromptDraft`. Не implements `PromptBuilder` — та сигнатура
+  (`build(): PromptContext`) описывает другой контракт; это осознанно
+  отдельный, параллельный вход в Prompt Engine, ещё не подключённый ни к
+  чему.
+
+Builder не знает про Rule Engine, Formatter, Pipeline, Knowledge Base,
+Developer Studio, React или API (ADR-000 Principle 14, 17). Не мутирует
+`PromptContext` (Principle 15). `PromptDraftBuilder` не вызывается ни из
+production-кода, ни из `RuleEngine`/`DefaultRuleEngine`, ни из
+`PromptBuilderFactory` — публичный сайт, API, `buildEditPrompt()`,
+`prompts.ts`, Prompt Domain, Rule Engine, Generation Engine, Provider,
+Developer Studio и Benchmark не затронуты. `prompt-engine/index.ts` не
+обновлён — как и предыдущие реализации (`DefaultPromptBuilder`,
+`DefaultRuleEngine`), `PromptDraft`/`PromptDraftBuilder` пока не
+реэкспортируются на верхнем уровне модуля.
+
+Отдельная архитектурная ревизия по итогам этапа (дублирование секций с
+Prompt Domain, универсальность для будущих вертикалей, соответствие
+Principle 19) задокументирована в `builder/README.md` "Architecture
+Review — DS-6.5" — рекомендации зафиксированы, код по ним на этом этапе
+не менялся. Следующий этап — **DS-6.6 Formatter**.
 
 ## Phase 7 — Prompt Lab
 
