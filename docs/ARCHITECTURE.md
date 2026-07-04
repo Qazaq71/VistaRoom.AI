@@ -947,3 +947,118 @@ ADR-000/001/002/003/004, Prompt Engine, Prompt Domain, Knowledge Core,
 Design Domain, Rule Engine, Formatter, Pipeline, Builder, `PromptDraft`,
 Style Registry, Developer Studio, Benchmark, публичный сайт, API и
 Production не затронуты. `npm run build` проходит.
+
+### Phase 7.1.3e — Architecture Governance Final Completion (DS-7.1.3e, документация)
+
+Documentation-only stage — no runtime code, no production, no API, no
+TypeScript. This stage closes the Architecture Governance phase
+**permanently**: after this stage, the governance model built across
+DS-7.1.3/DS-7.1.3a/DS-7.1.3b/DS-7.1.3c/DS-7.1.3d is the permanent
+architectural baseline of the project, and future architectural work is
+expected to consist of adding new ADRs and new modules, not of redesigning
+governance itself.
+
+## Architecture Milestone A1 — AI Core Foundation Complete
+
+The core architectural platform consisting of:
+
+- Style Registry
+- Prompt Domain
+- Prompt Engine Foundation
+- Rule Engine
+- Knowledge Core
+- Design Domain
+- ADR Governance
+- Architecture Evolution Methodology
+
+is considered architecturally stable. Future development should primarily
+extend this foundation rather than redesign it. The governance model is
+complete and becomes the permanent architectural baseline of the project.
+
+### Architecture Governance Completion
+
+Architecture Governance is now considered complete. Future architectural
+work should focus on new modules, new ADRs, and implementation — instead
+of modifying the governance model itself. Governance changes should occur
+only when a genuinely new architectural concept appears.
+
+### Governance Stability Policy
+
+Governance documents (`ARCHITECTURE.md`, `ADR_INDEX.md`, `ADR_MAP.md`,
+`AI_CORE_CHECKLIST.md`, and individual ADRs) are expected to be highly
+stable. Small clarifications are acceptable at any time. A structural
+redesign of the governance model itself requires a new architecture
+milestone — the next one after A1.
+
+### Architecture Milestone Timeline
+
+Historical orientation only — **this is not a roadmap**:
+
+```
+A0
+Initial AI Core
+  ↓
+A1
+AI Core Foundation Complete
+  ↓
+Future
+Spatial Intelligence
+  ↓
+Future
+Production Integration
+  ↓
+Future
+Refactoring 2.0
+```
+
+### Future Governance Automation
+
+**Future tooling — NOT architecture.** The items below are potential
+developer-productivity tools that could be built on top of the governance
+documents. They do not change the architecture itself, and they are
+intentionally outside ADR governance:
+
+- Automatic `ADR_MAP` generation from `ADR_INDEX`
+- Architecture consistency validation in CI
+- ADR relationship validation
+- Broken cross-reference detection
+- Architecture coverage validation
+- HTML architecture portal generation
+- Architecture search/index
+- Dependency visualization
+
+None of these tools represent an architectural decision, none of them
+require an ADR, and none of them are implemented as part of this stage —
+this list is a future-tooling backlog, not a commitment.
+
+### Governance vs Tooling
+
+Architecture Governance defines decisions. Automation tools, if ever
+built (see [Future Governance Automation](#future-governance-automation)
+above), only help maintain those decisions — they must never become the
+source of architectural truth. Documentation (`ARCHITECTURE.md`, the ADRs,
+`ADR_INDEX.md`, `ADR_MAP.md`) remains the canonical source, regardless of
+what tooling is later built around it.
+
+### Governance Freeze Policy
+
+After Milestone A1, new modules may extend the architecture, but they must
+follow the existing governance model. Changing the governance model itself
+requires:
+
+- explicit architectural review;
+- a new ADR, if necessary;
+- a new architecture milestone (beyond A1).
+
+### Architecture Completion Statement
+
+The AI Core architectural foundation is considered complete. Future work
+should primarily expand the system through composition, new modules, and
+new knowledge — rather than architectural redesign.
+
+---
+
+Prompt Engine, Prompt Domain, Knowledge Core, Design Domain, Rule Engine,
+Builder, Formatter, Pipeline, Developer Studio, Benchmark, API, and
+Production are not affected — this stage is documentation-only. `npm run
+build` passes.

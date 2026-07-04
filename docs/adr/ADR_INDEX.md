@@ -10,6 +10,20 @@ For the visual architecture map (area chain, ownership, dependency tree,
 future placeholders), see [docs/adr/ADR_MAP.md](ADR_MAP.md). ADR_MAP is
 pure navigation — this document (ADR_INDEX) is the governance record.
 
+## Architecture Status
+
+**Current value: Foundation Complete (A1)**
+
+Single location indicating the current architectural maturity of the
+whole AI Core platform (Style Registry, Prompt Domain, Prompt Engine
+Foundation, Rule Engine, Knowledge Core, Design Domain, ADR Governance,
+Architecture Evolution Methodology) — see
+[ARCHITECTURE.md's Architecture Milestone
+A1](../ARCHITECTURE.md#architecture-milestone-a1--ai-core-foundation-complete).
+This is distinct from the [Final Governance
+Statement](#final-governance-statement) below, which is scoped only to the
+ADR system itself, not the whole platform.
+
 ## Purpose
 
 ADR_INDEX exists to:

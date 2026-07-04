@@ -275,3 +275,34 @@ Not automated — reviewed by hand.
       invariant/boundary/ownership change, minor for clarification)?
 - [ ] Tags updated for discoverability (navigation only — do not imply
       ownership)?
+
+## Governance Completion Checks (DS-7.1.3e)
+
+Verifies the [ARCHITECTURE.md Architecture Milestone
+A1](ARCHITECTURE.md#architecture-milestone-a1--ai-core-foundation-complete)
+closure stays intact — run once per future architectural stage, alongside
+the checks above:
+
+- [ ] Architecture Milestone recorded — `ARCHITECTURE.md` contains exactly
+      one "Architecture Milestone A1" section; no second milestone section
+      was added elsewhere
+- [ ] Governance status updated — [ADR_INDEX's Architecture
+      Status](adr/ADR_INDEX.md#architecture-status) still reads `Foundation
+      Complete (A1)`, or has been deliberately advanced to a new milestone
+      alongside `ARCHITECTURE.md`
+- [ ] Governance Freeze respected — no change modifies the governance
+      model itself (Registry shape, Versioning/Stability/Confidence/Review
+      Frequency policies, Ownership/Governance Rules, Creation/Update/
+      Decision checklists) without the [Governance Freeze
+      Policy](ARCHITECTURE.md#governance-freeze-policy)'s explicit review +
+      new-ADR-if-necessary + new-milestone sequence
+- [ ] Future tooling separated from architecture — nothing in [Future
+      Governance Automation](ARCHITECTURE.md#future-governance-automation)
+      (ADR_MAP auto-generation, CI consistency validation, relationship
+      validation, cross-reference detection, coverage validation, HTML
+      portal, search/index, dependency visualization) is described as an
+      architectural requirement or given ADR ownership
+- [ ] Milestone timeline updated — new milestones are appended to the
+      [Architecture Milestone
+      Timeline](ARCHITECTURE.md#architecture-milestone-timeline) in order;
+      the timeline is not repurposed as a roadmap

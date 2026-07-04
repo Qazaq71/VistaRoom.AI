@@ -135,3 +135,12 @@ none does.
   [ADR_INDEX.md](ADR_INDEX.md)
 - System structure and stage history: [../ARCHITECTURE.md](../ARCHITECTURE.md)
 - Verification checklist: [../AI_CORE_CHECKLIST.md](../AI_CORE_CHECKLIST.md)
+
+---
+
+**Architecture Governance Complete.** Current Milestone: **A1** (see
+[ARCHITECTURE.md's Architecture Milestone
+A1](../ARCHITECTURE.md#architecture-milestone-a1--ai-core-foundation-complete)
+and [ADR_INDEX's Architecture Status](ADR_INDEX.md#architecture-status)).
+Future changes are expected to extend this map's graph — new Areas, new
+future placeholders, new relationships — rather than restructure it.
