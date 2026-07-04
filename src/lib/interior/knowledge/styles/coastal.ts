@@ -22,8 +22,8 @@ export const COASTAL_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "whitewashed-wood", name: "Whitewashed wood", category: "materials" },
-      { id: "natural-linen-fabric", name: "Natural linen fabric", category: "materials" },
+      { id: "whitewashed-wood", name: "Whitewashed wood", category: "material" },
+      { id: "natural-linen-fabric", name: "Natural linen fabric", category: "material" },
     ],
     furniture: [
       { id: "rattan-armchair", name: "Rattan armchair", category: "furniture" },
@@ -38,15 +38,15 @@ export const COASTAL_KNOWLEDGE: StyleKnowledge = {
       { id: "driftwood-accent", name: "Driftwood accent", category: "decor" },
     ],
     colors: [
-      { id: "light-blue-and-white", name: "Light blue and white", category: "colors" },
-      { id: "sandy-neutral", name: "Sandy neutral", category: "colors" },
+      { id: "light-blue-and-white", name: "Light blue and white", category: "color" },
+      { id: "sandy-neutral", name: "Sandy neutral", category: "color" },
     ],
     composition: [
       { id: "airy-open-layout", name: "Airy open layout", category: "composition" },
       { id: "breezy-symmetry", name: "Breezy symmetry", category: "composition" },
     ],
     constraints: [
-      { id: "light-and-airy-only", name: "Light and airy only", category: "constraints" },
+      { id: "light-and-airy-only", name: "Light and airy only", category: "constraint" },
     ],
     rendering: [
       { id: "bright-diffuse-daylight", name: "Bright diffuse daylight", category: "rendering" },

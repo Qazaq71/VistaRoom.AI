@@ -22,8 +22,8 @@ export const INDUSTRIAL_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "raw-steel", name: "Raw steel", category: "materials" },
-      { id: "exposed-concrete", name: "Exposed concrete", category: "materials" },
+      { id: "raw-steel", name: "Raw steel", category: "material" },
+      { id: "exposed-concrete", name: "Exposed concrete", category: "material" },
     ],
     furniture: [
       { id: "metal-frame-furniture", name: "Metal frame furniture", category: "furniture" },
@@ -38,16 +38,16 @@ export const INDUSTRIAL_KNOWLEDGE: StyleKnowledge = {
       { id: "vintage-machinery-accent", name: "Vintage machinery accent", category: "decor" },
     ],
     colors: [
-      { id: "charcoal-and-rust-palette", name: "Charcoal and rust palette", category: "colors" },
-      { id: "raw-metal-tone", name: "Raw metal tone", category: "colors" },
+      { id: "charcoal-and-rust-palette", name: "Charcoal and rust palette", category: "color" },
+      { id: "raw-metal-tone", name: "Raw metal tone", category: "color" },
     ],
     composition: [
       { id: "exposed-structure-focal-point", name: "Exposed structure focal point", category: "composition" },
       { id: "utilitarian-layout", name: "Utilitarian layout", category: "composition" },
     ],
     constraints: [
-      { id: "raw-unfinished-surfaces", name: "Raw unfinished surfaces", category: "constraints" },
-      { id: "avoid-decorative-softness", name: "Avoid decorative softness", category: "constraints" },
+      { id: "raw-unfinished-surfaces", name: "Raw unfinished surfaces", category: "constraint" },
+      { id: "avoid-decorative-softness", name: "Avoid decorative softness", category: "constraint" },
     ],
     rendering: [
       { id: "harsh-directional-light", name: "Harsh directional light", category: "rendering" },

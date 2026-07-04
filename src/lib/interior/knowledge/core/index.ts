@@ -1,5 +1,5 @@
-export type { KnowledgeEntity } from "./Entity";
-export type { FeatureType } from "./FeatureTypes";
+export type { KnowledgeEntity, KnowledgeEntityKind } from "./Entity";
+export type { FeatureType, UniversalFeatureType, InteriorFeatureType } from "./FeatureTypes";
 export type {
   KnowledgeFeature,
   MaterialFeature,

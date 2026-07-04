@@ -23,8 +23,8 @@ export const LOFT_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "exposed-brick", name: "Exposed brick", category: "materials" },
-      { id: "raw-concrete", name: "Raw concrete", category: "materials" },
+      { id: "exposed-brick", name: "Exposed brick", category: "material" },
+      { id: "raw-concrete", name: "Raw concrete", category: "material" },
     ],
     furniture: [
       { id: "reclaimed-wood-furniture", name: "Reclaimed wood furniture", category: "furniture" },
@@ -39,14 +39,14 @@ export const LOFT_KNOWLEDGE: StyleKnowledge = {
       { id: "vintage-signage", name: "Vintage signage", category: "decor" },
     ],
     colors: [
-      { id: "neutral-industrial-palette", name: "Neutral industrial palette", category: "colors" },
-      { id: "warm-brick-red", name: "Warm brick red", category: "colors" },
+      { id: "neutral-industrial-palette", name: "Neutral industrial palette", category: "color" },
+      { id: "warm-brick-red", name: "Warm brick red", category: "color" },
     ],
     composition: [
       { id: "open-plan-zoning", name: "Open-plan zoning", category: "composition" },
     ],
     constraints: [
-      { id: "preserve-raw-surfaces", name: "Preserve raw surfaces", category: "constraints" },
+      { id: "preserve-raw-surfaces", name: "Preserve raw surfaces", category: "constraint" },
     ],
     rendering: [
       { id: "high-ceiling-light-falloff", name: "High-ceiling light falloff", category: "rendering" },

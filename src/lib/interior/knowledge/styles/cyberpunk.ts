@@ -23,8 +23,8 @@ export const CYBERPUNK_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "brushed-metal", name: "Brushed metal", category: "materials" },
-      { id: "glossy-black-panel", name: "Glossy black panel", category: "materials" },
+      { id: "brushed-metal", name: "Brushed metal", category: "material" },
+      { id: "glossy-black-panel", name: "Glossy black panel", category: "material" },
     ],
     furniture: [
       { id: "sleek-modular-seating", name: "Sleek modular seating", category: "furniture" },
@@ -39,16 +39,16 @@ export const CYBERPUNK_KNOWLEDGE: StyleKnowledge = {
       { id: "tech-gadgetry", name: "Tech gadgetry", category: "decor" },
     ],
     colors: [
-      { id: "neon-pink-and-blue", name: "Neon pink and blue", category: "colors" },
-      { id: "dark-charcoal-base", name: "Dark charcoal base", category: "colors" },
+      { id: "neon-pink-and-blue", name: "Neon pink and blue", category: "color" },
+      { id: "dark-charcoal-base", name: "Dark charcoal base", category: "color" },
     ],
     composition: [
       { id: "layered-depth", name: "Layered depth", category: "composition" },
       { id: "asymmetric-tech-clusters", name: "Asymmetric tech clusters", category: "composition" },
     ],
     constraints: [
-      { id: "high-tech-only", name: "High-tech only", category: "constraints" },
-      { id: "avoid-organic-natural-materials", name: "Avoid organic natural materials", category: "constraints" },
+      { id: "high-tech-only", name: "High-tech only", category: "constraint" },
+      { id: "avoid-organic-natural-materials", name: "Avoid organic natural materials", category: "constraint" },
     ],
     rendering: [
       { id: "neon-glow-bloom", name: "Neon glow bloom", category: "rendering" },

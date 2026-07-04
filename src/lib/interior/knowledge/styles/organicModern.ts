@@ -22,8 +22,8 @@ export const ORGANIC_MODERN_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "natural-stone", name: "Natural stone", category: "materials" },
-      { id: "warm-toned-wood", name: "Warm-toned wood", category: "materials" },
+      { id: "natural-stone", name: "Natural stone", category: "material" },
+      { id: "warm-toned-wood", name: "Warm-toned wood", category: "material" },
     ],
     furniture: [
       { id: "curved-organic-furniture", name: "Curved organic furniture", category: "furniture" },
@@ -38,16 +38,16 @@ export const ORGANIC_MODERN_KNOWLEDGE: StyleKnowledge = {
       { id: "organic-textile-throw", name: "Organic textile throw", category: "decor" },
     ],
     colors: [
-      { id: "warm-earth-tones", name: "Warm earth tones", category: "colors" },
-      { id: "muted-neutral", name: "Muted neutral", category: "colors" },
+      { id: "warm-earth-tones", name: "Warm earth tones", category: "color" },
+      { id: "muted-neutral", name: "Muted neutral", category: "color" },
     ],
     composition: [
       { id: "flowing-curved-lines", name: "Flowing curved lines", category: "composition" },
       { id: "organic-asymmetry", name: "Organic asymmetry", category: "composition" },
     ],
     constraints: [
-      { id: "natural-materials-preferred", name: "Natural materials preferred", category: "constraints" },
-      { id: "soften-hard-edges", name: "Soften hard edges", category: "constraints" },
+      { id: "natural-materials-preferred", name: "Natural materials preferred", category: "constraint" },
+      { id: "soften-hard-edges", name: "Soften hard edges", category: "constraint" },
     ],
     rendering: [
       { id: "soft-warm-light", name: "Soft warm light", category: "rendering" },

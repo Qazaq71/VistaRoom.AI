@@ -23,8 +23,8 @@ export const JAPANDI_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "raw-wood", name: "Raw wood", category: "materials" },
-      { id: "natural-linen", name: "Natural linen", category: "materials" },
+      { id: "raw-wood", name: "Raw wood", category: "material" },
+      { id: "natural-linen", name: "Natural linen", category: "material" },
     ],
     furniture: [
       { id: "low-wood-furniture", name: "Low wood furniture", category: "furniture" },
@@ -38,16 +38,16 @@ export const JAPANDI_KNOWLEDGE: StyleKnowledge = {
       { id: "single-branch-arrangement", name: "Single branch arrangement", category: "decor" },
     ],
     colors: [
-      { id: "muted-earth-tones", name: "Muted earth tones", category: "colors" },
-      { id: "warm-neutral", name: "Warm neutral", category: "colors" },
+      { id: "muted-earth-tones", name: "Muted earth tones", category: "color" },
+      { id: "warm-neutral", name: "Warm neutral", category: "color" },
     ],
     composition: [
       { id: "balanced-asymmetry", name: "Balanced asymmetry", category: "composition" },
       { id: "negative-space", name: "Negative space", category: "composition" },
     ],
     constraints: [
-      { id: "quality-over-quantity", name: "Quality over quantity", category: "constraints" },
-      { id: "few-objects", name: "Few objects", category: "constraints" },
+      { id: "quality-over-quantity", name: "Quality over quantity", category: "constraint" },
+      { id: "few-objects", name: "Few objects", category: "constraint" },
     ],
     rendering: [
       { id: "soft-natural-light", name: "Soft natural light", category: "rendering" },

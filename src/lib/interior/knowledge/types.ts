@@ -1,23 +1,35 @@
+import type { FeatureType } from "./core/FeatureTypes";
+import type {
+  MaterialFeature,
+  FurnitureFeature,
+  LightingFeature,
+  DecorFeature,
+  ColorFeature,
+  CompositionFeature,
+  ConstraintFeature,
+  RenderingFeature,
+  ArchitectureFeature,
+  SpaceFeature,
+  MoodFeature,
+  QualityFeature,
+} from "./core/Feature";
+
 /**
  * Every knowledge domain the Knowledge Base is split into. Mirrors the
  * sub-directories of `./` (`styles`, `materials`, `furniture`, ...). Used
- * only as a tag on `KnowledgeReference` and on each domain's own knowledge
- * type — nothing here reads it to make decisions.
+ * only as a tag on `KnowledgeReference` and (via the `<Domain>Knowledge`
+ * aliases below) on each domain's own knowledge type — nothing here reads
+ * it to make decisions.
+ *
+ * DS-6.4.2: defined as `FeatureType | "style"` rather than its own
+ * parallel literal list — `FeatureType` (`./core/FeatureTypes.ts`) is now
+ * the single canonical source for domain naming, so the two can never
+ * drift apart again. `"style"` is the one category `FeatureType`
+ * deliberately excludes: a `KnowledgeFeature` can never itself be a
+ * whole style, but a `KnowledgeReference` can point at one (e.g. inside
+ * `StyleKnowledge.references`). See `./core/README.md` §3.
  */
-export type KnowledgeCategory =
-  | "style"
-  | "materials"
-  | "furniture"
-  | "lighting"
-  | "decor"
-  | "colors"
-  | "composition"
-  | "constraints"
-  | "rendering"
-  | "architecture"
-  | "space"
-  | "mood"
-  | "quality";
+export type KnowledgeCategory = FeatureType | "style";
 
 /**
  * Universal pointer from one knowledge entry to another, used so
@@ -26,11 +38,28 @@ export type KnowledgeCategory =
  * in-line. Resolving a reference to its full entry is the job of a future
  * consumer (e.g. Prompt Builder) — the Knowledge Base itself never
  * resolves it.
+ *
+ * Deliberately **not** replaced by `KnowledgeFeature` (`./core/Feature.ts`,
+ * DS-6.4.1/DS-6.4.2), even though both describe "a pointer into a
+ * domain" — this is the same intentional split as a foreign key with a
+ * denormalized label vs. the full row it points at. A `KnowledgeReference`
+ * must stay lightweight and valid even while the domain it points into is
+ * still an empty scaffold (see `./README.md` §6) — a `StyleKnowledge`
+ * should never be blocked on a `KnowledgeFeature` existing yet. See
+ * `./core/README.md` §8 "Дедупликация" and §7 "Migration Strategy" for
+ * the planned direction.
+ *
+ * `category` (this type) vs `domain` (`KnowledgeFeature.domain`,
+ * `./core/Feature.ts`) name the same underlying axis — which domain does
+ * this belong to — but intentionally differ: `category: KnowledgeCategory`
+ * is wider (includes `"style"`, since a reference can point at a style),
+ * `domain: FeatureType` is narrower (a Feature is never a style).
  */
 export type KnowledgeReference = {
   readonly id: string;
   readonly name: string;
   readonly category: KnowledgeCategory;
+  /** How much *this reference* matters to whatever holds it — distinct from `KnowledgeFeature.weight` and `KnowledgeRelation.weight` (`./core/README.md` §8). */
   readonly weight?: number;
   readonly notes?: string;
 };
@@ -77,6 +106,12 @@ export type StylePromptFragments = {
  * — `styleId` is the only link back to the Style Registry catalog entry.
  * See `./README.md` for the Style Registry vs. Knowledge Base split.
  *
+ * Deliberately does **not** extend `KnowledgeEntity` (`./core/Entity.ts`)
+ * yet, despite the similar `id`/`description` shape — doing so now would
+ * be performing the Migration Strategy (`./core/README.md` §7) instead of
+ * only declaring it. This is a documented, intentional gap, not an
+ * oversight.
+ *
  * All fields `readonly` — a `StyleKnowledge` value is never mutated after
  * creation, matching the immutable-data convention already used by
  * `PromptContext` (`prompt-domain`) and `PromptRuleMetadata`
@@ -104,112 +139,24 @@ export type StyleKnowledge = {
 };
 
 /**
- * TODO: Future expansion domain (see `materials/README.md`). Intentionally
- * minimal — no finish/texture/sourcing data modeled yet.
+ * DS-6.4.2: `<Domain>Knowledge` used to be twelve independent types with
+ * a shape nearly identical to the matching `<Domain>Feature`
+ * (`./core/Feature.ts`) — the exact duplication flagged by the DS-6.4.1
+ * review. Each is now a thin alias over its `core/Feature.ts`
+ * counterpart instead of a second, parallel definition. Every
+ * `<domain>/registry.ts` (e.g. `materials/registry.ts`) keeps compiling
+ * unchanged: it only ever referenced the type by name, never its shape
+ * directly. See `./core/README.md` §8 "Дедупликация".
  */
-export type MaterialKnowledge = {
-  readonly id: string;
-  readonly name: string;
-  readonly category: "materials";
-  readonly description?: string;
-  readonly notes?: string;
-};
-
-/** TODO: Future expansion domain (see `furniture/README.md`). */
-export type FurnitureKnowledge = {
-  readonly id: string;
-  readonly name: string;
-  readonly category: "furniture";
-  readonly description?: string;
-  readonly notes?: string;
-};
-
-/** TODO: Future expansion domain (see `lighting/README.md`). */
-export type LightingKnowledge = {
-  readonly id: string;
-  readonly name: string;
-  readonly category: "lighting";
-  readonly description?: string;
-  readonly notes?: string;
-};
-
-/** TODO: Future expansion domain (see `decor/README.md`). */
-export type DecorKnowledge = {
-  readonly id: string;
-  readonly name: string;
-  readonly category: "decor";
-  readonly description?: string;
-  readonly notes?: string;
-};
-
-/** TODO: Future expansion domain (see `colors/README.md`). */
-export type ColorKnowledge = {
-  readonly id: string;
-  readonly name: string;
-  readonly category: "colors";
-  readonly description?: string;
-  readonly notes?: string;
-};
-
-/** TODO: Future expansion domain (see `composition/README.md`). */
-export type CompositionKnowledge = {
-  readonly id: string;
-  readonly name: string;
-  readonly category: "composition";
-  readonly description?: string;
-  readonly notes?: string;
-};
-
-/** TODO: Future expansion domain (see `constraints/README.md`). */
-export type ConstraintKnowledge = {
-  readonly id: string;
-  readonly name: string;
-  readonly category: "constraints";
-  readonly description?: string;
-  readonly notes?: string;
-};
-
-/** TODO: Future expansion domain (see `rendering/README.md`). */
-export type RenderingKnowledge = {
-  readonly id: string;
-  readonly name: string;
-  readonly category: "rendering";
-  readonly description?: string;
-  readonly notes?: string;
-};
-
-/** TODO: Future expansion domain (see `architecture/README.md`). */
-export type ArchitectureKnowledge = {
-  readonly id: string;
-  readonly name: string;
-  readonly category: "architecture";
-  readonly description?: string;
-  readonly notes?: string;
-};
-
-/** TODO: Future expansion domain (see `space/README.md`). */
-export type SpaceKnowledge = {
-  readonly id: string;
-  readonly name: string;
-  readonly category: "space";
-  readonly description?: string;
-  readonly notes?: string;
-};
-
-/** TODO: Future expansion domain (see `mood/README.md`). */
-export type MoodKnowledge = {
-  readonly id: string;
-  readonly name: string;
-  readonly category: "mood";
-  readonly description?: string;
-  readonly notes?: string;
-};
-
-/** TODO: Future expansion domain (see `quality/README.md`). */
-export type QualityKnowledge = {
-  readonly id: string;
-  readonly name: string;
-  readonly category: "quality";
-  readonly description?: string;
-  readonly notes?: string;
-};
+export type MaterialKnowledge = MaterialFeature;
+export type FurnitureKnowledge = FurnitureFeature;
+export type LightingKnowledge = LightingFeature;
+export type DecorKnowledge = DecorFeature;
+export type ColorKnowledge = ColorFeature;
+export type CompositionKnowledge = CompositionFeature;
+export type ConstraintKnowledge = ConstraintFeature;
+export type RenderingKnowledge = RenderingFeature;
+export type ArchitectureKnowledge = ArchitectureFeature;
+export type SpaceKnowledge = SpaceFeature;
+export type MoodKnowledge = MoodFeature;
+export type QualityKnowledge = QualityFeature;

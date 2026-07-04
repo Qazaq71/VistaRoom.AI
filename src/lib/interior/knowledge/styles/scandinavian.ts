@@ -23,8 +23,8 @@ export const SCANDINAVIAN_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "light-oak", name: "Light oak", category: "materials" },
-      { id: "pale-birch", name: "Pale birch", category: "materials" },
+      { id: "light-oak", name: "Light oak", category: "material" },
+      { id: "pale-birch", name: "Pale birch", category: "material" },
     ],
     furniture: [
       { id: "functional-wood-furniture", name: "Functional wood furniture", category: "furniture" },
@@ -39,15 +39,15 @@ export const SCANDINAVIAN_KNOWLEDGE: StyleKnowledge = {
       { id: "potted-plant", name: "Potted plant", category: "decor" },
     ],
     colors: [
-      { id: "white-and-light-wood", name: "White and light wood", category: "colors" },
-      { id: "soft-pastel-accent", name: "Soft pastel accent", category: "colors" },
+      { id: "white-and-light-wood", name: "White and light wood", category: "color" },
+      { id: "soft-pastel-accent", name: "Soft pastel accent", category: "color" },
     ],
     composition: [
       { id: "airy-layout", name: "Airy layout", category: "composition" },
     ],
     constraints: [
-      { id: "functional-only", name: "Functional only", category: "constraints" },
-      { id: "limited-ornamentation", name: "Limited ornamentation", category: "constraints" },
+      { id: "functional-only", name: "Functional only", category: "constraint" },
+      { id: "limited-ornamentation", name: "Limited ornamentation", category: "constraint" },
     ],
     rendering: [
       { id: "bright-diffuse-light", name: "Bright diffuse light", category: "rendering" },

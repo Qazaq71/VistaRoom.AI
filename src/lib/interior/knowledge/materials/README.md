@@ -12,3 +12,7 @@ an empty `MATERIAL_KNOWLEDGE_REGISTRY` plus two lookup functions,
 `index.ts` re-exports the type and registry. No real entries are
 populated yet — see `../README.md` §6 and §9 for how to extend this once
 a later stage needs it.
+
+DS-6.4.2: `MaterialKnowledge` is now a type alias for `MaterialFeature`
+(`../core/Feature.ts`) instead of an independently-defined shape — see
+`../core/README.md` §8 "Дедупликация". This file did not need to change.

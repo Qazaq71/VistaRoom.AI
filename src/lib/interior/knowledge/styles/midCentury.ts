@@ -22,8 +22,8 @@ export const MID_CENTURY_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "teak-wood", name: "Teak wood", category: "materials" },
-      { id: "tapered-wood-legs", name: "Tapered wood legs", category: "materials" },
+      { id: "teak-wood", name: "Teak wood", category: "material" },
+      { id: "tapered-wood-legs", name: "Tapered wood legs", category: "material" },
     ],
     furniture: [
       { id: "iconic-lounge-chair", name: "Iconic lounge chair", category: "furniture" },
@@ -38,15 +38,15 @@ export const MID_CENTURY_KNOWLEDGE: StyleKnowledge = {
       { id: "starburst-mirror", name: "Starburst mirror", category: "decor" },
     ],
     colors: [
-      { id: "retro-mustard-and-teal", name: "Retro mustard and teal", category: "colors" },
-      { id: "warm-wood-tone", name: "Warm wood tone", category: "colors" },
+      { id: "retro-mustard-and-teal", name: "Retro mustard and teal", category: "color" },
+      { id: "warm-wood-tone", name: "Warm wood tone", category: "color" },
     ],
     composition: [
       { id: "geometric-symmetry", name: "Geometric symmetry", category: "composition" },
       { id: "functional-zoning", name: "Functional zoning", category: "composition" },
     ],
     constraints: [
-      { id: "period-accurate-silhouettes", name: "Period-accurate silhouettes", category: "constraints" },
+      { id: "period-accurate-silhouettes", name: "Period-accurate silhouettes", category: "constraint" },
     ],
     rendering: [
       { id: "warm-retro-light", name: "Warm retro light", category: "rendering" },

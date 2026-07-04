@@ -128,7 +128,7 @@ Knowledge Base на DS-6.4 **не подключена** ни к одному и
 Ни один из этих шагов не требует правок Prompt Domain, Prompt Engine,
 Rule Engine, Style Registry, `prompts.ts`, API или Developer Studio.
 
-## 10. Knowledge Core (DS-6.4.1)
+## 10. Knowledge Core (DS-6.4.1 / DS-6.4.2)
 
 `core/` — более общий, доменно-независимый фундамент под всем, что
 описано выше: `KnowledgeEntity` → `KnowledgeFeature` →
@@ -136,19 +136,30 @@ Rule Engine, Style Registry, `prompts.ts`, API или Developer Studio.
 `ColorFeature`/`ArchitectureFeature`/`CompositionFeature`/
 `ConstraintFeature`/`SpaceFeature`/`MoodFeature`/`QualityFeature`/
 `RenderingFeature`, плюс `KnowledgeRelation`/`RelationType` и контракт
-`KnowledgeGraph`. Подробности и диаграмма — `core/README.md`.
+`KnowledgeGraph`. Подробности, диаграмма, Migration Strategy и полная
+архитектурная ревизия DS-6.4.2 — `core/README.md`.
 
 Идея: в будущем стиль будет собираться не из `KnowledgeReference` с
 вручную написанными `id`/`name` (§4 выше), а из переиспользуемых,
 строго типизированных `KnowledgeFeature` — общих "кирпичиков"
 материала/света/декора/..., на которые может сослаться любое число
-стилей. `StyleKnowledge` и `KnowledgeReference` **не изменены** и
-**не используют** ничего из `core/` — это параллельный, ещё не
-подключённый уровень абстракции. `core/` также не реэкспортируется из
-`../index.ts` — увидеть эти типы можно только явным импортом из
-`knowledge/core/*`.
+стилей. Это только декларация направления (`core/README.md`
+"Migration Strategy") — `StyleKnowledge` пока не ссылается ни на одну
+`KnowledgeFeature`.
 
-## 11. Статус на DS-6.4 / DS-6.4.1
+С DS-6.4.2 `../types.ts` **внутренне** зависит от `core/`:
+`KnowledgeCategory` определён как `FeatureType | "style"` (единый
+источник имён доменов, устраняющий рассинхрон `"materials"` vs
+`"material"` и т.п. между `KnowledgeCategory` и `FeatureType`, DS-6.4.1),
+а 12 доменных типов-заготовок (`MaterialKnowledge`, ...,
+`QualityKnowledge`) стали алиасами соответствующих `<Domain>Feature` —
+устраняя дублирование, отмеченное ревизией DS-6.4.1. Это единственная
+связь через границу `core/`, и она остаётся строго внутри
+`knowledge/**`: `core/` по-прежнему не реэкспортируется из `../index.ts`
+напрямую, и ничто за пределами `knowledge/**` не импортирует
+`knowledge/core/**` — ни прямо, ни транзитивно.
+
+## 11. Статус на DS-6.4 / DS-6.4.1 / DS-6.4.2
 
 DS-6.4: создана структура `knowledge/` с типами, заполненными
 `StyleKnowledge` для всех 20 каталожных стилей и пустыми заготовками для
@@ -156,6 +167,16 @@ DS-6.4: создана структура `knowledge/` с типами, запо
 
 DS-6.4.1: добавлен изолированный `core/` (Knowledge Entity & Feature
 Foundation) — только типы, ничем не используемые.
+
+DS-6.4.2: унифицированы имена доменов (`FeatureType`/`KnowledgeCategory`
+— единый источник), `KnowledgeEntity.type` строго типизирован
+(`KnowledgeEntityKind`), задекларирована Migration Strategy (без
+выполнения миграции), устранена дублирующая пара
+`<Domain>Knowledge`/`<Domain>Feature`, задокументированы оба механизма
+связей (`KnowledgeRelation`/`KnowledgeGraph` для сложных связей,
+`relatedFeatures` для быстрого lookup), проведена ревизия
+масштабируемости и достаточности `KnowledgeGraph` — интерфейсы не
+расширялись сверх необходимого. Подробности — `core/README.md`.
 
 Knowledge Base (включая `core/`) нигде не используется — ни в
 production, ни в Prompt Domain, ни в Prompt Engine, ни в Rule Engine.

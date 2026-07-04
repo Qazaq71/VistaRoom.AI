@@ -23,8 +23,8 @@ export const MAXIMALISM_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "mixed-pattern-textile", name: "Mixed pattern textile", category: "materials" },
-      { id: "lacquered-surfaces", name: "Lacquered surfaces", category: "materials" },
+      { id: "mixed-pattern-textile", name: "Mixed pattern textile", category: "material" },
+      { id: "lacquered-surfaces", name: "Lacquered surfaces", category: "material" },
     ],
     furniture: [
       { id: "bold-statement-furniture", name: "Bold statement furniture", category: "furniture" },
@@ -39,16 +39,16 @@ export const MAXIMALISM_KNOWLEDGE: StyleKnowledge = {
       { id: "curated-collectibles", name: "Curated collectibles", category: "decor" },
     ],
     colors: [
-      { id: "saturated-bold-palette", name: "Saturated bold palette", category: "colors" },
-      { id: "clashing-complementary-colors", name: "Clashing complementary colors", category: "colors" },
+      { id: "saturated-bold-palette", name: "Saturated bold palette", category: "color" },
+      { id: "clashing-complementary-colors", name: "Clashing complementary colors", category: "color" },
     ],
     composition: [
       { id: "dense-layered-arrangement", name: "Dense layered arrangement", category: "composition" },
       { id: "eclectic-focal-points", name: "Eclectic focal points", category: "composition" },
     ],
     constraints: [
-      { id: "more-is-more", name: "More is more", category: "constraints" },
-      { id: "avoid-empty-negative-space", name: "Avoid empty negative space", category: "constraints" },
+      { id: "more-is-more", name: "More is more", category: "constraint" },
+      { id: "avoid-empty-negative-space", name: "Avoid empty negative space", category: "constraint" },
     ],
     rendering: [
       { id: "rich-saturated-light", name: "Rich saturated light", category: "rendering" },

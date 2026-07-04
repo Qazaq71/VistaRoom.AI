@@ -23,8 +23,8 @@ export const MODERN_FARMHOUSE_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "shiplap-wood", name: "Shiplap wood", category: "materials" },
-      { id: "reclaimed-barn-wood", name: "Reclaimed barn wood", category: "materials" },
+      { id: "shiplap-wood", name: "Shiplap wood", category: "material" },
+      { id: "reclaimed-barn-wood", name: "Reclaimed barn wood", category: "material" },
     ],
     furniture: [
       { id: "farmhouse-dining-table", name: "Farmhouse dining table", category: "furniture" },
@@ -39,15 +39,15 @@ export const MODERN_FARMHOUSE_KNOWLEDGE: StyleKnowledge = {
       { id: "vintage-farm-accents", name: "Vintage farm accents", category: "decor" },
     ],
     colors: [
-      { id: "warm-white-palette", name: "Warm white palette", category: "colors" },
-      { id: "muted-earth-accent", name: "Muted earth accent", category: "colors" },
+      { id: "warm-white-palette", name: "Warm white palette", category: "color" },
+      { id: "muted-earth-accent", name: "Muted earth accent", category: "color" },
     ],
     composition: [
       { id: "balanced-rustic-symmetry", name: "Balanced rustic symmetry", category: "composition" },
       { id: "cozy-groupings", name: "Cozy groupings", category: "composition" },
     ],
     constraints: [
-      { id: "rustic-authenticity", name: "Rustic authenticity", category: "constraints" },
+      { id: "rustic-authenticity", name: "Rustic authenticity", category: "constraint" },
     ],
     rendering: [
       { id: "warm-soft-light", name: "Warm soft light", category: "rendering" },

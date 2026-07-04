@@ -23,8 +23,8 @@ export const MINIMALIST_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "oak-wood", name: "Oak wood", category: "materials" },
-      { id: "matte-white-paint", name: "Matte white paint", category: "materials" },
+      { id: "oak-wood", name: "Oak wood", category: "material" },
+      { id: "matte-white-paint", name: "Matte white paint", category: "material" },
     ],
     furniture: [
       { id: "low-profile-sofa", name: "Low-profile sofa", category: "furniture" },
@@ -38,16 +38,16 @@ export const MINIMALIST_KNOWLEDGE: StyleKnowledge = {
       { id: "single-statement-piece", name: "Single statement piece", category: "decor" },
     ],
     colors: [
-      { id: "neutral-palette", name: "Neutral palette", category: "colors" },
-      { id: "monochrome-white", name: "Monochrome white", category: "colors" },
+      { id: "neutral-palette", name: "Neutral palette", category: "color" },
+      { id: "monochrome-white", name: "Monochrome white", category: "color" },
     ],
     composition: [
       { id: "grid-alignment", name: "Grid alignment", category: "composition" },
       { id: "generous-negative-space", name: "Generous negative space", category: "composition" },
     ],
     constraints: [
-      { id: "no-clutter", name: "No clutter", category: "constraints" },
-      { id: "limited-object-count", name: "Limited object count", category: "constraints" },
+      { id: "no-clutter", name: "No clutter", category: "constraint" },
+      { id: "limited-object-count", name: "Limited object count", category: "constraint" },
     ],
     rendering: [
       { id: "soft-even-shadows", name: "Soft even shadows", category: "rendering" },

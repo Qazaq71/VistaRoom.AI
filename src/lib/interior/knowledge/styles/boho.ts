@@ -23,8 +23,8 @@ export const BOHO_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "woven-rattan", name: "Woven rattan", category: "materials" },
-      { id: "natural-jute", name: "Natural jute", category: "materials" },
+      { id: "woven-rattan", name: "Woven rattan", category: "material" },
+      { id: "natural-jute", name: "Natural jute", category: "material" },
     ],
     furniture: [
       { id: "floor-cushions", name: "Floor cushions", category: "furniture" },
@@ -39,16 +39,16 @@ export const BOHO_KNOWLEDGE: StyleKnowledge = {
       { id: "macrame-wall-hanging", name: "Macrame wall hanging", category: "decor" },
     ],
     colors: [
-      { id: "warm-earthy-palette", name: "Warm earthy palette", category: "colors" },
-      { id: "eclectic-accent-colors", name: "Eclectic accent colors", category: "colors" },
+      { id: "warm-earthy-palette", name: "Warm earthy palette", category: "color" },
+      { id: "eclectic-accent-colors", name: "Eclectic accent colors", category: "color" },
     ],
     composition: [
       { id: "layered-eclectic-mix", name: "Layered eclectic mix", category: "composition" },
       { id: "relaxed-asymmetry", name: "Relaxed asymmetry", category: "composition" },
     ],
     constraints: [
-      { id: "embrace-imperfection", name: "Embrace imperfection", category: "constraints" },
-      { id: "mix-patterns-freely", name: "Mix patterns freely", category: "constraints" },
+      { id: "embrace-imperfection", name: "Embrace imperfection", category: "constraint" },
+      { id: "mix-patterns-freely", name: "Mix patterns freely", category: "constraint" },
     ],
     rendering: [
       { id: "warm-soft-light", name: "Warm soft light", category: "rendering" },

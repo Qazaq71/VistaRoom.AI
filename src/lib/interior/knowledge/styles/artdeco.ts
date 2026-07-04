@@ -23,8 +23,8 @@ export const ARTDECO_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "lacquered-wood", name: "Lacquered wood", category: "materials" },
-      { id: "polished-brass", name: "Polished brass", category: "materials" },
+      { id: "lacquered-wood", name: "Lacquered wood", category: "material" },
+      { id: "polished-brass", name: "Polished brass", category: "material" },
     ],
     furniture: [
       { id: "geometric-cabinetry", name: "Geometric cabinetry", category: "furniture" },
@@ -39,15 +39,15 @@ export const ARTDECO_KNOWLEDGE: StyleKnowledge = {
       { id: "mirrored-accents", name: "Mirrored accents", category: "decor" },
     ],
     colors: [
-      { id: "bold-jewel-tones", name: "Bold jewel tones", category: "colors" },
-      { id: "black-and-gold", name: "Black and gold", category: "colors" },
+      { id: "bold-jewel-tones", name: "Bold jewel tones", category: "color" },
+      { id: "black-and-gold", name: "Black and gold", category: "color" },
     ],
     composition: [
       { id: "symmetrical-geometry", name: "Symmetrical geometry", category: "composition" },
       { id: "stepped-forms", name: "Stepped forms", category: "composition" },
     ],
     constraints: [
-      { id: "period-accurate-motifs", name: "Period-accurate motifs", category: "constraints" },
+      { id: "period-accurate-motifs", name: "Period-accurate motifs", category: "constraint" },
     ],
     rendering: [
       { id: "high-gloss-reflections", name: "High-gloss reflections", category: "rendering" },

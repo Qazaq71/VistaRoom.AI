@@ -23,8 +23,8 @@ export const CONTEMPORARY_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "engineered-wood", name: "Engineered wood", category: "materials" },
-      { id: "matte-metal-accent", name: "Matte metal accent", category: "materials" },
+      { id: "engineered-wood", name: "Engineered wood", category: "material" },
+      { id: "matte-metal-accent", name: "Matte metal accent", category: "material" },
     ],
     furniture: [
       { id: "clean-lined-sofa", name: "Clean-lined sofa", category: "furniture" },
@@ -38,15 +38,15 @@ export const CONTEMPORARY_KNOWLEDGE: StyleKnowledge = {
       { id: "curated-art-piece", name: "Curated art piece", category: "decor" },
     ],
     colors: [
-      { id: "neutral-palette", name: "Neutral palette", category: "colors" },
-      { id: "single-accent-color", name: "Single accent color", category: "colors" },
+      { id: "neutral-palette", name: "Neutral palette", category: "color" },
+      { id: "single-accent-color", name: "Single accent color", category: "color" },
     ],
     composition: [
       { id: "balanced-asymmetry", name: "Balanced asymmetry", category: "composition" },
       { id: "clear-focal-point", name: "Clear focal point", category: "composition" },
     ],
     constraints: [
-      { id: "current-trend-alignment", name: "Current trend alignment", category: "constraints" },
+      { id: "current-trend-alignment", name: "Current trend alignment", category: "constraint" },
     ],
     rendering: [
       { id: "even-daylight", name: "Even daylight", category: "rendering" },

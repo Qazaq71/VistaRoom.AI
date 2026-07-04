@@ -22,8 +22,8 @@ export const NEOCLASSICAL_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "marble", name: "Marble", category: "materials" },
-      { id: "gilded-wood-detailing", name: "Gilded wood detailing", category: "materials" },
+      { id: "marble", name: "Marble", category: "material" },
+      { id: "gilded-wood-detailing", name: "Gilded wood detailing", category: "material" },
     ],
     furniture: [
       { id: "carved-wood-furniture", name: "Carved wood furniture", category: "furniture" },
@@ -38,15 +38,15 @@ export const NEOCLASSICAL_KNOWLEDGE: StyleKnowledge = {
       { id: "ornate-mirror", name: "Ornate mirror", category: "decor" },
     ],
     colors: [
-      { id: "soft-ivory-palette", name: "Soft ivory palette", category: "colors" },
-      { id: "gold-accent", name: "Gold accent", category: "colors" },
+      { id: "soft-ivory-palette", name: "Soft ivory palette", category: "color" },
+      { id: "gold-accent", name: "Gold accent", category: "color" },
     ],
     composition: [
       { id: "strict-symmetry", name: "Strict symmetry", category: "composition" },
       { id: "formal-axis", name: "Formal axis", category: "composition" },
     ],
     constraints: [
-      { id: "classical-proportion-rules", name: "Classical proportion rules", category: "constraints" },
+      { id: "classical-proportion-rules", name: "Classical proportion rules", category: "constraint" },
     ],
     rendering: [
       { id: "soft-formal-light", name: "Soft formal light", category: "rendering" },

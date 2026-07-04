@@ -22,8 +22,8 @@ export const WABI_SABI_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "raw-ceramic", name: "Raw ceramic", category: "materials" },
-      { id: "unfinished-wood", name: "Unfinished wood", category: "materials" },
+      { id: "raw-ceramic", name: "Raw ceramic", category: "material" },
+      { id: "unfinished-wood", name: "Unfinished wood", category: "material" },
     ],
     furniture: [
       { id: "low-simple-furniture", name: "Low simple furniture", category: "furniture" },
@@ -38,16 +38,16 @@ export const WABI_SABI_KNOWLEDGE: StyleKnowledge = {
       { id: "dried-botanical-arrangement", name: "Dried botanical arrangement", category: "decor" },
     ],
     colors: [
-      { id: "muted-earthy-tones", name: "Muted earthy tones", category: "colors" },
-      { id: "weathered-neutral", name: "Weathered neutral", category: "colors" },
+      { id: "muted-earthy-tones", name: "Muted earthy tones", category: "color" },
+      { id: "weathered-neutral", name: "Weathered neutral", category: "color" },
     ],
     composition: [
       { id: "asymmetric-simplicity", name: "Asymmetric simplicity", category: "composition" },
       { id: "empty-space-appreciation", name: "Empty space appreciation", category: "composition" },
     ],
     constraints: [
-      { id: "embrace-imperfection", name: "Embrace imperfection", category: "constraints" },
-      { id: "avoid-mass-produced-symmetry", name: "Avoid mass-produced symmetry", category: "constraints" },
+      { id: "embrace-imperfection", name: "Embrace imperfection", category: "constraint" },
+      { id: "avoid-mass-produced-symmetry", name: "Avoid mass-produced symmetry", category: "constraint" },
     ],
     rendering: [
       { id: "soft-natural-light", name: "Soft natural light", category: "rendering" },

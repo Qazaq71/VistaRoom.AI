@@ -22,8 +22,8 @@ export const LUXURY_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "marble", name: "Marble", category: "materials" },
-      { id: "brushed-gold-metal", name: "Brushed gold metal", category: "materials" },
+      { id: "marble", name: "Marble", category: "material" },
+      { id: "brushed-gold-metal", name: "Brushed gold metal", category: "material" },
     ],
     furniture: [
       { id: "velvet-upholstery", name: "Velvet upholstery", category: "furniture" },
@@ -38,15 +38,15 @@ export const LUXURY_KNOWLEDGE: StyleKnowledge = {
       { id: "decorative-mirror", name: "Decorative mirror", category: "decor" },
     ],
     colors: [
-      { id: "rich-jewel-tones", name: "Rich jewel tones", category: "colors" },
-      { id: "gold-accent", name: "Gold accent", category: "colors" },
+      { id: "rich-jewel-tones", name: "Rich jewel tones", category: "color" },
+      { id: "gold-accent", name: "Gold accent", category: "color" },
     ],
     composition: [
       { id: "symmetrical-layout", name: "Symmetrical layout", category: "composition" },
       { id: "focal-point", name: "Focal point", category: "composition" },
     ],
     constraints: [
-      { id: "premium-materials-only", name: "Premium materials only", category: "constraints" },
+      { id: "premium-materials-only", name: "Premium materials only", category: "constraint" },
     ],
     rendering: [
       { id: "glossy-reflective-surfaces", name: "Glossy reflective surfaces", category: "rendering" },

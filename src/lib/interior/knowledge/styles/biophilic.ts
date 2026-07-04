@@ -22,8 +22,8 @@ export const BIOPHILIC_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "rattan", name: "Rattan", category: "materials" },
-      { id: "live-edge-wood", name: "Live-edge wood", category: "materials" },
+      { id: "rattan", name: "Rattan", category: "material" },
+      { id: "live-edge-wood", name: "Live-edge wood", category: "material" },
     ],
     furniture: [
       { id: "woven-seating", name: "Woven seating", category: "furniture" },
@@ -38,15 +38,15 @@ export const BIOPHILIC_KNOWLEDGE: StyleKnowledge = {
       { id: "hanging-plants", name: "Hanging plants", category: "decor" },
     ],
     colors: [
-      { id: "greens-and-earth-tones", name: "Greens and earth tones", category: "colors" },
+      { id: "greens-and-earth-tones", name: "Greens and earth tones", category: "color" },
     ],
     composition: [
       { id: "organic-flow", name: "Organic flow", category: "composition" },
       { id: "plant-clusters", name: "Plant clusters", category: "composition" },
     ],
     constraints: [
-      { id: "maximize-daylight", name: "Maximize daylight", category: "constraints" },
-      { id: "integrate-greenery", name: "Integrate greenery", category: "constraints" },
+      { id: "maximize-daylight", name: "Maximize daylight", category: "constraint" },
+      { id: "integrate-greenery", name: "Integrate greenery", category: "constraint" },
     ],
     rendering: [
       { id: "dappled-natural-light", name: "Dappled natural light", category: "rendering" },

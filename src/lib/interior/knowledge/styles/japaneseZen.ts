@@ -23,8 +23,8 @@ export const JAPANESE_ZEN_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "tatami-mat", name: "Tatami mat", category: "materials" },
-      { id: "natural-bamboo", name: "Natural bamboo", category: "materials" },
+      { id: "tatami-mat", name: "Tatami mat", category: "material" },
+      { id: "natural-bamboo", name: "Natural bamboo", category: "material" },
     ],
     furniture: [
       { id: "low-wood-furniture", name: "Low wood furniture", category: "furniture" },
@@ -39,16 +39,16 @@ export const JAPANESE_ZEN_KNOWLEDGE: StyleKnowledge = {
       { id: "minimal-scroll-art", name: "Minimal scroll art", category: "decor" },
     ],
     colors: [
-      { id: "muted-natural-palette", name: "Muted natural palette", category: "colors" },
-      { id: "soft-neutral-tone", name: "Soft neutral tone", category: "colors" },
+      { id: "muted-natural-palette", name: "Muted natural palette", category: "color" },
+      { id: "soft-neutral-tone", name: "Soft neutral tone", category: "color" },
     ],
     composition: [
       { id: "strict-minimal-balance", name: "Strict minimal balance", category: "composition" },
       { id: "generous-negative-space", name: "Generous negative space", category: "composition" },
     ],
     constraints: [
-      { id: "extreme-minimalism", name: "Extreme minimalism", category: "constraints" },
-      { id: "no-visual-clutter", name: "No visual clutter", category: "constraints" },
+      { id: "extreme-minimalism", name: "Extreme minimalism", category: "constraint" },
+      { id: "no-visual-clutter", name: "No visual clutter", category: "constraint" },
     ],
     rendering: [
       { id: "soft-filtered-light", name: "Soft filtered light", category: "rendering" },

@@ -22,8 +22,8 @@ export const MEDITERRANEAN_KNOWLEDGE: StyleKnowledge = {
 
   knowledgeRefs: {
     materials: [
-      { id: "terracotta-tile", name: "Terracotta tile", category: "materials" },
-      { id: "whitewashed-plaster", name: "Whitewashed plaster", category: "materials" },
+      { id: "terracotta-tile", name: "Terracotta tile", category: "material" },
+      { id: "whitewashed-plaster", name: "Whitewashed plaster", category: "material" },
     ],
     furniture: [
       { id: "wrought-iron-furniture", name: "Wrought iron furniture", category: "furniture" },
@@ -38,15 +38,15 @@ export const MEDITERRANEAN_KNOWLEDGE: StyleKnowledge = {
       { id: "ceramic-pottery", name: "Ceramic pottery", category: "decor" },
     ],
     colors: [
-      { id: "warm-terracotta", name: "Warm terracotta", category: "colors" },
-      { id: "sea-blue-accent", name: "Sea blue accent", category: "colors" },
+      { id: "warm-terracotta", name: "Warm terracotta", category: "color" },
+      { id: "sea-blue-accent", name: "Sea blue accent", category: "color" },
     ],
     composition: [
       { id: "arched-openings", name: "Arched openings", category: "composition" },
       { id: "courtyard-flow", name: "Courtyard flow", category: "composition" },
     ],
     constraints: [
-      { id: "rustic-authenticity", name: "Rustic authenticity", category: "constraints" },
+      { id: "rustic-authenticity", name: "Rustic authenticity", category: "constraint" },
     ],
     rendering: [
       { id: "warm-golden-light", name: "Warm golden light", category: "rendering" },

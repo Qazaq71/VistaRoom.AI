@@ -92,3 +92,28 @@ Not automated — reviewed by hand.
       Rule Engine, Generation Engine, Provider, Style Registry,
       Developer Studio, Benchmark, публичный сайт, API) не импортирует
       `core/` (DS-6.4.1)
+- [ ] Один домен → один литерал — `FeatureType` (`knowledge/core/
+      FeatureTypes.ts`) — единственный источник имён доменов;
+      `KnowledgeCategory` (`knowledge/types.ts`) определён как
+      `FeatureType | "style"`, а не как параллельный список литералов;
+      новый домен добавляется один раз, в `FeatureType` (DS-6.4.2)
+- [ ] `KnowledgeEntity.type` типизирован `KnowledgeEntityKind` — нигде в
+      `knowledge/core/**` не встречается `type: string`; структурная ось
+      (`type`) и предметная ось (`domain: FeatureType`) не путаются друг
+      с другом ни в коде, ни в комментариях (DS-6.4.2)
+- [ ] Migration Strategy — задекларирована в `knowledge/core/README.md`,
+      но не выполнена: `StyleKnowledge`, `KnowledgeReference` не изменили
+      форму, ничего не помечено deprecated, ничего фактически не
+      мигрировано (DS-6.4.2)
+- [ ] `<Domain>Knowledge`/`<Domain>Feature` не дублируются — каждый из 12
+      доменных типов в `knowledge/types.ts` (`MaterialKnowledge`, ...,
+      `QualityKnowledge`) является алиасом соответствующего
+      `<Domain>Feature` (`knowledge/core/Feature.ts`), а не отдельным
+      определением (DS-6.4.2)
+- [ ] `core/` остаётся изолирован от production даже после DS-6.4.2 —
+      единственная новая зависимость на `core/` — из `knowledge/types.ts`,
+      и она не выходит за пределы `src/lib/interior/knowledge/**`; ничто
+      в Prompt Domain, Prompt Engine, Rule Engine, Generation Engine,
+      Provider, Style Registry, Developer Studio, Benchmark, публичном
+      сайте или API не импортирует `knowledge/core/**` прямо или
+      транзитивно (DS-6.4.2)
