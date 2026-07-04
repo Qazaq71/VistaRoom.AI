@@ -104,7 +104,133 @@ No inheritance, no structural aliasing, no field rename that quietly
 turns one into the other. The two stay two distinct models connected only
 by an explicit, named translation step.
 
-## 3. Rationale
+## 3. Boundary Invariant
+
+> **Boundary Invariant**
+>
+> The architectural boundary established by this ADR is invariant.
+>
+> Future evolution may introduce adapters, registries, analyzers,
+> metadata, mappings or intermediate models.
+>
+> However, these extensions must never collapse, merge, replace or
+> redefine the responsibilities of `RoomContext` and `SpaceType`.
+>
+> Both models must remain independent concepts throughout the lifetime
+> of the architecture.
+
+### Why this invariant exists
+
+Section 2 fixes the boundary as of DS-7.1.3. That alone does not protect
+it from eroding later — the most common failure mode in large AI
+projects is not a single deliberate decision to merge two models, but a
+slow drift across many small, individually-reasonable-looking changes,
+each of which quietly narrows the gap between them until nothing is left
+of the original boundary. This invariant exists so that every future
+change — however convenient it looks in isolation — is checked against
+the boundary before it lands, not after.
+
+The recurring patterns this invariant explicitly forbids, regardless of
+how they arrive (a rename, a "just this one field," a shared base class,
+a well-intentioned unification pass):
+
+```
+RoomContext
+    ↓
+становится SpaceType
+```
+
+```
+SpaceType
+начинает хранить данные Prompt Domain
+```
+
+```
+RoomContext
+получает поля Spatial Intelligence
+```
+
+```
+создаётся единая универсальная модель,
+которая одновременно является
+Prompt Domain
++
+Spatial Classification
+```
+
+Every one of these is an architecture violation, independent of the
+mechanism used to arrive at it (direct edit, inheritance, gradual field
+accretion, or a "unifying" refactor) and independent of how well-intentioned
+the change looks at the time it's proposed.
+
+### Allowed Evolution
+
+The invariant does not freeze the architecture — it constrains *how* it
+grows. The following are explicitly allowed, as long as the boundary
+between `RoomContext` and `SpaceType` itself stays intact:
+
+- ✅ Adapter
+- ✅ Mapping
+- ✅ Metadata
+- ✅ Registry
+- ✅ Analyzer
+- ✅ AI Classifier
+- ✅ Rule Engine
+- ✅ Composition
+- ✅ Additional layers
+
+Each of these is a new piece of structure that sits *alongside* or
+*between* `RoomContext` and `SpaceType` — none of them requires either
+model to stop being what Section 2 says it is.
+
+### Forbidden Evolution
+
+The following are explicitly forbidden, regardless of which future stage
+or refactor proposes them:
+
+- ❌ `RoomContext extends SpaceType`
+- ❌ `SpaceType extends RoomContext`
+- ❌ `merge(RoomContext, SpaceType)`
+- ❌ rename `RoomContext` into `SpaceType`
+- ❌ `PromptContext` directly owns `SpaceType` data
+- ❌ `SpaceType` stores prompt fragments, style prompts, knowledge
+  prompts, or generation data
+
+### Architectural Test
+
+Before any change that touches `RoomContext`, `SpaceType`, or the mapping
+between them, check:
+
+1. Does `RoomContext` remain a model of user input?
+2. Does `SpaceType` remain a model of spatial classification?
+3. Can the change be implemented through an Adapter, Mapping, or
+   Composition?
+4. Does the change avoid merging the two models into one?
+
+If the answer to any of these is "no," the proposed change must be
+reconsidered before it proceeds.
+
+### Relation to ADR-000
+
+This invariant does not introduce a new global Principle. It is a local
+invariant of ADR-004, grounded in Principles already accepted in
+ADR-000:
+
+- **Principle 19** — Composition over Duplication.
+- **Principle 20** — Evolution over Rewrite.
+- **Principle 21** — Design Domain (spatial hierarchy).
+- **Principle 22** — Evolution through Composition.
+
+It does not restate these Principles in general form — it applies them
+specifically and permanently to the `RoomContext`/`SpaceType` boundary
+this ADR defines, the same way ADR-001/002/003 are named as concrete
+applications of ADR-000's principles rather than separate rules
+(ADR-000, Status). A future stage that wants to change how AI Core
+evolves *in general* still edits ADR-000; a future stage that wants to
+touch specifically the `RoomContext`/`SpaceType` boundary is bound by
+this section.
+
+## 4. Rationale
 
 - **Separation of responsibility.** `RoomContext` is Prompt Domain's
   record of what the user said; `SpaceType` is Spatial Intelligence's
@@ -145,7 +271,7 @@ by an explicit, named translation step.
   none in production yet, per ADR-003, but the same discipline holds
   regardless).
 
-## 4. Migration Strategy
+## 5. Migration Strategy
 
 **Before DS-7.4:** `RoomContext` exists standalone, exactly as it does
 today. `SpaceType` (once built in DS-7.2) also exists standalone, isolated
@@ -169,7 +295,7 @@ field is renamed, retyped, or removed. This is staged migration by
 coexistence, per Principle 20 — no breaking rewrite of Prompt Domain is
 required to introduce spatial classification.
 
-## 5. Non-goals
+## 6. Non-goals
 
 This ADR does **not**:
 
@@ -182,7 +308,7 @@ This ADR does **not**:
 - Add any new field to `RoomContext`.
 - Pick or implement the Mapping/Adapter mechanism itself.
 
-## 6. Examples
+## 7. Examples
 
 **Хорошо:**
 
@@ -218,7 +344,7 @@ Principle 10 (Один термин = одна концепция) and/or Princi
 Intelligence), and reintroduces exactly the coupling this ADR exists to
 prevent.
 
-## 7. Future Evolution
+## 8. Future Evolution
 
 Multiple mechanisms could eventually implement the `RoomContext →
 SpaceType` mapping — a Rule Engine, an AI Classifier, a Vision Analyzer,
@@ -229,7 +355,7 @@ and that it is the sole point of contact between the two models. Choosing
 the mechanism is left to whichever stage (DS-7.4 or later) actually
 implements it.
 
-## 8. Backward Compatibility
+## 9. Backward Compatibility
 
 Future evolution must preserve backward compatibility whenever reasonably
 possible. Existing `PromptContext`-based implementations should continue
@@ -238,7 +364,7 @@ transitions rather than breaking rewrites — consistent with ADR-000
 Principle 20 (Evolution over Rewrite) and its pre-breaking-change
 checklist.
 
-## 9. Relation to existing ADRs
+## 10. Relation to existing ADRs
 
 | ADR | Relation |
 |---|---|
@@ -261,5 +387,24 @@ checklist.
 - DS-7.4 (Prompt Integration) must introduce the `RoomContext →
   SpaceType` connection as an explicit Adapter/Mapping component, not as
   a change to either model's own shape.
+- The Boundary Invariant (Section 3) applies to every future stage that
+  touches `RoomContext`, `SpaceType`, or the mapping between them — not
+  only DS-7.2/DS-7.3/DS-7.4, but any later refactor, unification effort,
+  or new Spatial Intelligence module as well.
 - `docs/ARCHITECTURE.md` and `docs/AI_CORE_CHECKLIST.md` gained matching
   entries (see below). No implementation changed. `npm run build` passes.
+
+## Update — DS-7.1.3a Boundary Invariant
+
+Documentation-only stage, no code/runtime change. Adds Section 3
+("Boundary Invariant") above, ahead of DS-7.2, to close the gap the
+original ADR-004 left open: Section 2 fixed the boundary *as decided
+today*, but said nothing about how that boundary should be protected as
+the architecture grows through DS-7.2 → DS-7.4 and beyond. This update
+adds that protection as a local invariant of this ADR — not a new
+ADR-000 Principle — grounded in Principles 19, 20, 21, and 22 already
+accepted there. No other section of this ADR is changed in substance;
+Sections 3–9 were renumbered to 4–10 to make room for the new Section 3.
+`docs/ARCHITECTURE.md` gained a one-line note under Phase 7.1.3 recording
+that ADR-004 was extended with this invariant. No `.ts`/`.tsx` file,
+production code, or public site is affected. `npm run build` passes.

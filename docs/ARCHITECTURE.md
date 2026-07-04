@@ -797,6 +797,11 @@ Design Domain, Rule Engine, Developer Studio, Generation Engine,
 публичный сайт и API не затронуты — изменена только документация.
 `npm run build` проходит.
 
+_DS-7.1.3a — ADR-004 дополнен разделом "Boundary Invariant": граница
+между `RoomContext` и `SpaceType` объявлена неизменной на всё время
+жизни архитектуры (локальная инварианта, не новый ADR-000 Principle).
+Документация, `npm run build` проходит._
+
 ## Phase 8 — Prompt Lab
 
 Внутренний инструмент Developer Studio для итеративной отладки и
