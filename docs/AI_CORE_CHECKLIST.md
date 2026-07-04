@@ -298,6 +298,63 @@ Not automated — reviewed by hand.
       hints, generation settings или бизнес-логику, и не импортирует
       Prompt Engine, Knowledge или `RoomContext` (DS-7.2.1, "What MUST
       NEVER happen")
+- [ ] Spatial Knowledge is a Knowledge domain, not an integration —
+      `knowledge/spaces/**` (DS-7.3) contains only canonical architectural
+      knowledge records; it is not the Space Type ↔ Knowledge
+      lookup/adapter originally sketched for "DS-7.3" in `ARCHITECTURE.md`
+      Phase 7's overview — that connective work remains unstarted future
+      work (DS-7.3)
+- [ ] Spatial Knowledge records are `KnowledgeFeature` — every entry in
+      `SPATIAL_KNOWLEDGE_REGISTRY` (`knowledge/spaces/registry.ts`) is a
+      plain `KnowledgeFeature` (`knowledge/core/Feature.ts`); no
+      `SpaceKnowledgeEntity`, `SpaceKnowledgeRecord`, or other duplicated
+      model was created (DS-7.3, ADR-000 Principle 19)
+- [ ] No new `FeatureType` literal introduced — `knowledge/spaces/**`
+      reuses the existing `"space"` literal (`knowledge/core/
+      FeatureTypes.ts`); `knowledge/core/**`, `knowledge/types.ts`, and
+      `knowledge/index.ts` are unmodified by DS-7.3 (DS-7.3, ADR-000
+      Principle 22 "Reuse" step)
+- [ ] Structured knowledge lives in `metadata` — primary functions,
+      spatial priorities, functional zones, privacy/traffic level,
+      furniture categories, lighting requirements, accessibility,
+      storage, acoustics, maintenance, safety, environmental constraints,
+      and occupancy characteristics are all fields of each entry's
+      existing `KnowledgeFeature.metadata`, not new top-level fields on a
+      new type (DS-7.3, ADR-000 Principle 22 "Metadata" step)
+- [ ] No Prompt-facing content in Spatial Knowledge — no entry in
+      `knowledge/spaces/registry.ts` contains prompt fragments, provider
+      hints, render/camera settings, image-generation instructions,
+      quality/negative/style prompt text, or render engine names (DS-7.3)
+- [ ] `spaces/` vs `space/` boundary documented — `knowledge/spaces/README.md`
+      explicitly distinguishes the new per-canonical-Space-Type domain
+      (`spaces/`, DS-7.3) from the pre-existing abstract layout/flow/zoning
+      domain (`space/`, DS-6.4); both intentionally reuse the same
+      `"space"` `FeatureType` literal as two independent, non-merged
+      registries (DS-7.3)
+- [ ] Knowledge does not import Space Type — `knowledge/spaces/registry.ts`
+      does not import `space-type/**`, not even a type-only import of
+      `SpaceTypeId`; each record's `id` matches a `SpaceTypeId` string by
+      documented convention only (DS-7.3, mirrors "Space Type не
+      импортирует Knowledge" above)
+- [ ] Spatial Knowledge isolated — `knowledge/spaces/**` is not imported
+      from Prompt Domain, Prompt Engine, Rule Engine, Generation Engine,
+      Provider, Style Registry, Developer Studio, Benchmark, the public
+      site, the API, `buildEditPrompt()`, or `prompts.ts` (DS-7.3)
+- [ ] Boundary Protection documented — `knowledge/spaces/README.md` states
+      the three non-overlapping questions: SpaceType answers "what space
+      is this?", Knowledge answers "what is generally true about this
+      space?", Prompt Engine answers "how should this influence prompt
+      generation?" (DS-7.3)
+- [ ] Future Spatial Intelligence chain documented, not implemented —
+      `RoomContext → Room Analyzer → SpaceType → Spatial Knowledge →
+      Rules → Prompt Draft → Formatter → Generation` is documented in
+      `knowledge/spaces/README.md` as future work; only the Spatial
+      Knowledge domain itself exists (DS-7.3)
+- [ ] Commercial readiness is emergent — Office/Cafe/Restaurant/Retail/
+      Hotel/Hospital/School/Airport/Warehouse/Factory/Gallery/Museum/
+      Coworking coverage in `SPATIAL_KNOWLEDGE_REGISTRY` uses the same
+      `KnowledgeFeature` composition as every residential entry; no
+      commercial-specific type, field, or registry was introduced (DS-7.3)
 - [ ] Is there an ADR for this architectural decision?
 - [ ] Is the ADR registered in [ADR_INDEX](adr/ADR_INDEX.md)?
 - [ ] Does an existing ADR already own this responsibility?

@@ -180,4 +180,35 @@ DS-6.4.2: унифицированы имена доменов (`FeatureType`/`K
 
 Knowledge Base (включая `core/`) нигде не используется — ни в
 production, ни в Prompt Domain, ни в Prompt Engine, ни в Rule Engine.
-Следующий этап — **DS-6.5 Universal Interior Rules**.
+Следующий этап после DS-6.4.2 — **DS-6.5 Universal Interior Rules**
+(выполнен; см. `docs/ARCHITECTURE.md`).
+
+## 12. Spatial Knowledge (`spaces/`, DS-7.3)
+
+`spaces/` — тринадцатый Knowledge-домен, добавленный после DS-6.4:
+канонические записи общих архитектурных знаний об **уже существующих**
+`SpaceTypeId` (`src/lib/interior/space-type/**`, DS-7.2) — Living Room,
+Bedroom, Kitchen, Hospital Ward, Airport Terminal и т.д. В отличие от
+остальных 12 доменов, этот **не** пустая заготовка — на DS-7.3 сразу
+заполнен 51 записью (по одной на каждый канонический `SpaceTypeId`).
+
+Важное отличие от уже существующего `space/` (единственное число, §6):
+`space/` хранит абстрактные, стилевые layout/flow/zoning-концепции;
+`spaces/` (множественное число, новый домен) хранит конкретные профили
+знаний по каждому каноническому типу помещения. Оба домена переиспользуют
+один и тот же литерал `FeatureType`, `"space"` — новый литерал для этого
+этапа не вводился (Principle 19/22, Reuse). Полное обоснование,
+разграничение и Boundary Protection (`SpaceType` / Knowledge / Prompt
+Engine — три разных вопроса) — `spaces/README.md`.
+
+`spaces/registry.ts` не импортирует `space-type/**` ни в каком виде
+(даже type-only) — `id` каждой записи лишь **соответствует по конвенции**
+значению `SpaceTypeId`, задокументированной в `spaces/README.md` §5.
+Направление зависимости остаётся тем же, что требует
+`docs/AI_CORE_CHECKLIST.md` для Space Type: Knowledge не импортируется
+из Space Type, и Space Type не импортируется в Knowledge.
+
+Knowledge Base по-прежнему нигде не используется production-кодом —
+`spaces/**` не подключён ни к Prompt Domain, ни к Prompt Engine, ни к
+Rule Engine, ни к Style Registry, ни к производству. Подробности —
+`spaces/README.md` §10 "Status".

@@ -668,8 +668,12 @@ Prompt Engine
 - **DS-7.2 — Space Type Foundation** — конкретные типы помещений/объектов
   внутри каждого Design Domain. См. подробности ниже и
   `src/lib/interior/space-type/README.md`.
-- **DS-7.3 — Design Knowledge Integration** — связывание Space Type со
-  слоем Knowledge (`src/lib/interior/knowledge`). Ещё не создан.
+- **DS-7.3 — Spatial Knowledge Foundation** — новый Knowledge-домен
+  (`src/lib/interior/knowledge/spaces`) с каноническими записями общих
+  архитектурных знаний по каждому существующему `SpaceTypeId`. См.
+  подробности ниже и `src/lib/interior/knowledge/spaces/README.md`. Это
+  **не** связывание (lookup/adapter) Space Type ↔ Knowledge — оно
+  по-прежнему future work, см. "Phase 7.3" ниже.
 - **DS-7.4 — Prompt Integration** — подключение Spatial Architecture к
   Prompt Engine через `PromptContext`. Ещё не создан.
 
@@ -1159,3 +1163,73 @@ Builder, Formatter, Pipeline, Developer Studio, Benchmark, API, and
 Production are not affected. `PromptContext`, `RoomContext`,
 `KnowledgeFeature`, and Style Registry are unchanged. `npm run build`
 passes.
+
+### Phase 7.3 — Spatial Knowledge Foundation (DS-7.3)
+
+New Knowledge domain, `src/lib/interior/knowledge/spaces/` — general
+architectural knowledge about *what is generally true* about each
+canonical `SpaceTypeId` (`space-type/space-types.ts`, DS-7.2). This is
+**not** DS-7.3 as originally sketched in Phase 7's overview above ("Design
+Knowledge Integration" — a lookup/adapter connecting Space Type to
+Knowledge); that connective work remains unstarted future work. This
+stage builds the Knowledge side of that future connection first: the
+content a future integration step would read, not the integration step
+itself.
+
+- **`spaces/registry.ts`** — `SPATIAL_KNOWLEDGE_REGISTRY`, 51
+  `KnowledgeFeature` entries (`knowledge/core/Feature.ts`), one per
+  canonical `SpaceTypeId` that exists in `space-type/space-types.ts` at
+  the time of writing. Every entry uses `domain: "space"` — the existing
+  `FeatureType` literal (`knowledge/core/FeatureTypes.ts`) — reused
+  exactly as-is; no new literal, no new `<Domain>Feature`/`<Domain>Knowledge`
+  alias, no change to `knowledge/core/**` or `knowledge/types.ts`.
+  Structured knowledge (primary functions, typical activities, spatial
+  priorities, functional zones, privacy level, traffic level, circulation,
+  ergonomic concerns, furniture categories, lighting requirements,
+  accessibility considerations, storage needs, acoustic expectations,
+  maintenance characteristics, safety considerations, environmental
+  constraints, occupancy characteristics) lives entirely in each entry's
+  existing `metadata` field (ADR-000 Principle 22, "Metadata" step) — an
+  illustrative, consistently-applied shape, not a new TypeScript contract.
+- **`spaces/index.ts`** — re-exports `KnowledgeFeature` (type-only) plus
+  `SPATIAL_KNOWLEDGE_REGISTRY`, `getSpatialKnowledge(id)`,
+  `getAllSpatialKnowledge()` — the same lookup-function shape every other
+  `knowledge/<domain>/index.ts` uses.
+- **`spaces/README.md`** — full architectural rationale: the distinction
+  between this domain (`spaces/`, per-canonical-Space-Type profiles) and
+  the pre-existing `space/` domain (DS-6.4, abstract style-facing
+  layout/flow/zoning concepts) that reuses the same `"space"` literal;
+  Boundary Protection (`SpaceType` answers "what space is this?",
+  Knowledge answers "what is generally true about this space?", Prompt
+  Engine answers "how should this influence prompt generation?" — three
+  non-overlapping questions); the future Spatial Intelligence chain
+  (`RoomContext → Room Analyzer → SpaceType → Spatial Knowledge → Rules →
+  Prompt Draft → Formatter → Generation`, only the Spatial Knowledge link
+  implemented); an illustrative, non-implemented list of future knowledge
+  categories (workflow, security, compliance, building code, fire safety,
+  commercial/medical/industrial operations, hospitality/retail behavior,
+  visitor flow, queue behavior); and why commercial readiness (Office,
+  Cafe, Restaurant, Retail, Hotel, Hospital, School, Airport, Warehouse,
+  Factory, Gallery, Museum, Coworking) emerges from reusing one
+  composition (`KnowledgeFeature` + `metadata`) rather than from any
+  commercial-specific type or registry.
+
+`spaces/registry.ts` does not import `space-type/**` in any form — not
+even a type-only import of `SpaceTypeId`. Each record's `id` matches the
+corresponding `SpaceTypeId` string by convention only, documented in
+`spaces/README.md` §5. This preserves the dependency direction
+`docs/AI_CORE_CHECKLIST.md` already requires for Space Type ("Space Type
+не импортирует Knowledge") without ever needing Knowledge to import
+Space Type either — the two registries are connected by a shared id
+convention, not a code dependency in either direction.
+
+`knowledge/core/**`, `knowledge/types.ts`, `knowledge/index.ts`,
+`knowledge/registry/KnowledgeRegistry.ts`, every other
+`knowledge/<domain>/**`, `space-type/**`, `design-domain/**`, Prompt
+Domain, Prompt Engine (Builder/Rules/Formatter/Pipeline), Rule Engine,
+Generation Engine, Provider, Style Registry, Developer Studio, Benchmark,
+the public site, the API, `buildEditPrompt()`, and `prompts.ts` are not
+affected. `spaces/**` is not imported from anywhere outside itself — fully
+isolated, exactly like every other Knowledge domain on the day it was
+created. `docs/AI_CORE_CHECKLIST.md` and `knowledge/README.md` received
+corresponding entries. `npm run build` passes.
