@@ -856,6 +856,14 @@ Individual ADR    (the actual decision)
 AI_CORE_CHECKLIST.md (verification)
 ```
 
+`docs/adr/ADR_INDEX.md` is the governance registry — ownership, versioning,
+history, confidence, review cadence, and lifecycle for every ADR.
+`docs/adr/ADR_MAP.md` is the visual navigation layer — the area chain,
+ownership map, and dependency tree, with no decisions and no tracked
+metadata of its own. Individual ADR files (`docs/adr/ADR-0xx-*.md`)
+contain the actual decisions — context, decision, consequences. None of
+the three duplicates another's full content; they link and summarize.
+
 См. также [AI_CORE_CHECKLIST.md](AI_CORE_CHECKLIST.md) — чек-лист перед
 каждым новым архитектурным этапом (начиная с DS-6).
 
@@ -890,6 +898,38 @@ ADR-000/001/002/003/004, Prompt Engine, Prompt Domain, Knowledge Core,
 Design Domain, Rule Engine, Formatter, Pipeline, Builder, `PromptDraft`,
 Style Registry, Developer Studio, Benchmark, публичный сайт, API и
 Production не затронуты. `npm run build` проходит.
+
+### DS-7.1.3d — ADR Governance Final Polish (Enterprise Edition, документация)
+
+Финальная документационная полировка ADR-экосистемы, без единой строки
+кода. `docs/adr/ADR_INDEX.md` получил: колонки `Related ADRs` и `Tags` в
+ADR Registry; раздел "ADR History" (per-ADR таблица версий: что менялось
+и почему, отдельно от `git log`); "Review Frequency" и "Decision
+Confidence" для каждого ADR; "ADR Relationships" (явное различие `Depends
+On` vs `Related ADRs`); "Governance Health" (checklist владения);
+"Governance Rules" (компактная форма One Area/Boundary/Invariant/ADR → One
+Owner); "Future ADR Policy" (обязательные поля перед статусом `Active`);
+"Architecture Evolution Rules" (что каждое governance-поле означает и что
+не означает — ни одно из них не меняет владение); расширенный Architecture
+Dashboard (`Owner ADR`, `Maturity`, `Risk`); Architecture Maturity
+переоценена — **Level 5 (Evolution) объявлен достигнутым**: governance
+model сам является механизмом эволюции, будущие модули развиваются внутри
+него, а не через новый процесс; расширенный Glossary (`Area`, `Scope`,
+`Owner`, `Dependency`, `Relationship`, `Confidence`, `Review Frequency`,
+`History`, `Governance`); "Final Consistency Review" и "Final Governance
+Statement" — ADR-система объявлена архитектурно завершённой.
+
+`docs/adr/ADR_MAP.md` получил "Architecture Area Map" (цепочка CORE →
+PROMPT → SPATIAL → KNOWLEDGE → PRODUCTION) и уточнение к ADR Dependency
+Tree: `Related ADRs` — концептуальные связи, не рёбра зависимостей, и
+намеренно не показаны на дереве. `docs/AI_CORE_CHECKLIST.md` получил
+governance-проверки: Review Frequency, Decision Confidence, Related ADRs,
+History, Tags, Dashboard, ADR_MAP.
+
+ADR-000/001/002/003/004, Prompt Engine, Prompt Domain, Knowledge Core,
+Design Domain, Rule Engine, Formatter, Pipeline, Builder, Developer
+Studio, Benchmark, публичный сайт, API и Production не затронуты. `npm
+run build` проходит.
 
 ### DS-7.1.3b — ADR Index & Architecture Decision Registry (документация)
 

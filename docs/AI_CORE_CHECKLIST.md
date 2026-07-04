@@ -261,6 +261,17 @@ Not automated — reviewed by hand.
       Experimental / Deprecated)?
 - [ ] [ADR_MAP.md](adr/ADR_MAP.md) updated if the visual map's shape
       changed (new Area, new future placeholder, new relationship)?
-- [ ] [Architecture Coverage
-      Dashboard](adr/ADR_INDEX.md#architecture-coverage-dashboard) updated
-      if this change affects an Area's coverage/owner/missing/priority?
+- [ ] [Architecture Dashboard](adr/ADR_INDEX.md#architecture-dashboard)
+      updated if this change affects an Area's coverage/owner/maturity/risk?
+- [ ] Review Frequency assigned? (see [ADR_INDEX's Review
+      Frequency](adr/ADR_INDEX.md#review-frequency))
+- [ ] Decision Confidence assigned? (see [ADR_INDEX's Decision
+      Confidence](adr/ADR_INDEX.md#decision-confidence))
+- [ ] Related ADRs reviewed? (conceptual links only — must not be
+      confused with `Depends On`; see [ADR
+      Relationships](adr/ADR_INDEX.md#adr-relationships))
+- [ ] [ADR History](adr/ADR_INDEX.md#adr-history) updated with a new
+      entry, and `Version` bumped to match (major for a new
+      invariant/boundary/ownership change, minor for clarification)?
+- [ ] Tags updated for discoverability (navigation only — do not imply
+      ownership)?

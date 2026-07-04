@@ -61,6 +61,32 @@ own ADR or an extension of an existing one is decided when that stage
 starts, per [ADR_INDEX's ADR Creation
 Checklist](ADR_INDEX.md#adr-creation-checklist).
 
+## Architecture Area Map
+
+The same chain as the [Architecture Map](#architecture-map) above,
+expressed by Area code (see [ADR_INDEX's Architecture
+Areas](ADR_INDEX.md#architecture-areas)) instead of by ADR number — useful
+when navigating by "what area am I touching" rather than "which ADR do I
+open":
+
+```
+CORE
+  ↓
+PROMPT
+  ↓
+SPATIAL
+  ↓
+KNOWLEDGE
+  ↓
+PRODUCTION
+```
+
+`PROVIDER`, `STYLE`, `DEVELOPER`, and `BENCHMARK` are not on this
+particular chain — they are foundational Areas (Provider/Style) or
+tooling Areas (Developer/Benchmark) that every stage on the chain above
+may reference, not additional links in it. See the [ADR Ownership
+Map](#adr-ownership-map) below for all nine Areas together.
+
 ## ADR Ownership Map
 
 | Area | Responsible ADR | Protected Boundary | Future Expansion |
@@ -95,6 +121,13 @@ applying a different subset of ADR-000's principles to a different Area
 This keeps the dependency graph a flat tree, one level deep, with no
 cross-edges between siblings — consistent with ADR-000 Principle 12
 (avoid cyclical imports) applied to the documentation graph itself.
+
+This tree shows **`Depends On` edges only**. `Related ADRs` (ADR-001↔002,
+ADR-002↔003, ADR-003↔004 — see [ADR_INDEX's ADR
+Relationships](ADR_INDEX.md#adr-relationships)) are conceptual links, not
+dependency edges, and deliberately do not appear here — drawing them on
+this tree would make it look like a cross-edge dependency exists where
+none does.
 
 ## Cross-links
 

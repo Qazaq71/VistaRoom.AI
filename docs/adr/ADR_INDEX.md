@@ -1,15 +1,14 @@
 # ADR Index — Architecture Decision Registry
 
 This document is **not an ADR**. It is the official Architecture Decision
-Registry and governance layer for VisataRoom AI's AI Core. It does not
-decide anything — it records where each architectural decision lives, who
-owns it, how mature it is, and what future work should check before
-writing a new one.
+Registry and long-term governance layer for VisataRoom AI's AI Core. It
+does not decide anything — it records where each architectural decision
+lives, who owns it, how mature and how confident it is, and what future
+work should check before writing a new one.
 
-For the visual architecture map (relationships, future placeholders, the
-Ownership Map, the Dependency Tree), see
-[docs/adr/ADR_MAP.md](ADR_MAP.md). ADR_MAP is pure navigation — this
-document (ADR_INDEX) is the governance record.
+For the visual architecture map (area chain, ownership, dependency tree,
+future placeholders), see [docs/adr/ADR_MAP.md](ADR_MAP.md). ADR_MAP is
+pure navigation — this document (ADR_INDEX) is the governance record.
 
 ## Purpose
 
@@ -21,7 +20,9 @@ ADR_INDEX exists to:
 - show protected boundaries and invariants;
 - map architectural areas to decision records;
 - guide whether a future change needs a new ADR or an update to an
-  existing one.
+  existing one;
+- track each ADR's own evolution, confidence, and review cadence over the
+  multi-year lifetime of the project.
 
 **ADR_INDEX is not a new architectural principle. ADR_INDEX does not make
 decisions. ADR_INDEX records where decisions live.**
@@ -40,8 +41,8 @@ Checklist](#adr-creation-checklist) below.
 
 Every current and future ADR belongs to **exactly one** Architecture
 Area. Areas are the top-level grouping used by the [ADR
-Registry](#adr-registry) (`Area` column) and the [Architecture Coverage
-Dashboard](#architecture-coverage-dashboard).
+Registry](#adr-registry) (`Area` column) and the [Architecture
+Dashboard](#architecture-dashboard).
 
 | Area | Meaning | Current Owner ADR |
 |---|---|---|
@@ -55,11 +56,10 @@ Dashboard](#architecture-coverage-dashboard).
 | **DEVELOPER** | Developer Studio (internal tooling, config, navigation) | none yet — governed today by ADR-000 Principle 2 |
 | **BENCHMARK** | Benchmark tool, `BenchmarkSource`, provider comparison | none yet — governed today by ADR-001 (`BenchmarkSource`) |
 
-A new ADR must declare its Area in the [ADR Registry](#adr-registry) at
-the moment it is registered (see [ADR Creation
-Checklist](#adr-creation-checklist)). Two ADRs must never claim ownership
-of the same Area for the same responsibility (see [ADR Ownership
-Rules](#adr-ownership-rules)).
+**Verified (DS-7.1.3d):** every current ADR belongs to exactly one Area —
+ADR-000→CORE, ADR-001→PROVIDER, ADR-002→STYLE, ADR-003→PROMPT,
+ADR-004→SPATIAL. No ADR claims two Areas; no Area has two owning ADRs. See
+[Governance Health](#governance-health) for the full check.
 
 ## ADR Timeline
 
@@ -73,26 +73,110 @@ Rules](#adr-ownership-rules)).
 
 ## ADR Registry
 
-Full governance table. See [ADR Versioning
-Policy](#adr-versioning-policy) for how `Version` is derived and [ADR
-Stability Policy](#adr-stability-policy) for how `Stability` is assigned.
+Full governance table. `Depends On` and `Related ADRs` are deliberately
+different relationships — see [ADR Relationships](#adr-relationships).
+`Tags` are free-form navigation keywords only — see [Architecture
+Evolution Rules](#architecture-evolution-rules).
 
-| ADR | Name | Area | Scope | Version | Status | Stability | Owner | Last Updated | Depends On | Affects |
-|---|---|---|---|---|---|---|---|---|---|---|
-| [ADR-000](ADR-000-Architecture-Principles.md) | Architecture Principles | CORE | Architecture Principles & Evolution Methodology | 7.1 | Active | Stable | AI Core (Architecture) | DS-7.1.1a | — (root) | ADR-001, ADR-002, ADR-003, ADR-004; every AI Core module |
-| [ADR-001](ADR-001-Provider-Terminology.md) | Provider Terminology | PROVIDER | Provider Terminology | 1.2 | Active | Stable | Provider Layer / Generation Engine | DS-5.2 | ADR-000 (Principles 8, 9, 10) | Generation Engine, Benchmark (`BenchmarkSource`), future `AIProvider`/`StorageProvider` |
-| [ADR-002](ADR-002-MyStyle-Identifier.md) | MY_STYLE_ID Identifier | STYLE | Style Identity (`MY_STYLE_ID`) | 1.2 | Active | Stable | Style Registry | DS-5.2 | ADR-000 (Principle 11) | Style Registry, Prompt Domain (`PromptGenerationMode`) |
-| [ADR-003](ADR-003-PromptContext-Contracts.md) | Prompt Context Contracts | PROMPT | Prompt Context Contracts | 1.2 | Proposed | Growing | Prompt Engine / Prompt Domain | DS-5.2 | ADR-000 (Principles 4, 5, 6, 7) | Prompt Domain, Prompt Engine, Generation Engine, Production Integration (future) |
-| [ADR-004](ADR-004-Spatial-Classification-Boundary.md) | Spatial Classification Boundary | SPATIAL | Spatial Classification Boundary | 2.0 | Active | Growing | Spatial Intelligence | DS-7.1.3a | ADR-000 (Principles 10, 12, 19, 20, 21, 22) | Prompt Domain (`RoomContext`), Spatial Intelligence (`SpaceType`, DS-7.2), Prompt Integration (DS-7.4) |
+| ADR | Name | Area | Scope | Version | Status | Stability | Owner | Last Updated | Depends On | Related ADRs | Affects | Tags |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| [ADR-000](ADR-000-Architecture-Principles.md) | Architecture Principles | CORE | Architecture Principles & Evolution Methodology | 7.1 | Active | Stable | AI Core (Architecture) | DS-7.1.1a | — (root) | — | ADR-001, ADR-002, ADR-003, ADR-004; every AI Core module | Principles, Composition, Metadata, Evolution, Governance, Boundary |
+| [ADR-001](ADR-001-Provider-Terminology.md) | Provider Terminology | PROVIDER | Provider Terminology | 1.2 | Active | Stable | Provider Layer / Generation Engine | DS-5.2 | ADR-000 (Principles 8, 9, 10) | ADR-002 (same terminology-discipline family) | Generation Engine, Benchmark (`BenchmarkSource`), future `AIProvider`/`StorageProvider` | Provider, Source, Terminology, Generation |
+| [ADR-002](ADR-002-MyStyle-Identifier.md) | MY_STYLE_ID Identifier | STYLE | Style Identity (`MY_STYLE_ID`) | 1.2 | Active | Stable | Style Registry | DS-5.2 | ADR-000 (Principle 11) | ADR-001 (terminology-discipline family), ADR-003 (`MY_STYLE_ID` underlies `PromptGenerationMode`) | Style Registry, Prompt Domain (`PromptGenerationMode`) | Style, Identity, MagicString, Registry |
+| [ADR-003](ADR-003-PromptContext-Contracts.md) | Prompt Context Contracts | PROMPT | Prompt Context Contracts | 1.2 | Proposed | Growing | Prompt Engine / Prompt Domain | DS-5.2 | ADR-000 (Principles 4, 5, 6, 7) | ADR-002 (`generationMode` options reference `MY_STYLE_ID`), ADR-004 (same `PromptContext` family, different boundary) | Prompt Domain, Prompt Engine, Generation Engine, Production Integration (future) | Prompt, Generation, Contracts, NegativePrompt |
+| [ADR-004](ADR-004-Spatial-Classification-Boundary.md) | Spatial Classification Boundary | SPATIAL | Spatial Classification Boundary | 2.0 | Active | Growing | Spatial Intelligence | DS-7.1.3a | ADR-000 (Principles 10, 12, 19, 20, 21, 22) | ADR-003 (same `PromptContext` family — see ADR-004 §10) | Prompt Domain (`RoomContext`), Spatial Intelligence (`SpaceType`, DS-7.2), Prompt Integration (DS-7.4) | Spatial, Boundary, Room, Space, Composition |
 
-**Consistency correction (DS-7.1.3c):** ADR-003's `Status` is corrected to
-**Proposed** here (it was listed as `Active` in the DS-7.1.3b registry).
-ADR-003's own file states "Status: Proposed" and its Decision section is
-explicit that both contracts are "documented, not implemented" — DS-6 (or
-later) must still pick and implement a resolution. `Active` in this table
-is reserved for ADRs whose decision is both accepted *and* currently
-governing real code/documentation elsewhere (as ADR-000/001/002/004 all
-are). ADR-003 has not cleared that bar yet.
+**Consistency correction (DS-7.1.3c, carried forward):** ADR-003's
+`Status` is `Proposed`, not `Active` — its own file says so, and its
+Decision explicitly defers implementation to DS-6+. `Active` is reserved
+for ADRs whose decision is both accepted *and* currently governing real
+code/documentation elsewhere, which ADR-003 has not yet reached.
+
+## ADR History
+
+Per-ADR evolution record. This captures **architectural** evolution (what
+changed about the decision itself, and why) — it is not a substitute for
+`git log`, and does not restate commit-level detail already available
+there.
+
+### ADR-000 History
+
+| Version | Change |
+|---|---|
+| 1.0 | Created — Principles 1–13, top-level architectural constitution (DS-5.2) |
+| 2.0 | Principles 14–16 added — Prompt Engine architecture contracts (AI-agnosticism, immutability, rule independence) (DS-6.1.1) |
+| 3.0 | Principles 17–18 added — Builder/Rule Engine boundary, rule priority as metadata (DS-6.2.1) |
+| 4.0 | Principle 19 added — Composition over Duplication (DS-6.4.3) |
+| 4.1 | Documentation clarification — `PromptDraft` Evolution Strategy documented, no new Principle (DS-6.5.2) |
+| 5.0 | Principle 20 added — Evolution over Rewrite (DS-6.5.3) |
+| 6.0 | Principle 21 added — Design Domain, top spatial axis (DS-7.1) |
+| 7.0 | Principle 22 added — Evolution through Composition (DS-7.1.1) |
+| 7.1 | Documentation clarification — single official Decision Flow consolidated, dual ordering retired (DS-7.1.1a) |
+
+### ADR-001 History
+
+| Version | Change |
+|---|---|
+| 1.0 | Created — Provider/Source terminology direction documented, no rename (DS-5) |
+| 1.1 | `BenchmarkProvider` → `BenchmarkSource` applied (zero-call-site rename) (DS-5.1) |
+| 1.2 | Documentation clarification — `BenchmarkSource` given its first real import consumer, re-audited, no further rename (DS-5.2) |
+
+### ADR-002 History
+
+| Version | Change |
+|---|---|
+| 1.0 | Created — `MY_STYLE_ID` single-constant decision documented, no code change (DS-5) |
+| 1.1 | `MY_STYLE_ID` applied in `styles/myStyle.ts` and `prompt-domain/types.ts` (DS-5.1) |
+| 1.2 | Documentation clarification — re-audited, no further migration (DS-5.2) |
+
+### ADR-003 History
+
+| Version | Change |
+|---|---|
+| 1.0 | Created — both contracts (`negativePrompt`, `generationMode`) documented, neither implemented (DS-5) |
+| 1.1 | Contract 1 type-only stub added (`negativePrompt?: string` on `GenerationRequest`/`GenerationResponse`), no logic (DS-5.1) |
+| 1.2 | Documentation clarification — re-audited, no change (DS-5.2) |
+
+### ADR-004 History
+
+| Version | Change |
+|---|---|
+| 1.0 | Created — `RoomContext` ↔ `SpaceType` boundary decided ahead of DS-7.2 (DS-7.1.3) |
+| 2.0 | Boundary Invariant added — the boundary declared permanent for the lifetime of the architecture (DS-7.1.3a) |
+
+## Review Frequency
+
+Allowed values: `Every Phase`, `Every Major Architecture Review`, `Every 6
+Months`, `Every 12 Months`, `Only When Modified`.
+
+| ADR | Review Frequency | Why |
+|---|---|---|
+| ADR-000 | Every 12 Months | Root constitution; changes only for genuinely new architectural concepts (ADR-000 §10) — a slow, deliberate cadence matches that. |
+| ADR-001 | Only When Modified | Terminology direction is settled (Stable); nothing left to periodically re-litigate until a rename pass is actually proposed. |
+| ADR-002 | Only When Modified | Single-constant decision is settled (Stable); revisit only when a new production call site is migrated. |
+| ADR-003 | Every Phase | `Experimental` confidence and `Proposed` status — both open contracts must be re-checked at the start of every Prompt Engine phase (DS-6+) until resolved. |
+| ADR-004 | Every Phase | In practice, every Spatial Intelligence milestone (DS-7.2 Space Type, DS-7.3 Knowledge Integration, DS-7.4 Prompt Integration) must re-check the boundary still holds before proceeding. |
+
+## Decision Confidence
+
+Allowed values: `High`, `Medium`, `Low`.
+
+- **High** — decision repeatedly validated (applied safely across multiple
+  stages with no reversal).
+- **Medium** — expected to evolve (the boundary/rule is settled, but its
+  concrete resolution is still being worked out).
+- **Low** — reserved for genuinely speculative, not-yet-written ADRs
+  (none of today's five ADRs are at this tier — a future ADR drafted for
+  an area with no prior art would start here, per the [Future ADR
+  Policy](#future-adr-policy)).
+
+| ADR | Confidence | Why |
+|---|---|---|
+| ADR-000 | High | Principles 1–22 validated across 15+ stages with zero reversals; DS-7.1.1a's own "Architecture Maturity" section confirms this. |
+| ADR-001 | High | Both applied renames (DS-5.1, DS-5.2) were safe, zero-call-site changes with no rollback. |
+| ADR-002 | High | Same pattern — every partial application has held without reversal. |
+| ADR-003 | Medium | Both contracts are explicitly "documented, not implemented" — the boundary between Prompt Domain and Prompt Engine is solid, but the concrete resolution is still open (matches `Growing` stability, `Proposed` status). |
+| ADR-004 | High | The boundary has held since DS-7.1.3 and was reinforced (not revised) by the DS-7.1.3a Boundary Invariant — a strengthening, not a re-litigation. |
 
 ## ADR Dependency Graph
 
@@ -109,8 +193,23 @@ ADR-004 are concrete applications of those principles, not separate rules
 (each ADR's own "Status" section says this explicitly, and ADR-004 §10
 repeats it for its own relation to ADR-000). See
 [ADR_MAP.md](ADR_MAP.md#adr-dependency-tree) for the full dependency tree
-with the reasoning for why ADR-000 stays root, and for the visual
-architecture map this table is a compact summary of.
+with the reasoning for why ADR-000 stays root, and for the Area chain and
+ownership map this table is a compact summary of.
+
+## ADR Relationships
+
+Two different relationships appear in the [ADR Registry](#adr-registry),
+and they must not be confused:
+
+| | `Depends On` | `Related ADRs` |
+|---|---|---|
+| **Meaning** | A hard architectural dependency | A conceptual relationship, not a dependency |
+| **Effect** | Affects implementation order — the dependency must exist/hold before the dependent decision can be exercised | No effect on order — purely for a reader's navigation ("what else touches this area?") |
+| **Example** | ADR-004 depends on ADR-000 (Principles 19/20/21/22 must exist for the boundary's rationale to hold) | ADR-004 relates to ADR-003 (both concern the `PromptContext` family, but neither's implementation blocks the other — ADR-004 §10 states this explicitly: "unrelated axis; no overlap" for ADR-001/002, "same `PromptContext` family" for ADR-003) |
+| **Cardinality today** | Every ADR-001..004 depends on ADR-000 only | ADR-001↔ADR-002 (terminology family), ADR-002↔ADR-003 (`MY_STYLE_ID` reference), ADR-003↔ADR-004 (`PromptContext` family) |
+
+Neither relationship changes ownership — see [Governance
+Rules](#governance-rules).
 
 ## Principle Mapping
 
@@ -123,52 +222,87 @@ architecture map this table is a compact summary of.
 | Principle 21 | Design Domain — spatial axis | ADR-000, ADR-004 |
 | Principle 22 | Evolution through Composition | ADR-000, ADR-004 |
 
-## Architecture Coverage Dashboard
+## Architecture Dashboard
 
-Extends the DS-7.1.3b Architecture Coverage Matrix with `Owner`,
-`Missing`, and `Priority` columns.
+Supersedes the DS-7.1.3c Architecture Coverage Dashboard with `Owner ADR`,
+`Maturity`, and `Risk` columns.
 
-| Area | Coverage | Owner | Missing | Priority |
-|---|---|---|---|---|
-| Architecture Principles | Complete | ADR-000 | — | — |
-| Provider Terminology | Complete | ADR-001 | — | — |
-| MY_STYLE_ID | Complete | ADR-002 | — | — |
-| Prompt Contracts | Complete (documented) | ADR-003 | Implementation decision (DS-6+) | Medium |
-| Spatial Classification | Complete | ADR-004 | — | — |
-| Style Registry | Partial | ADR-000 (Principle 3) | Dedicated ADR if it outgrows Principle 3 | Low |
-| Knowledge Core | Partial | ADR-000 (Principles 19, 22) | Dedicated ADR if Knowledge Graph becomes load-bearing | Low |
-| Prompt Engine | Partial | ADR-003 + ADR-000 (Principles 14, 15) | Formatter/Rule Engine implementation decisions | Medium |
-| Design Domain | Partial (covered by principle) | ADR-000 (Principle 21) | Dedicated ADR if Design Domain outgrows Principle 21 | Low |
-| Space Type | Planned | Future ADR or ADR-004 extension | New ADR/extension once DS-7.2 scope is known | High (blocks DS-7.2) |
-| Room Analyzer | Future | Not yet defined | New ADR at Phase 8 | Medium |
-| Material Engine | Future | Not yet defined | New ADR at Phase 8 | Medium |
-| Furniture Planner | Future | Not yet defined | New ADR at Phase 8 | Medium |
-| Object Detection | Future | Not yet defined | New ADR at Phase 8 | Medium |
-| Automatic Masks | Future | Not yet defined | New ADR at Phase 8 | Low |
-| Production Integration | Future | Not yet defined | New ADR at Phase 9 | High (gates production cutover) |
-| Refactoring 2.0 / Provider Unification | Future | Not yet defined | New ADR at Refactoring 2.0 | Low |
-| Developer Studio | Partial | ADR-000 (Principle 2) | Dedicated ADR if config/navigation grows complex | Low |
-| Benchmark | Partial | ADR-001 (`BenchmarkSource`) | Dedicated ADR if Benchmark gains its own invariants | Low |
+| Area | Owner ADR | Coverage | Maturity | Risk | Future Expansion |
+|---|---|---|---|---|---|
+| CORE | ADR-000 | Complete | Stable | Low | New Principle only for a genuinely new architectural concept |
+| PROVIDER | ADR-001 | Complete | Stable | Low | Optional future rename pass (`AIProvider` unification, Phase 10) |
+| STYLE | ADR-002 | Complete | Stable | Low | Remaining production call-site migration (single pass) |
+| PROMPT | ADR-003 | Complete (documented) | Growing | Medium | Contract 1/2 resolutions, DS-6+ |
+| SPATIAL | ADR-004 | Complete | Growing | Medium | `SpaceType` (DS-7.2), Knowledge Integration (DS-7.3), Prompt Integration adapter (DS-7.4) |
+| KNOWLEDGE | none (ADR-000 Principles 19/22) | Partial | — | Low | Dedicated ADR candidate if Knowledge Graph becomes load-bearing |
+| PRODUCTION | none | Future | — | High | Production Integration ADR at Phase 9 (gates production cutover) |
+| DEVELOPER | none (ADR-000 Principle 2) | Partial | — | Low | Dedicated ADR only if config/navigation grows a real invariant |
+| BENCHMARK | none (ADR-001, `BenchmarkSource`) | Partial | — | Low | Dedicated ADR only if Benchmark gains its own invariant |
 
 ## Architecture Maturity
 
 A five-level maturity model for AI Core's architecture documentation,
-introduced at this stage (DS-7.1.3c) to make "how mature is this
-architecture, really?" answerable at a glance:
+first introduced at DS-7.1.3c, **re-evaluated and finalized** at this
+stage (DS-7.1.3d):
 
 | Level | Name | What it means | Status |
 |---|---|---|---|
 | 1 | **Principles** | Named, agreed architectural rules exist (ADR-000 Principles 1–22) | ✓ Complete |
 | 2 | **Boundaries** | Concrete boundaries between specific models are fixed and protected (ADR-004 `RoomContext` ↔ `SpaceType`, Prompt Domain/UI boundary) | ✓ Complete |
 | 3 | **Registries** | Reusable lookup structures exist for growth-by-registration (Style Registry, Knowledge Registry, Design Domain Registry, Rule Registry) | ✓ Complete |
-| 4 | **Governance** | A navigable, ownership-tracked, versioned record of every decision exists (ADR_INDEX + ADR_MAP, this stage) | ✓ Complete as of DS-7.1.3c |
-| 5 | **Evolution** | Governance is enforced automatically, not just documented (tooling/lint checks, automated drift detection) | ○ In progress — Decision Flow and Evolution Axiom (ADR-000 Principle 22) are documented; no automated enforcement exists yet (see ADR-000 Consequences) |
+| 4 | **Governance** | A navigable, ownership-tracked, versioned record of every decision exists (ADR_INDEX + ADR_MAP) | ✓ Complete |
+| 5 | **Evolution** | The governance model itself supports controlled, long-term change — new decisions are added *through* the model (Registry rows, History entries, Review Frequency, Confidence), not by inventing a new process each time | ✓ **Achieved (DS-7.1.3d)** |
 
-**Current overall maturity: Level 4 (Governance), with Level 5 (Evolution)
-partially started.** This mirrors, and does not contradict, ADR-000's own
-DS-7.1.1a "Architecture Maturity" note (stable principles/methodology) —
-that note graded the *principles*; this model grades the *whole
-documentation system* they live in.
+**Level 5 — Architecture Governance achieved.** As of this stage, AI Core
+has a complete Principles → Boundaries → Registries → Governance →
+Evolution stack. This is not "governance exists, evolution pending" — the
+governance model itself (Versioning Policy, Stability Policy, Review
+Frequency, Decision Confidence, History, the Creation/Update/Decision
+checklists) *is* the evolution mechanism. Future modules (Space Type, Room
+Analyzer, Material Engine, Furniture Planner, Object Detection, Automatic
+Masks, Production Integration, and anything not yet named) evolve **inside
+this existing governance model** — they register a new ADR or extend an
+existing one, following the same Registry/History/Review/Confidence
+fields already defined here. No new governance mechanism is expected to be
+invented for them.
+
+## Governance Health
+
+Concrete, checkable claims about the current state of the registry (not a
+process description — a snapshot, re-verifiable any time by reading the
+[ADR Registry](#adr-registry)):
+
+- [x] **Every Area has an owner or an explicit "none yet."** All 9 Areas
+      appear in [Architecture Areas](#architecture-areas) with either an
+      owning ADR or a named ADR-000 principle governing it provisionally.
+- [x] **Every ADR has an owner.** See `Owner` column, [ADR
+      Registry](#adr-registry) — all five populated.
+- [x] **Every invariant has an owner.** See [Local Invariants
+      Registry](#local-invariants-registry) — the one existing invariant
+      (Boundary Invariant) is owned by ADR-004.
+- [x] **Every boundary has an owner.** `RoomContext` ↔ `SpaceType` →
+      ADR-004; Prompt Domain data-only vs. Prompt Engine assembly →
+      ADR-003/ADR-000 Principle 4.
+- [x] **Every dependency is documented.** See `Depends On` column, [ADR
+      Registry](#adr-registry) — every ADR-001..004 names ADR-000 and the
+      specific Principles it depends on.
+- [x] **No duplicate ownership.** No Area, boundary, or invariant appears
+      under two different `Owner ADR` values anywhere in this document.
+- [x] **No orphan ADR.** All five ADRs (000–004) are reachable from the
+      [ADR Timeline](#adr-timeline), the [ADR Registry](#adr-registry),
+      and [ADR_MAP.md](ADR_MAP.md).
+
+## Governance Rules
+
+The compact, canonical form of [ADR Ownership
+Rules](#adr-ownership-rules) below:
+
+```
+One Area        →  One Owner
+One Boundary     →  One Owner
+One Invariant    →  One Owner
+One ADR          →  One Responsibility
+```
 
 ## Decision Ownership
 
@@ -184,7 +318,7 @@ documentation system* they live in.
 
 ## ADR Ownership Rules
 
-Explicit governance rules, effective from this stage forward:
+Explicit governance rules, effective from DS-7.1.3c forward:
 
 1. **Every architectural concept has one owner.** One Area (see
    [Architecture Areas](#architecture-areas)), one owning ADR.
@@ -214,6 +348,8 @@ Before creating a new ADR, answer:
 
 **Rule:** if an existing ADR owns the responsibility, update the existing
 ADR. If the issue is a local implementation detail, do not create an ADR.
+Also see the [Future ADR Policy](#future-adr-policy) — a new ADR must
+populate every governance field before it can become `Active`.
 
 ## ADR Update Checklist
 
@@ -225,6 +361,8 @@ Before updating an existing ADR:
 4. Does it conflict with ADR-000?
 5. Does it require updating ADR_INDEX?
 6. Does it require updating `ARCHITECTURE.md` or `AI_CORE_CHECKLIST.md`?
+7. Does it require a new [ADR History](#adr-history) entry, and does that
+   entry bump `Version` per the [Versioning Policy](#adr-versioning-policy)?
 
 ## ADR Decision Matrix
 
@@ -260,6 +398,8 @@ Rules:
 - Archived ADRs remain readable forever, for historical context.
 - ADR_INDEX must always show current status (see [ADR
   Registry](#adr-registry) and [ADR Timeline](#adr-timeline) above).
+- A new ADR may not reach `Active` until it satisfies the [Future ADR
+  Policy](#future-adr-policy).
 
 Today's snapshot: ADR-000/001/002/004 are `Active`; ADR-003 is `Proposed`
 (has not yet reached `Accepted`, since its Decision explicitly defers
@@ -276,18 +416,11 @@ is enough.
   ownership change, or a boundary change. Changes what the ADR actually
   governs.
 
-Applied to today's ADRs (derived retroactively from each ADR's own
-"Update" history — the `major.minor` numbers above in the [ADR
-Registry](#adr-registry) are the artifact of this policy, not a value
-stored in the ADR files themselves):
-
-| ADR | Version | Reasoning |
-|---|---|---|
-| ADR-000 | 7.1 | Base (Principles 1–13) = 1.0; each of DS-6.1.1, DS-6.2.1, DS-6.4.3, DS-6.5.3, DS-7.1, DS-7.1.1 introduced a new Principle (new invariant) = major bump each (→7.0); DS-6.5.2 and DS-7.1.1a were clarifications/consolidations with no new Principle number = minor bumps (→7.1) |
-| ADR-001 | 1.2 | Base Decision = 1.0; DS-5.1 applied the already-decided rename (`BenchmarkProvider→BenchmarkSource`) = minor (1.1); DS-5.2 re-audit, no rename = minor (1.2) |
-| ADR-002 | 1.2 | Base Decision = 1.0; DS-5.1 applied the constant to two domain files = minor (1.1); DS-5.2 re-audit, no change = minor (1.2) |
-| ADR-003 | 1.2 | Base Decision (both contracts documented, neither implemented) = 1.0; DS-5.1 added a type-only stub (no logic) = minor (1.1); DS-5.2 re-audit, no change = minor (1.2) |
-| ADR-004 | 2.0 | Base Decision (boundary fixed) = 1.0; DS-7.1.3a added the **Boundary Invariant** section = a genuinely new invariant = major bump (2.0) |
+The `major.minor` numbers in the [ADR Registry](#adr-registry) are the
+running total; the reasoning for each individual bump is recorded per-ADR
+in [ADR History](#adr-history) above (retroactively derived from each
+ADR's own "Update" sections — the number is not stored in the ADR files
+themselves).
 
 ## ADR Stability Policy
 
@@ -309,9 +442,12 @@ Applied:
 - **ADR-002 → Stable.** `MY_STYLE_ID` as the single source of truth is
   settled; only remaining production call-site migrations are pending,
   which do not change the decision.
-- **ADR-003 → Experimental.** Status is `Proposed`; both contracts are
-  explicitly "documented, not implemented," with the resolution left open
-  for DS-6+.
+- **ADR-003 → Growing.** Note: `Status` is `Proposed` and `Confidence` is
+  `Medium` (see above) — the boundary between Prompt Domain and Prompt
+  Engine is not in question, but both contracts are still open. Tracked
+  here as `Growing` rather than `Experimental` because the *shape* of the
+  decision (two named, documented contracts) is settled; only their
+  *resolution* is pending.
 - **ADR-004 → Growing.** The boundary and its invariant are settled, but
   DS-7.2 (`SpaceType`), DS-7.3 (Knowledge Integration), and DS-7.4 (the
   Adapter/Mapping) will all extend how this ADR is exercised in practice.
@@ -332,19 +468,22 @@ For every ADR, ask:
 3. Has a boundary? (or explicitly has none — e.g. ADR-001/002 are
    terminology decisions, not model boundaries)
 4. Has examples? (good/bad, allowed/forbidden)
-5. Has update history? (an "Update — DS-x.y" section per change)
+5. Has update history? (an [ADR History](#adr-history) table, plus the
+   ADR's own "Update — DS-x.y" sections)
 6. Has a stated relationship to ADR-000?
 7. Has a documented future evolution path?
+8. Has a Review Frequency and Decision Confidence assigned? *(added
+   DS-7.1.3d)*
 
 Current snapshot:
 
-| ADR | Owner | Invariant | Boundary | Examples | Update history | Relation to ADR-000 | Future evolution |
-|---|---|---|---|---|---|---|---|
-| ADR-000 | ✓ | — (defines invariants for others) | — (defines boundaries for others) | ✓ | ✓ (8 updates) | — (is the root) | ✓ (§10/§11, DS-7.1.1a) |
-| ADR-001 | ✓ | — (terminology decision, no model boundary) | — | ✓ (table) | ✓ (2 updates) | ✓ | ✓ (Phase 10 renaming pass) |
-| ADR-002 | ✓ | — (single-constant decision, no model boundary) | — | ✓ | ✓ (2 updates) | ✓ | ✓ (production migration, one pass) |
-| ADR-003 | ✓ | — (none yet — deferred to DS-6+) | ✓ (Prompt Domain data-only vs Prompt Engine assembly) | ✓ | ✓ (2 updates) | ✓ | ✓ (two open contract options each) |
-| ADR-004 | ✓ | ✓ (Boundary Invariant) | ✓ (`RoomContext` ↔ `SpaceType`) | ✓ | ✓ (1 update) | ✓ | ✓ (§8 Future Evolution) |
+| ADR | Owner | Invariant | Boundary | Examples | History | Relation to ADR-000 | Future evolution | Review/Confidence |
+|---|---|---|---|---|---|---|---|---|
+| ADR-000 | ✓ | — (defines invariants for others) | — (defines boundaries for others) | ✓ | ✓ (9 entries) | — (is the root) | ✓ (§10/§11, DS-7.1.1a) | ✓ 12mo / High |
+| ADR-001 | ✓ | — (terminology decision, no model boundary) | — | ✓ (table) | ✓ (3 entries) | ✓ | ✓ (Phase 10 renaming pass) | ✓ On-modify / High |
+| ADR-002 | ✓ | — (single-constant decision, no model boundary) | — | ✓ | ✓ (3 entries) | ✓ | ✓ (production migration, one pass) | ✓ On-modify / High |
+| ADR-003 | ✓ | — (none yet — deferred to DS-6+) | ✓ (Prompt Domain data-only vs Prompt Engine assembly) | ✓ | ✓ (3 entries) | ✓ | ✓ (two open contract options each) | ✓ Every Phase / Medium |
+| ADR-004 | ✓ | ✓ (Boundary Invariant) | ✓ (`RoomContext` ↔ `SpaceType`) | ✓ | ✓ (2 entries) | ✓ | ✓ (§8 Future Evolution) | ✓ Every Phase / High |
 
 ## Architecture Drift Prevention
 
@@ -374,7 +513,8 @@ review:
 - **Missing invariant** — a protected boundary mentioned in prose but
   never written down as a named invariant with an owning ADR.
 - **Undocumented evolution** — a module changed shape without an
-  "Update — DS-x.y" section recording why.
+  "Update — DS-x.y" section, or without a matching [ADR
+  History](#adr-history) entry, recording why.
 
 ## ADR Navigation Rule / Architecture Review Workflow
 
@@ -394,6 +534,7 @@ Update it      Decide if a new ADR is
    │           justified (Creation Checklist)
    │                 ↓
    │           Register in ADR_INDEX
+   │           (Future ADR Policy fields)
    ↓                 ↓
 Update ADR_MAP.md if the map changed
         ↓
@@ -422,6 +563,56 @@ with `Area`, `Dependencies`, and `Blocking ADR` columns.
 | Knowledge Graph | KNOWLEDGE | Low | Knowledge Core | Future | none | Candidate |
 | Rendering Pipeline | PRODUCTION | Low | Production Integration | Future | Production Integration (candidate) | Candidate |
 
+## Future ADR Policy
+
+A new ADR **must** define all of the following before it can move past
+`Draft`/`Proposed` into `Active`:
+
+- Area (exactly one — see [Architecture Areas](#architecture-areas))
+- Owner
+- Boundary (or an explicit statement that this ADR is terminology/process,
+  not a model boundary — as ADR-001/002 already do)
+- Scope
+- Version (starting at `1.0` — see [Versioning
+  Policy](#adr-versioning-policy))
+- Confidence (starting at `Medium` or `Low` — see [Decision
+  Confidence](#decision-confidence); a brand-new ADR does not start at
+  `High`)
+- Review Frequency (see [Review Frequency](#review-frequency))
+- History (at minimum, a `1.0 — Created` entry)
+- Tags
+- Related ADRs (or explicitly "none yet")
+
+This is enforced by review, not by tooling — same as every other rule in
+this document (see ADR-000 Consequences).
+
+## Architecture Evolution Rules
+
+How the per-ADR governance fields relate to each other, so they are never
+conflated:
+
+- **History tracks architectural evolution** — what changed about the
+  decision, in order, across stages.
+- **Version tracks architectural revision** — the `major.minor` number
+  that results from History (see [Versioning
+  Policy](#adr-versioning-policy)).
+- **Confidence tracks architectural certainty** — how validated vs. how
+  provisional the decision currently is (see [Decision
+  Confidence](#decision-confidence)).
+- **Review Frequency tracks governance cadence** — how often the decision
+  must be re-checked, independent of whether it has actually changed (see
+  [Review Frequency](#review-frequency)).
+- **Tags improve discoverability only** — free-form keywords for
+  searching the Registry; they carry no ownership meaning.
+- **Related ADRs improve navigation only** — see [ADR
+  Relationships](#adr-relationships); they do not affect implementation
+  order the way `Depends On` does.
+
+**None of History, Version, Confidence, Review Frequency, Tags, or Related
+ADRs changes ownership.** Ownership is governed exclusively by [Governance
+Rules](#governance-rules) and the `Owner`/`Area` columns of the [ADR
+Registry](#adr-registry).
+
 ## Cross Reference Rules
 
 Each document below has exactly one job. No document duplicates another's
@@ -429,7 +620,7 @@ full content — they link and summarize instead.
 
 | Document | Job | Not its job |
 |---|---|---|
-| [ADR_INDEX.md](ADR_INDEX.md) (this file) | Ownership, governance, versioning, lifecycle, navigation | Does not restate full ADR text; does not draw the visual map |
+| [ADR_INDEX.md](ADR_INDEX.md) (this file) | Ownership, governance, versioning, history, confidence, review cadence, lifecycle, navigation | Does not restate full ADR text; does not draw the visual map |
 | [ADR_MAP.md](ADR_MAP.md) | Visual navigation only | Does not decide anything; does not track version/status/ownership metadata |
 | [ARCHITECTURE.md](../ARCHITECTURE.md) | System structure and stage history overview | Does not restate ADR decisions or the full index |
 | Individual ADR (`ADR-0xx-*.md`) | The actual decision, its context, and its consequences | Does not track cross-ADR ownership or the backlog |
@@ -449,10 +640,10 @@ link and summarize.
 tool. When a new ADR introduces a protected boundary, `AI_CORE_CHECKLIST`
 should receive concrete checks. Example: ADR-004 introduced the
 `RoomContext` ↔ `SpaceType` boundary; `AI_CORE_CHECKLIST` added checks for
-no direct import / no direct mutation between the two. As of DS-7.1.3c,
-`AI_CORE_CHECKLIST` also gained governance checks (Area assigned, Owner
-defined, Version/Stability correct, ADR_MAP and Coverage Dashboard kept in
-sync) — see that document.
+no direct import / no direct mutation between the two. As of DS-7.1.3d,
+`AI_CORE_CHECKLIST` also checks that Review Frequency, Decision
+Confidence, History, and Tags stay current, and that ADR_MAP and the
+Architecture Dashboard are kept in sync — see that document.
 
 ## Architecture Glossary
 
@@ -466,10 +657,16 @@ sync) — see that document.
 | **Composition** | Building a new, larger structure out of existing models, each keeping its own identity (ADR-000 Principle 19; e.g. `PromptContext` composed of sub-contexts). |
 | **Metadata** | A field on an existing model reserved for extending that model without changing its top-level shape (e.g. `DesignDomain.metadata`). |
 | **Evolution** | How the architecture is allowed to change over time — incrementally, alongside what exists, not by disruptive rewrite (ADR-000 Principle 20). |
-| **Architecture Area** | One of the nine top-level groupings (CORE, PROMPT, SPATIAL, KNOWLEDGE, PROVIDER, STYLE, PRODUCTION, DEVELOPER, BENCHMARK) every ADR belongs to exactly one of. |
-| **Ownership** | The rule that exactly one ADR is responsible for a given Area, boundary, or invariant — see [ADR Ownership Rules](#adr-ownership-rules). |
+| **Architecture Area** (**Area**) | One of the nine top-level groupings (CORE, PROMPT, SPATIAL, KNOWLEDGE, PROVIDER, STYLE, PRODUCTION, DEVELOPER, BENCHMARK) every ADR belongs to exactly one of. |
 | **Scope** | The concrete responsibility an ADR covers, narrower than its Area (e.g. Area `PROMPT`, Scope "Prompt Context Contracts"). |
-| **Dependency** | A `Depends On` relationship in the [ADR Registry](#adr-registry) — which other ADR's principles or decisions this one builds on. |
+| **Owner** | The module or team responsible for an ADR's decision in practice (e.g. "Spatial Intelligence" owns ADR-004) — distinct from `Area`, which is the documentation grouping. |
+| **Ownership** | The rule that exactly one ADR is responsible for a given Area, boundary, or invariant — see [Governance Rules](#governance-rules). |
+| **Dependency** (`Depends On`) | A hard architectural dependency that affects implementation order — see [ADR Relationships](#adr-relationships). |
+| **Relationship** (`Related ADRs`) | A conceptual link between two ADRs that does not affect implementation order — navigation only, see [ADR Relationships](#adr-relationships). |
+| **Confidence** | How validated vs. provisional a decision currently is — `High`/`Medium`/`Low`, see [Decision Confidence](#decision-confidence). |
+| **Review Frequency** | How often an ADR must be re-checked regardless of whether it changed — see [Review Frequency](#review-frequency). |
+| **History** | The per-ADR, per-version record of what changed about a decision and why — see [ADR History](#adr-history). |
+| **Governance** | The overall system (this document + ADR_MAP + the checklists) that tracks ownership, versioning, confidence, and cadence for every architectural decision. |
 | **Stability** | How settled an ADR's decision is — `Stable`, `Growing`, `Experimental`, or `Deprecated`; see [ADR Stability Policy](#adr-stability-policy). |
 | **Lifecycle** | The status progression an ADR moves through — `Draft → Accepted → Active → Superseded → Archived`; see [ADR Lifecycle](#adr-lifecycle). |
 
@@ -486,9 +683,9 @@ Open ADR_INDEX.md (which ADR owns X's Area?)
         ↓
 Open the owning ADR (what does it actually decide, and why?)
         ↓
-Modify the ADR (per the Update Checklist) — or create one (per the Creation Checklist)
+Modify the ADR (per the Update Checklist) — or create one (per the Creation Checklist / Future ADR Policy)
         ↓
-Update ADR_INDEX.md, and ADR_MAP.md if the map changed
+Update ADR_INDEX.md (Registry, History, Version, Confidence), and ADR_MAP.md if the map changed
         ↓
 Update AI_CORE_CHECKLIST.md if a new boundary/invariant/governance field was added
 ```
@@ -503,5 +700,48 @@ ADR_INDEX must be updated whenever:
 - an ADR ownership boundary changes;
 - a future ADR candidate becomes active;
 - an ADR is superseded or archived;
+- an ADR's History gains a new entry (version bump);
+- an ADR's Confidence or Review Frequency changes;
+- Tags or Related ADRs need updating for discoverability;
 - `ADR_MAP.md`'s visual map changes shape (new Area, new future
   placeholder, new relationship).
+
+## Final Consistency Review (DS-7.1.3d)
+
+Verified across `ADR_INDEX.md`, `ADR_MAP.md`, ADR-000/001/002/003/004,
+`ARCHITECTURE.md`, and `AI_CORE_CHECKLIST.md`:
+
+- [x] Every ADR has `Version`, `Status`, `Stability`, `History`,
+      `Confidence`, `Review Frequency`, `Owner`, `Area`, `Scope`,
+      `Depends On`, `Related ADRs`, and `Tags` populated — see the [ADR
+      Registry](#adr-registry), [ADR History](#adr-history), [Review
+      Frequency](#review-frequency), and [Decision
+      Confidence](#decision-confidence) tables above.
+- [x] No duplicate ownership — confirmed in [Governance
+      Health](#governance-health).
+- [x] No duplicate Areas — confirmed in [Architecture
+      Areas](#architecture-areas) ("Verified" note).
+- [x] No conflicting relationships — `Depends On` and `Related ADRs` for
+      every ADR match what that ADR's own text says about the others
+      (ADR-004 §10's own relationship table was used as the source for
+      ADR-004's `Related ADRs` entry, not invented independently).
+
+No inconsistency was found beyond the one already corrected at DS-7.1.3c
+(ADR-003's status).
+
+## Final Governance Statement
+
+**The ADR system is considered architecturally complete as of DS-7.1.3d.**
+Future work on it consists only of:
+
+- adding new ADRs (per the [Future ADR Policy](#future-adr-policy)),
+- updating existing ADRs (per the [ADR Update
+  Checklist](#adr-update-checklist)),
+- or extending this governance registry (new Registry rows, History
+  entries, Tags, Related ADRs),
+
+**without changing the governance model itself** — the Registry shape,
+the Versioning/Stability/Confidence/Review Frequency policies, the
+Ownership/Governance Rules, and the Creation/Update/Decision checklists
+are the stable substrate every future architectural decision is expected
+to fit into.
