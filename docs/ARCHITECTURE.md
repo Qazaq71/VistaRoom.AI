@@ -773,6 +773,30 @@ Knowledge Registry, Rule Engine, Formatter, Pipeline, Builder,
 сайт, API, UI и SpaceType не затронуты — изменена только документация.
 `npm run build` проходит.
 
+### Phase 7.1.3 — ADR-004: Spatial Classification Boundary (DS-7.1.3, документация)
+
+Документационный этап перед DS-7.2 — без единой строки runtime-кода.
+Новый [ADR-004 — Spatial Classification Boundary](adr/ADR-004-Spatial-Classification-Boundary.md)
+фиксирует границу между уже существующим `RoomContext`
+(`src/lib/interior/prompt-domain/contexts/RoomContext.ts`, Prompt Domain)
+и ещё не созданным `SpaceType` (Spatial Intelligence, DS-7.2) — до того,
+как эта граница потребовалась бы задним числом на этапе DS-7.4 (Prompt
+Integration).
+
+Главное правило: `RoomContext` никогда не становится `SpaceType`,
+`SpaceType` никогда не становится `RoomContext`; связь между ними —
+только явный `Adapter`/`Mapping` (`RoomContext → Mapping → SpaceType`),
+вводимый на DS-7.4, без изменения `PromptContext`. ADR-004 не вводит
+`SpaceType`, `SpaceRegistry`, Prompt Integration, Knowledge Integration
+или новые поля `PromptContext`/`RoomContext` — только фиксирует
+архитектурную границу (ADR-000 Principles 10, 12, 19, 20, 21, 22).
+
+`docs/AI_CORE_CHECKLIST.md` получил соответствующие проверки. Prompt
+Domain, `RoomContext`, `PromptContext`, Prompt Engine, Knowledge Core,
+Design Domain, Rule Engine, Developer Studio, Generation Engine,
+публичный сайт и API не затронуты — изменена только документация.
+`npm run build` проходит.
+
 ## Phase 8 — Prompt Lab
 
 Внутренний инструмент Developer Studio для итеративной отладки и
@@ -806,6 +830,7 @@ Knowledge Registry, Rule Engine, Formatter, Pipeline, Builder,
 - [ADR-001 — Provider Terminology](adr/ADR-001-Provider-Terminology.md)
 - [ADR-002 — MY_STYLE Identifier](adr/ADR-002-MyStyle-Identifier.md)
 - [ADR-003 — PromptContext Contracts](adr/ADR-003-PromptContext-Contracts.md)
+- [ADR-004 — Spatial Classification Boundary](adr/ADR-004-Spatial-Classification-Boundary.md)
 
 См. также [AI_CORE_CHECKLIST.md](AI_CORE_CHECKLIST.md) — чек-лист перед
 каждым новым архитектурным этапом (начиная с DS-6).

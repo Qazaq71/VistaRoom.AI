@@ -232,3 +232,11 @@ Not automated — reviewed by hand.
       Detection, Automatic Masks, Provider Layer, Generation Engine,
       будущие модули), без необходимости повторно документировать
       правило в README каждого нового модуля (DS-7.1.1a)
+- [ ] `RoomContext` не импортирует `SpaceType` (ADR-004)
+- [ ] `SpaceType` не импортирует Prompt Domain (ADR-004)
+- [ ] Между `RoomContext` и `SpaceType` существует только явный
+      Mapping/Adapter — никакого прямого присваивания, наследования или
+      переименования одного в другое (ADR-004)
+- [ ] Новые пространственные модели (`SpaceType` и любые будущие) не
+      изменяют `PromptContext` напрямую — интеграция происходит только
+      через явный Adapter/Mapping, вводимый на DS-7.4 (ADR-004)
