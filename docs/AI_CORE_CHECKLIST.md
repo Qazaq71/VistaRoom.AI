@@ -83,3 +83,12 @@ Not automated — reviewed by hand.
       `KnowledgeRegistry.ts` только lookup-функции по `id`, ни одна не
       строит текст промпта или не трансформирует `PromptContext`
       (DS-6.4)
+- [ ] Knowledge Entity Layer (`src/lib/interior/knowledge/core/**`) —
+      `KnowledgeEntity`/`KnowledgeFeature`/`KnowledgeGraph`/
+      `KnowledgeRelation` остаются чистыми типами без реализации;
+      `styles/*.ts`, `KnowledgeRegistry.ts`, `<domain>/registry.ts` и
+      `knowledge/index.ts` не изменены и не импортируют `core/`; ничто
+      за пределами `knowledge/core/**` (Prompt Domain, Prompt Engine,
+      Rule Engine, Generation Engine, Provider, Style Registry,
+      Developer Studio, Benchmark, публичный сайт, API) не импортирует
+      `core/` (DS-6.4.1)
