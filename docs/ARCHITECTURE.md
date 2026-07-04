@@ -85,7 +85,25 @@ Registry, Prompt Domain, Generation Engine, Developer Studio, Benchmark)
 
 Соберёт `PromptContext` в финальный текстовый промпт/negative prompt для
 провайдера, используя `promptFragment` стиля и данные всех
-под-контекстов. Ещё не создан.
+под-контекстов.
+
+### Phase 6.1 — Prompt Engine Core / Foundation (DS-6.1, текущий этап)
+
+Создан только фундамент (`src/lib/interior/prompt-engine`): структура
+директорий (`builder/`, `formatter/`, `rules/`, `pipeline/`,
+`validators/`, `templates/`) с README-описанием ответственности каждого
+слоя, и типы-контракты без реализации — `PromptResult`, `PromptBuilder`,
+`PromptFormatter`, `PromptRule`, `PromptValidator`, `PromptTemplate`,
+`PromptPipeline` (`types.ts`, реэкспорт в `index.ts`).
+
+Prompt Engine на этом этапе работает только с `PromptContext` (Prompt
+Domain, DS-5) и не импортирует React, Next, Developer Studio, Generation
+Engine, Provider или Benchmark. Ни одной реализации (`PromptBuilderImpl`,
+`PromptFormatter`-логики, правил, валидаторов, шаблонов, pipeline) не
+написано — только контракты. Не подключён ни к чему: публичный сайт,
+API, `buildEditPrompt()`, `prompts.ts`, Generation Engine, Provider,
+Style Registry, Prompt Domain и Benchmark не затронуты. Следующий этап —
+DS-6.2 Prompt Builder (первая реализация).
 
 ## Phase 7 — Prompt Lab
 
