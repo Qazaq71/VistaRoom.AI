@@ -127,60 +127,54 @@ DS-6.3/6.3.1 (Rule Engine), DS-6.4/6.4.1/6.4.2 (Knowledge Core) и DS-6.4.3
 (ADR-000 Principle 19) не меняли `builder/**` — см. `../README.md` и
 `docs/ARCHITECTURE.md`.
 
-## Реализация (DS-6.5) — PromptDraft / PromptDraftBuilder
+## Реализация (DS-6.5, revised DS-6.5.1) — PromptDraft / PromptDraftBuilder
 
-DS-6.5 добавляет a **parallel, still-unwired** entry point into Prompt
+DS-6.5 added a **parallel, still-unwired** entry point into Prompt
 Engine, separate from `PromptBuilder`/`DefaultPromptBuilder` above: a
 `PromptContext` → `PromptDraft` compiler stage. It is explicitly not an
 enrichment of `PromptContext` — `PromptContext` itself is untouched by
-this stage (Principle 15 continues to apply to it; DS-6.5 just doesn't
-touch it at all).
+this stage and remains untouched after DS-6.5.1 (Principle 15 continues
+to apply to it).
 
-### `PromptDraft.ts` — the AST
+DS-6.5's first cut introduced nine independent "Section" types
+(`StyleSection`, `RoomSection`, `MaterialSection`, `FurnitureSection`,
+`LightingSection`, `DecorSection`, `ConstraintSection`, `NegativeSection`,
+`MetadataSection`, under `./sections/`) that structurally re-declared the
+fields of the matching Prompt Domain context. That stage's own
+"Architecture Review — DS-6.5" section (kept in git history, removed from
+this file) flagged this as an ADR-000 Principle 19 (Composition over
+Duplication) violation. **DS-6.5.1 (this revision) removes `./sections/`
+entirely and replaces it with direct composition.**
 
-`PromptDraft` is the intermediate representation Rule Engine (once
-retargeted, not yet) and Formatter (DS-6.6, not yet built) will read and
-transform next. It is an object of nine independent, strictly-typed
-sections — one per `PromptContext` sub-context:
+### `PromptDraft.ts` — the AST, now a composition of existing contexts
 
 ```ts
 type PromptDraft = {
-  style: StyleSection;
-  room: RoomSection;
-  materials: MaterialSection;
-  furniture: FurnitureSection;
-  lighting: LightingSection;
-  decor: DecorSection;
-  constraints: ConstraintSection;
-  negative: NegativeSection;
-  metadata: MetadataSection;
+  readonly room: RoomContext;
+  readonly style: StyleContext;
+  readonly materials: MaterialContext;
+  readonly furniture: FurnitureContext;
+  readonly lighting: LightingContext;
+  readonly decor: DecorContext;
+  readonly constraints: ConstraintContext;
+  readonly negative: NegativePromptContext;
+  readonly metadata: PromptMetadata;
 };
 ```
 
-No field on `PromptDraft` or on any section is a `string`, a `string[]`,
-or a template literal that assembles one. There is no `join()`,
-`concat()`, template string, or `+=` anywhere in `sections/**`,
-`PromptDraft.ts`, or `PromptDraftBuilder.ts`.
+Every field's type is imported unchanged from `../../prompt-domain` — no
+new type is declared for any of the nine slots. `PromptDraft` is a
+**container**, not a domain model: it names the same nine concerns
+`PromptContext` already has (under the same keys, except `negative` for
+`context.negativePrompt` — a rename kept for readability; the *type*
+is still exactly `NegativePromptContext`). `metadata` is typed
+`PromptMetadata` (not the narrower `MetadataContext`) because that is the
+actual type of `PromptContext.metadata` — narrowing it here would drop
+`qualityLevel` for no reason.
 
-### `sections/*.ts` — one model per concern
-
-Each section (`StyleSection`, `RoomSection`, `MaterialSection`,
-`FurnitureSection`, `LightingSection`, `DecorSection`,
-`ConstraintSection`, `NegativeSection`, `MetadataSection`) is its own
-file/type. Deliberate design choice for DS-6.5: **every field on every
-section is a direct copy of a field that already exists on the matching
-Prompt Domain context** (`StyleContext`, `RoomContext`, `MaterialContext`,
-...) — minus each context's `BaseDomainContext` bookkeeping
-(`version`/`createdAt`/`metadata`), which belongs to `PromptContext`, not
-to the draft AST.
-
-This was a conscious deviation from the illustrative field lists in the
-DS-6.5 brief (e.g. `StyleSection.goals`, `RoomSection.roomFeatures`,
-`RoomSection.architecture`, `MaterialSection.finishes`/`textures`,
-`FurnitureSection.primaryFurniture`/`secondaryFurniture`): none of those
-fields exist anywhere in `PromptContext` today, so a no-logic, copy-only
-builder cannot populate them without inventing placeholder data. See
-"Architecture Review — DS-6.5" below, point 4.
+No field anywhere is a `string`, a `string[]` that assembles into one, or
+a template literal. There is no `join()`, `concat()`, template string, or
+`+=` anywhere in `PromptDraft.ts` or `PromptDraftBuilder.ts`.
 
 ### `PromptDraftBuilder.ts` — the identity compiler
 
@@ -188,130 +182,101 @@ builder cannot populate them without inventing placeholder data. See
 class PromptDraftBuilder {
   build(context: Readonly<PromptContext>): PromptDraft {
     return {
-      style: { generationMode: context.style.generationMode, style: context.style.style, myStyle: context.style.myStyle },
-      // ...one property-by-property copy per section, no transformation
+      room: context.room,
+      style: context.style,
+      materials: context.materials,
+      furniture: context.furniture,
+      lighting: context.lighting,
+      decor: context.decor,
+      constraints: context.constraints,
+      negative: context.negativePrompt,
+      metadata: context.metadata,
     };
   }
 }
 ```
 
-It does exactly one thing: reads each field off `Readonly<PromptContext>`
-and places it on the matching `PromptDraft` section. No defaults, no
-derived fields, no merging across sections, no rule logic. It does not
-implement the existing `PromptBuilder` interface (`../types.ts`) — that
-contract's return type is `PromptContext`, not `PromptDraft`; this is a
-deliberately separate, parallel contract for a different artifact.
+It does exactly one thing: places each `PromptContext` sub-context onto
+the matching `PromptDraft` key — referential composition, not a
+field-by-field copy (DS-6.5's version copied each field individually into
+a new section object; DS-6.5.1 removes that indirection since the section
+types it copied into no longer exist). No defaults, no derived fields, no
+merging, no rule logic, no deep clone. It does not implement the existing
+`PromptBuilder` interface (`../types.ts`) — that contract's return type
+is `PromptContext`, not `PromptDraft`; this remains a deliberately
+separate, parallel contract for a different artifact.
 
 `PromptDraftBuilder` imports only:
 
-- `../../prompt-domain` (`PromptContext` and its sub-context types) —
-  type-only;
-- `../../styles/types` (`InteriorStyle`, `InteriorMyStyle`, via
-  `StyleSection.ts`) — type-only;
-- `./PromptDraft` and `./sections/*` — its own output types.
+- `../../prompt-domain` (`PromptContext` and, via `PromptDraft.ts`, its
+  sub-context types) — type-only;
+- `./PromptDraft` — its own output type.
 
 Nothing else. No Rule Engine (`../rules/**`), no Formatter
 (`../formatter/**`), no Pipeline (`../pipeline/**`), no Knowledge Base
-(`../../knowledge/**`), no Developer Studio, no React, no API.
+(`../../knowledge/**`), no Developer Studio, no React, no API, and (since
+DS-6.5.1) no `./sections/**` — that directory no longer exists.
 
 ### Статус
 
-`PromptDraft`/`PromptDraftBuilder` are not called from any production
-code, not called from `RuleEngine`/`DefaultRuleEngine`, not exported from
-`PromptBuilderFactory.ts`, and not re-exported from
-`prompt-engine/index.ts` — consistent with how `DefaultPromptBuilder` and
-`DefaultRuleEngine` were introduced in earlier stages. Следующий этап —
-**DS-6.6 Formatter**.
+`PromptDraft`/`PromptDraftBuilder` are re-exported from
+`prompt-engine/index.ts` as of DS-6.5.1 (type-only for `PromptDraft`,
+value + type for `PromptDraftBuilder`) so Formatter (DS-6.6) can import
+them from the module root — this is the one intentional deviation from
+the DS-6.1–DS-6.4.3 precedent of not re-exporting implementations, made
+because DS-6.5.1 explicitly asked for it. Neither is called from any
+production code, from `RuleEngine`/`DefaultRuleEngine`, or from
+`PromptBuilderFactory.ts`. Следующий этап — **DS-6.6 Formatter**.
 
-## Architecture Review — DS-6.5
+## Architecture Review — DS-6.5.1
 
-Ревизия, запрошенная как обязательная часть DS-6.5. Рекомендации ниже
-**не применены к коду** на этом этапе — они зафиксированы как вход для
-DS-6.6 (Formatter) и, при необходимости, отдельного этапа очистки
-Builder.
+Ревизия, запрошенная как обязательная часть DS-6.5.1. Отвечает на
+вопросы из этапа; ничего в коде не менялось по итогам самой ревизии — все
+изменения, которые она подтверждает, уже сделаны разделами выше.
 
-**1. Есть ли в `PromptDraft` поля, дублирующие `PromptContext` /
-`StyleKnowledge` / `KnowledgeFeature` / `InteriorStyle`?**
+**1. Устранено ли дублирование между `PromptDraft` и `PromptContext`?**
 
-Да, структурно. Каждая секция (`StyleSection`, `RoomSection`, ...)
-повторяет набор полей соответствующего Prompt Domain контекста
-(`StyleContext`, `RoomContext`, ...) практически один в один — это ровно
-тот паттерн, который Principle 19 называет нарушением ("`MaterialContextV2`
-— если уже существует `MaterialFeature`"), только на один уровень выше:
-`StyleSection` рядом с `StyleContext`, `RoomSection` рядом с `RoomContext`,
-и так для всех девяти. `StyleSection.style`/`myStyle` также транзитивно
-дублируют форму `InteriorStyle`/`InteriorMyStyle` (уже дублируемую и
-`StyleContext` — это существующее, принятое решение Prompt Domain, не
-новое).
+Да. `PromptDraft` больше не объявляет ни одного нового поля — каждый его
+ключ (`room`, `style`, `materials`, `furniture`, `lighting`, `decor`,
+`constraints`, `negative`, `metadata`) типизирован напрямую существующим
+Prompt Domain типом (`RoomContext`, `StyleContext`, ...,
+`NegativePromptContext`, `PromptMetadata`), импортированным, а не
+переобъявленным. `PromptDraftBuilder` присваивает эти поля по ссылке
+(`room: context.room`), а не копирует их значения в новую форму.
 
-Устранение без изменения кода сейчас: на DS-6.6 заменить каждую
-`sections/*.ts` на **тонкую композицию**, а не независимый тип —
-`export type StyleSection = StyleContext;` (или `{ context: StyleContext }`,
-если секции нужно нести что-то ещё) вместо переобъявления полей. Это
-превращает "девять новых моделей" в "девять именованных проекций
-существующих контекстов" — сохраняет форму `PromptDraft` (девять секций,
-объект, не строка), но убирает дублирование. Само по себе слияние — не
-DS-6.5 задача (см. п.3 ниже), а решение для DS-6.6/следующего Builder
-этапа.
+**2. Остались ли Section-модели?**
 
-**2. Достаточно ли `PromptDraft` универсален для будущих вертикалей
-(ландшафт, экстерьеры, коммерция, яхты)?**
+Нет. `builder/sections/` удалена целиком (все девять файлов:
+`StyleSection.ts`, `RoomSection.ts`, `MaterialSection.ts`,
+`FurnitureSection.ts`, `LightingSection.ts`, `DecorSection.ts`,
+`ConstraintSection.ts`, `NegativeSection.ts`, `MetadataSection.ts`), не
+оставлено пустых файлов-заглушек, и ни один из них не переэкспортируется
+из `PromptDraft.ts`, `index.ts` или где-либо ещё.
 
-Частично. Поля, скопированные без изменений с `PromptContext`, наследуют
-его существующий уровень универсальности — `RoomContext.roomType: string`
-уже не завязан на интерьер жёстко (это может быть "yacht deck",
-"landscape plot"), как и `MaterialReference`/`FurnitureReference`
-(`id`/`name`/`role`). Единственное по-настоящему интерьер-специфичное
-имя — сам файл/тип `RoomSection` и поле `PromptDraft.room` (что для
-ландшафта или экстерьера означало бы "помещение", которого может не
-быть) — но это то же ограничение, что уже есть в `PromptContext.room`
-сегодня, не новое, привнесённое DS-6.5. Ничего в `sections/*.ts` не
-добавляет нового, более узкого предположения поверх того, что уже
-существует.
+**3. `PromptDraft` теперь является композицией существующих Context?**
 
-**3. Не появилась ли тенденция создавать Section-модели там, где лучше
-использовать композицию через существующие Entity/Feature (Principle
-19)?**
+Да. Все девять полей — это existing Prompt Domain sub-context types,
+использованные как есть. `PromptDraft` не описывает новую предметную
+область — он лишь называет девять слотов, под которыми существующие
+контексты становятся доступны как единый AST-объект для будущих Rule
+Engine/Formatter шагов.
 
-Да — см. п.1. Задача DS-6.5 явно предписывала "каждая секция — отдельная
-модель" (девять файлов, девять типов), и реализация выполнена буквально
-так. Но по факту ни одна секция не описывает новую предметную область —
-каждая один в один соответствует уже существующему `*Context` из Prompt
-Domain. По правилу Principle 19 ("новая модель допускается только если
-она (а) описывает новую предметную область и (б) не может быть выражена
-через существующую сущность") — ни одна из девяти секций не проходит
-пункт (а). Практическое следствие: DS-6.5 реализован как запрошено (для
-дать `PromptDraft` его собственную, независимо читаемую форму до
-появления Rule Engine/Formatter, работающих над ним), но самих
-Section-типов в текущем виде не должно быть более одного релиза — до
-DS-6.6 их стоит заменить композицией/алиасами, как в п.1.
+**4. Есть ли новые модели, которые дублируют Prompt Domain?**
 
-**4. Есть ли поля, которые лучше оставить пустыми до DS-6.6, чем
-заполнять заглушками?**
+Нет. Единственный новый тип, введённый DS-6.5/DS-6.5.1 — сам
+`PromptDraft` (контейнер), и он не дублирует ничего: не переопределяет ни
+одного поля ни одного контекста, только группирует их. Никакой второй
+`PromptDraft`-подобный тип нигде не создан.
 
-Да, и это уже отражено в реализации, а не отложено: иллюстративные поля
-из ТЗ DS-6.5 (`StyleSection.goals`, `RoomSection.roomFeatures`,
-`RoomSection.architecture`, `MaterialSection.finishes`/`textures`,
-`FurnitureSection.primaryFurniture`/`secondaryFurniture`) **не были
-добавлены** ни в одну секцию — ни как заглушки (`[]`/`undefined`), ни как
-частично реализованные. Ни один из них не существует в `PromptContext`
-сегодня; добавление их сейчас потребовало бы либо придумывать данные (что
-превращает "identity builder" в builder с логикой), либо всегда
-возвращать пустые значения без единого потребителя — оба варианта
-запрещены брифом DS-6.5 ("никакой логики", "никакой генерации"). Эти поля
-— явный кандидат для DS-6.6+ (Rule Engine/Knowledge-derived enrichment),
-не для Builder.
+**5. Подтверждается ли Principle 19?**
 
-**5. `PromptDraft` — действительно AST, а не скрытая prompt-строка?**
-
-Да. Ни в `PromptDraft.ts`, ни в одном файле `sections/*.ts` нет поля типа
-`string`, кроме доменных строковых идентификаторов, которые уже были
-строками в `PromptContext` (`RoomSection.roomType`, `RoomSection.roomName`,
-`FurnitureSection.layout`, `LightingSection.lightingType`,
-`NegativeSection.negativePrompts: string[]`, `MetadataSection.provider`/
-`model`/`version`/`createdAt`) — ни одно из них не является частью
-собираемого промпта; каждое уже существовало как отдельное поле данных в
-соответствующем Prompt Domain контексте до DS-6.5. Ни `join()`,
-`concat()`, template string, ни `+=` не встречаются нигде в
-`PromptDraft.ts`, `sections/**` или `PromptDraftBuilder.ts` —
-подтверждено ручным просмотром каждого файла.
+Да. Проверка по порядку (Feature → Entity → Relation → Context →
+Registry) для "нового" функционала DS-6.5.1 показывает: существующие
+Prompt Domain `Context`-типы полностью выражают то, что было нужно
+`PromptDraft` — новая модель не потребовалась ни для одной из девяти
+секций. Единственная причина, по которой `PromptDraft` как тип
+существует — это агрегирующий контейнер (аналог AST-узла верхнего
+уровня), а не параллельная предметная модель; это не нарушает Principle
+19, так как сам принцип запрещает дублирование существующих
+Entity/Feature/Relation/Context, а не любое агрегирование их в новый
+контейнер.

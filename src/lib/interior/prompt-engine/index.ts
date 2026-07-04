@@ -14,3 +14,6 @@ export type {
   PromptTemplate,
   PromptPipeline,
 } from "./types";
+
+export type { PromptDraft } from "./builder/PromptDraft";
+export { PromptDraftBuilder } from "./builder/PromptDraftBuilder";

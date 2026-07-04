@@ -1,4 +1,4 @@
-# Prompt Engine (DS-6.1 Foundation + DS-6.1.1 Contracts + DS-6.2 Builder MVP + DS-6.2.1 Rule Engine Preparation + DS-6.3 Rule Engine Foundation + DS-6.3.1 Rule Engine Diagnostics & Metadata + DS-6.4/6.4.1/6.4.2 Knowledge Core + DS-6.4.3 Principle 19 + DS-6.5 Prompt Draft / Builder Intelligence Layer)
+# Prompt Engine (DS-6.1 Foundation + DS-6.1.1 Contracts + DS-6.2 Builder MVP + DS-6.2.1 Rule Engine Preparation + DS-6.3 Rule Engine Foundation + DS-6.3.1 Rule Engine Diagnostics & Metadata + DS-6.4/6.4.1/6.4.2 Knowledge Core + DS-6.4.3 Principle 19 + DS-6.5 Prompt Draft / Builder Intelligence Layer + DS-6.5.1 PromptDraft Composition Refactor)
 
 ## 1. Что это такое
 
@@ -40,7 +40,7 @@ Model
 `Validators` (`./validators`) и `Templates` (`./templates`) — вспомогательные
 контракты, используемые Pipeline/Builder на будущих этапах.
 
-## 2.1. Prompt compilation flow (DS-6.5)
+## 2.1. Prompt compilation flow (DS-6.5, revised DS-6.5.1)
 
 С появлением `PromptDraft` (`./builder/PromptDraft.ts`) полный путь от
 доменных данных до текста провайдера — это конвейер трансформаций одного
@@ -48,8 +48,8 @@ Model
 
 ```
 PromptContext
-  ↓          (PromptDraftBuilder — DS-6.5, чистое копирование)
-PromptDraft
+  ↓          (PromptDraftBuilder — чистая композиция, ссылки без копирования)
+PromptDraft   (composed of existing Prompt Domain Context types)
   ↓          (Rules — DS-6.3+, ещё работают над PromptContext,
   ↓           переориентация на PromptDraft не выполнена)
 PromptDraft
@@ -57,11 +57,15 @@ PromptDraft
 PromptString  (PromptResult: positivePrompt / negativePrompt)
 ```
 
-`PromptDraft` — это AST: типизированный объект из независимых секций
-(`style`, `room`, `materials`, `furniture`, `lighting`, `decor`,
-`constraints`, `negative`, `metadata`), а не строка и не массив строк.
-Ни один шаг до Formatter не производит текст промпта — см. `builder/README.md`
-"Architecture Review — DS-6.5" за деталями и открытыми вопросами.
+`PromptDraft` — это AST-контейнер: типизированный объект, поля которого —
+существующие Prompt Domain контексты (`RoomContext`, `StyleContext`,
+`MaterialContext`, `FurnitureContext`, `LightingContext`, `DecorContext`,
+`ConstraintContext`, `NegativePromptContext`, `PromptMetadata`), а не
+строка, не массив строк и не отдельные Section-модели (DS-6.5 вводил
+`StyleSection`/`RoomSection`/... — удалены на DS-6.5.1 как дублирование
+Prompt Domain, см. ADR-000 Principle 19). Ни один шаг до Formatter не
+производит текст промпта — см. `builder/README.md` "Architecture Review
+— DS-6.5.1" за деталями.
 
 ## 3. Ответственность каждого слоя
 
@@ -239,29 +243,50 @@ DS-6.4/DS-6.4.1/DS-6.4.2 (Knowledge Core) и DS-6.4.3 (ADR-000 Principle
 19) — см. `docs/ARCHITECTURE.md` Phase 6.4/6.4.1/6.4.2/6.4.3. Ни один из
 них не менял `prompt-engine/**`.
 
-**DS-6.5 (текущий этап) — Prompt Draft / Builder Intelligence Layer:**
+**DS-6.5 — Prompt Draft / Builder Intelligence Layer:**
 
 - `builder/PromptDraft.ts` — новый тип `PromptDraft`: промежуточное
-  представление (AST) будущего промпта, объект из девяти строго
-  типизированных секций. Не `string`, не `string[]`.
-- `builder/sections/*.ts` — девять моделей секций (`StyleSection`,
+  представление (AST) будущего промпта, изначально объект из девяти
+  независимых, строго типизированных Section-моделей (`StyleSection`,
   `RoomSection`, `MaterialSection`, `FurnitureSection`, `LightingSection`,
   `DecorSection`, `ConstraintSection`, `NegativeSection`,
-  `MetadataSection`), по одной на под-контекст `PromptContext`.
+  `MetadataSection`, `builder/sections/*.ts`).
 - `builder/PromptDraftBuilder.ts` — `PromptDraftBuilder.build(context)`:
-  копирует `Readonly<PromptContext>` в `PromptDraft` поле за полем, без
-  единой операции join/concat/template string/`+=`.
+  копировал `Readonly<PromptContext>` в `PromptDraft` поле за полем.
 
-`PromptDraftBuilder` не implements существующий контракт `PromptBuilder`
-(`./types.ts`) — тот возвращает `PromptContext`, а не `PromptDraft`; это
-осознанно отдельный, ещё не подключённый вход. Не вызывает Rules,
-Formatter, Pipeline, Knowledge Base — ничего, кроме `PromptContext`
-(ADR-000 Principle 14, 15, 17). См. `builder/README.md` (раздел
-"Architecture Review — DS-6.5" за анализом дублирования с Prompt Domain
-и открытыми вопросами для DS-6.6).
+Собственная "Architecture Review — DS-6.5" (проведённая как обязательная
+часть этапа) обнаружила, что все девять Section-моделей структурно
+дублируют соответствующие Prompt Domain контексты — нарушение ADR-000
+Principle 19 (Composition over Duplication). Исправлено на DS-6.5.1 ниже.
+
+**DS-6.5.1 (текущий этап) — PromptDraft Composition Refactor:**
+
+- `builder/sections/*.ts` — **удалены полностью** (все девять файлов), не
+  оставлено заглушек.
+- `builder/PromptDraft.ts` — переписан: девять полей (`room`, `style`,
+  `materials`, `furniture`, `lighting`, `decor`, `constraints`,
+  `negative`, `metadata`) теперь типизированы напрямую существующими
+  Prompt Domain типами (`RoomContext`, `StyleContext`, `MaterialContext`,
+  `FurnitureContext`, `LightingContext`, `DecorContext`,
+  `ConstraintContext`, `NegativePromptContext`, `PromptMetadata`) —
+  никаких новых Section-типов.
+- `builder/PromptDraftBuilder.ts` — переписан: вместо копирования полей
+  внутрь новых section-объектов, каждый ключ `PromptDraft` — прямая
+  ссылка на соответствующий под-контекст `PromptContext`
+  (`room: context.room`, ..., `negative: context.negativePrompt`).
+- `index.ts` — впервые реэкспортирует реализацию Builder-слоя:
+  `PromptDraft` (type-only) и `PromptDraftBuilder` (класс), в порядке
+  подготовки к DS-6.6 Formatter.
+
+`PromptDraftBuilder` по-прежнему не implements существующий контракт
+`PromptBuilder` (`./types.ts`) — тот возвращает `PromptContext`, а не
+`PromptDraft`; это осознанно отдельный, ещё не подключённый вход. Не
+вызывает Rules, Formatter, Pipeline, Knowledge Base — ничего, кроме
+`PromptContext` (ADR-000 Principle 14, 15, 17, 19). См.
+`builder/README.md` (раздел "Architecture Review — DS-6.5.1").
 
 Публичный сайт, API, `buildEditPrompt()`, `prompts.ts`, Prompt Domain,
 Rule Engine, Generation Engine, Provider, Developer Studio и Benchmark не
-затронуты. `PromptDraft`/`PromptDraftBuilder` не вызываются из
-production-кода и не реэкспортированы из `index.ts`. Следующий этап —
-**DS-6.6 Formatter**.
+затронуты. `PromptDraft`/`PromptDraftBuilder` не вызываются ни из
+production-кода, ни из `RuleEngine`/`DefaultRuleEngine`,
+`PromptBuilderFactory.ts`. Следующий этап — **DS-6.6 Formatter**.

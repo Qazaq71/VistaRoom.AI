@@ -456,7 +456,7 @@ Prompt Engine, Builder, Rule Engine, Formatter, Pipeline, Knowledge Core,
 Generation Engine, Benchmark, Developer Studio, API и публичный сайт не
 затронуты — изменена только документация.
 
-### Phase 6.5 — Prompt Builder Intelligence Layer / Prompt Composition Engine (DS-6.5, текущий этап)
+### Phase 6.5 — Prompt Builder Intelligence Layer / Prompt Composition Engine (DS-6.5, завершён)
 
 Первая реализация внутри `builder/`, независимая от `PromptBuilder`
 (`../types.ts`, DS-6.2): новый тип `PromptDraft` — промежуточное
@@ -497,8 +497,49 @@ Developer Studio и Benchmark не затронуты. `prompt-engine/index.ts` 
 Отдельная архитектурная ревизия по итогам этапа (дублирование секций с
 Prompt Domain, универсальность для будущих вертикалей, соответствие
 Principle 19) задокументирована в `builder/README.md` "Architecture
-Review — DS-6.5" — рекомендации зафиксированы, код по ним на этом этапе
-не менялся. Следующий этап — **DS-6.6 Formatter**.
+Review — DS-6.5" и обнаружила нарушение ADR-000 Principle 19: все девять
+`Section`-моделей структурно дублировали соответствующие Prompt Domain
+контексты. Рекомендации не были применены к коду на самом DS-6.5 —
+исправление выполнено отдельным этапом, DS-6.5.1, ниже.
+
+### Phase 6.5.1 — PromptDraft Composition Refactor (DS-6.5.1, текущий этап)
+
+Исправление дублирования, найденного собственной ревизией DS-6.5.
+`builder/sections/*.ts` (`StyleSection`, `RoomSection`, `MaterialSection`,
+`FurnitureSection`, `LightingSection`, `DecorSection`,
+`ConstraintSection`, `NegativeSection`, `MetadataSection`) удалены
+полностью — без заглушек, без пустых файлов.
+
+- `builder/PromptDraft.ts` — переписан на композицию: все девять полей
+  (`room`, `style`, `materials`, `furniture`, `lighting`, `decor`,
+  `constraints`, `negative`, `metadata`) типизированы напрямую
+  существующими Prompt Domain типами (`RoomContext`, `StyleContext`,
+  `MaterialContext`, `FurnitureContext`, `LightingContext`,
+  `DecorContext`, `ConstraintContext`, `NegativePromptContext`,
+  `PromptMetadata`), все `readonly`. Ни одного нового поля — `PromptDraft`
+  теперь контейнер, а не параллельная модель.
+- `builder/PromptDraftBuilder.ts` — переписан: возвращает `PromptDraft`,
+  где каждый ключ — прямая ссылка на соответствующий под-контекст
+  `PromptContext` (`room: context.room`, ..., `negative:
+  context.negativePrompt`, `metadata: context.metadata`), без
+  копирования полей и без deep clone.
+- `prompt-engine/index.ts` — добавлены экспорты `PromptDraft` (type-only)
+  и `PromptDraftBuilder` (класс) — единственное обновление публичной
+  поверхности модуля на этом этапе; `types.ts` не менялся (Section-типы
+  никогда не экспортировались оттуда).
+- `builder/README.md`, `prompt-engine/README.md` — переписаны разделы про
+  DS-6.5: зафиксирована история (Section-модели → обнаруженное
+  дублирование → композиция), добавлена "Architecture Review — DS-6.5.1"
+  с ответами на пять контрольных вопросов (дублирование устранено,
+  Section-моделей не осталось, `PromptDraft` — композиция существующих
+  контекстов, новых дублирующих моделей нет, Principle 19 подтверждён).
+
+`PromptContext`, Prompt Domain, Rule Engine, Knowledge Core, Style
+Registry, Generation Engine, Provider, Developer Studio, Benchmark,
+публичный сайт, API, `buildEditPrompt()`, `prompts.ts` не затронуты.
+`PromptDraft`/`PromptDraftBuilder` по-прежнему не вызываются из
+production-кода. `npm run build` проходит. Следующий этап — **DS-6.6
+Formatter**.
 
 ## Phase 7 — Prompt Lab
 

@@ -129,3 +129,16 @@ Not automated — reviewed by hand.
       принципиально новую предметную область и (б) не могла быть выражена
       через существующие Entity/Feature/Relation/Context — оба условия
       задокументированы, а не одно (ADR-000 Principle 19, DS-6.4.3)
+- [ ] `PromptDraft` (`prompt-engine/builder/PromptDraft.ts`) не содержит
+      Section-моделей (`StyleSection`/`RoomSection`/...) — каждое поле
+      типизировано напрямую существующим Prompt Domain типом
+      (`RoomContext`, `StyleContext`, `MaterialContext`,
+      `FurnitureContext`, `LightingContext`, `DecorContext`,
+      `ConstraintContext`, `NegativePromptContext`, `PromptMetadata`), ни
+      одно поле не переобъявлено (ADR-000 Principle 19, DS-6.5.1)
+- [ ] `PromptDraftBuilder` присваивает секции `PromptDraft` по ссылке на
+      соответствующий под-контекст `PromptContext`, а не копирует их поля
+      в новую форму — нет `deep clone`, нет параллельного построения
+      объекта (DS-6.5.1)
+- [ ] `builder/sections/**` не существует — ни файлов, ни пустых
+      заглушек, ни повторного импорта откуда-либо (DS-6.5.1)
