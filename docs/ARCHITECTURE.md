@@ -674,8 +674,13 @@ Prompt Engine
   подробности ниже и `src/lib/interior/knowledge/spaces/README.md`. Это
   **не** связывание (lookup/adapter) Space Type ↔ Knowledge — оно
   по-прежнему future work, см. "Phase 7.3" ниже.
-- **DS-7.4 — Prompt Integration** — подключение Spatial Architecture к
-  Prompt Engine через `PromptContext`. Ещё не создан.
+- **DS-7.4 — Prompt Integration Foundation** — the explicit Adapter/Mapping
+  bridge (`SpatialPromptAdapter`/`SpatialPromptContext`,
+  `src/lib/interior/prompt-integration`) between `SpaceType`/Spatial
+  Knowledge and Prompt Engine, anticipated by ADR-004. See details below
+  and `src/lib/interior/prompt-integration/README.md`. This is
+  **infrastructure only** — `PromptContext` is not rewritten and Prompt
+  Engine does not consume this module yet; see "Phase 7.4" below.
 
 ### Phase 7.1 — Design Domain Foundation (DS-7.1, текущий этап)
 
@@ -1316,6 +1321,92 @@ corresponding entries. `knowledge/spaces/{registry,index}.ts`,
 `RoomContext`, Rule Engine, Builder, Formatter, Pipeline, Style Registry,
 Developer Studio, Benchmark, the public site, the API, and Production are
 not affected. `npm run build` passes.
+
+### Phase 7.4 — Prompt Integration Foundation (DS-7.4)
+
+New, initially-isolated module `src/lib/interior/prompt-integration/` —
+the explicit Adapter/Mapping bridge between Spatial Intelligence
+(`design-domain/**`, `space-type/**`, `knowledge/spaces/**`) and Prompt
+Engine (`prompt-engine/**`), anticipated by ADR-004 §5 ("Prompt
+Integration (DS-7.4) must introduce the connection as an explicit
+Adapter/Mapping component, not as a change to either model's own shape").
+This stage builds **infrastructure only** — no production prompt changes,
+no image-generation changes, no prompt-quality changes.
+
+```
+User
+  ↓
+RoomContext
+  ↓
+Room Analyzer (future — not implemented)
+  ↓
+SpaceType
+  ↓
+Spatial Knowledge
+  ↓
+Spatial Prompt Adapter          ← this stage
+  ↓
+PromptContext
+  ↓
+PromptDraft
+  ↓
+Formatter
+  ↓
+Generation
+```
+
+- **`types.ts`** — `SpatialPromptContext` (`spaceTypeId: SpaceTypeId`,
+  `designDomainId: DesignDomainId`, `spatialKnowledge?: KnowledgeFeature`,
+  `futureMetadata?: SpatialPromptMetadata`, all `readonly`). A new,
+  independent composition model — not a replacement of, inheritance of, or
+  duplication of `PromptContext` (`prompt-domain/types.ts`). Carries only
+  references (ids and a `KnowledgeFeature` reference), no generated prompt
+  strings.
+- **`adapter.ts`** — `SpatialPromptAdapter`/`DefaultSpatialPromptAdapter`:
+  `adapt(spaceTypeId: SpaceTypeId): SpatialPromptContext | undefined`,
+  composing `getSpaceType` (`space-type/**`) and `getSpatialKnowledge`
+  (`knowledge/spaces/**`) into one `SpatialPromptContext`. The sole file
+  under `prompt-integration/**` that reads either registry.
+  Takes an already-classified `SpaceTypeId`, not a `RoomContext` — it does
+  not implement the `RoomContext → SpaceType` mapping itself (that remains
+  the future Room Analyzer's job).
+- **`registry.ts`** — `getSpatialPromptContext(spaceTypeId)`,
+  `getAllSpatialPromptContexts()`: a lookup-function surface over the
+  adapter, by analogy with `getSpaceType`/`getAllSpaceTypes` and
+  `getSpatialKnowledge`/`getAllSpatialKnowledge`. Not a static data array —
+  `SpatialPromptContext` values are composed on demand.
+- **`index.ts`** — the module's public surface.
+- **`README.md`** — full architectural rationale: the composition model,
+  the adapter's translation responsibility, the Prompt Boundary (Prompt
+  Engine consumes only `SpatialPromptContext`, never the `SpaceType`/
+  Knowledge registries or `RoomContext` directly), the future Room
+  Analyzer chain, commercial readiness (Restaurant, Office, Retail, Salon,
+  Hotel, Hospital, Airport, School, Warehouse, Museum — all already
+  composable with zero commercial-specific code), "Prompt Intelligence is
+  composition, not concatenation", illustrative future Spatial Influence
+  categories (layout, traffic, workflow, privacy, accessibility, lighting,
+  zoning, functional furniture, circulation, focal points, negative
+  space), the four-layer Architecture Rules (Prompt Integration composes /
+  Prompt Engine generates / Formatter formats / Generation renders), the
+  Reuse Strategy (single official Decision Flow), future consumers
+  (Furniture Planner, Material Engine, Object Detection, Automatic Masks,
+  Commercial Planner, Developer Studio, Benchmark), and Registry
+  Protection ("What MUST NEVER happen").
+
+`prompt-integration/**` does not import `prompt-domain/**` (no
+`RoomContext`, no `PromptContext`) and is not imported by
+`prompt-engine/**`, `prompt-domain/**`, Generation Engine, Provider,
+Developer Studio, Benchmark, the public site, the API,
+`buildEditPrompt()`, or `prompts.ts` — fully isolated, exactly like every
+other Spatial Intelligence module on the day it was created. `PromptContext`,
+`RoomContext`, `SpaceType`, `SpaceTypeMetadata`, `KnowledgeFeature`, and
+every existing registry are unchanged in every field. No new ADR and no
+new ADR-000 Principle were introduced — this stage applies ADR-000
+Principles 19–22 and the existing ADR-004 boundary discipline; ADR-004
+received a corresponding "Update — DS-7.4" section confirming the
+Adapter/Mapping it anticipated in §5/§8 now exists.
+`docs/AI_CORE_CHECKLIST.md` received corresponding entries. `npm run
+build` passes.
 
 ## Architecture Milestone A2 — Spatial Intelligence Foundation Complete
 

@@ -408,3 +408,47 @@ Sections 3–9 were renumbered to 4–10 to make room for the new Section 3.
 `docs/ARCHITECTURE.md` gained a one-line note under Phase 7.1.3 recording
 that ADR-004 was extended with this invariant. No `.ts`/`.tsx` file,
 production code, or public site is affected. `npm run build` passes.
+
+## Update — DS-7.4 Prompt Integration Foundation
+
+Section 5 ("Migration Strategy") and Section 8 ("Future Evolution") named
+DS-7.4 as the stage that would introduce the `RoomContext → Adapter/Mapping
+→ SpaceType`-shaped connection between Spatial Intelligence and Prompt
+Engine. That stage has now happened: `src/lib/interior/prompt-integration/`
+(`SpatialPromptAdapter`, `SpatialPromptContext`) is the Adapter this ADR
+anticipated.
+
+This update records that the Adapter exists — it does **not** revise the
+boundary or the Boundary Invariant (Section 3) themselves, and it does not
+supersede any prior section of this ADR. What DS-7.4 actually built, and how
+it stays inside the boundary already fixed by Sections 2–3:
+
+- `SpatialPromptAdapter.adapt(spaceTypeId: SpaceTypeId): SpatialPromptContext
+  | undefined` composes `SpaceType` (`space-type/**`) with Spatial Knowledge
+  (`knowledge/spaces/**`, DS-7.3) — it does **not** implement the
+  `RoomContext → SpaceType` mapping itself. It takes an already-classified
+  `SpaceTypeId` as input, never a `RoomContext`. Choosing the mechanism that
+  produces a `SpaceTypeId` from a `RoomContext` — a Rule Engine, an AI
+  Classifier, a Vision Analyzer, Manual Mapping, an ML Classifier (Section 8)
+  — remains a future Room Analyzer's job, not this Adapter's, and is still
+  not implemented.
+- `SpatialPromptContext` (`prompt-integration/types.ts`) is a new,
+  independent composition model — not `RoomContext`, not `SpaceType`, and
+  not `PromptContext`. It does not merge, extend, or rename any of the
+  three; it references `SpaceTypeId`/`DesignDomainId`/a `KnowledgeFeature`
+  by id/reference only.
+- `PromptContext` (`prompt-domain/types.ts`) is **not changed** — no field
+  renamed, retyped, added, or removed, exactly as Section 5 required.
+  `RoomContext` is also unchanged, and `prompt-integration/**` does not even
+  import `prompt-domain/**` on DS-7.4.
+- Prompt Engine does not consume `SpatialPromptContext` yet — connecting it
+  into `PromptContext`/`PromptDraft` remains future work; DS-7.4 built the
+  Adapter, not the wiring.
+
+No new ADR was created for this update — `prompt-integration/README.md`
+(`src/lib/interior/prompt-integration/README.md`) carries the full
+architectural rationale, and this ADR's own Sections 2–3 (the boundary and
+its invariant) remain the governing text unchanged. `docs/ARCHITECTURE.md`
+and `docs/AI_CORE_CHECKLIST.md` gained matching DS-7.4 entries. `SpaceType`,
+`RoomContext`, `PromptContext`, Prompt Engine, Knowledge, Design Domain, and
+Production are otherwise unaffected. `npm run build` passes.

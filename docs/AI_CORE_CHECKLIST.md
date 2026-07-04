@@ -467,6 +467,79 @@ Not automated — reviewed by hand.
       declares stable; `docs/adr/ADR_INDEX.md`'s ADR Registry gained no
       new ADR row, only a new Architecture Milestones table entry
       (DS-7.3.2)
+- [ ] Prompt Integration is infrastructure only — `prompt-integration/**`
+      (DS-7.4) introduces no production prompt change, no image-generation
+      change, and no prompt-quality change; `buildEditPrompt()` and
+      `prompts.ts` are unmodified (DS-7.4)
+- [ ] `SpatialPromptContext` is a new composition model, not a
+      `PromptContext` replacement — `prompt-integration/types.ts` does not
+      extend, inherit from, or duplicate the fields of `PromptContext`
+      (`prompt-domain/types.ts`); it carries only references (`SpaceTypeId`,
+      `DesignDomainId`, a `KnowledgeFeature` reference), no generated
+      prompt strings (DS-7.4, ADR-000 Principle 19)
+- [ ] `SpatialPromptAdapter` owns the translation — `adapter.ts` is the
+      only file under `prompt-integration/**` that imports `getSpaceType`
+      (`space-type/**`) or `getSpatialKnowledge` (`knowledge/spaces/**`);
+      `types.ts` and `registry.ts` do not read either registry directly
+      (DS-7.4)
+- [ ] `SpatialPromptAdapter.adapt()` takes a `SpaceTypeId`, never a
+      `RoomContext` — `prompt-integration/**` does not implement the
+      `RoomContext → SpaceType` mapping itself and does not import
+      `prompt-domain/**` in any form (DS-7.4, ADR-004)
+- [ ] Prompt Boundary documented — Prompt Engine, if and when a future
+      stage connects it, consumes only `SpatialPromptContext`; it never
+      imports `space-type/registry.ts`, `knowledge/spaces/registry.ts`, or
+      `RoomContext` directly (DS-7.4)
+- [ ] Prompt Engine does not consume `prompt-integration/**` yet —
+      `PromptContext`, `PromptDraft`, `PromptBuilder`, `RuleEngine`, and the
+      (still unimplemented) Formatter are unmodified; no import from
+      `prompt-engine/**` or `prompt-domain/**` into `prompt-integration/**`
+      exists, and none in the reverse direction either (DS-7.4)
+- [ ] Future Room Analyzer documented, not implemented — the chain
+      `RoomContext → Room Analyzer → SpaceType → SpatialPromptAdapter →
+      PromptContext → Prompt Engine` is documented in
+      `prompt-integration/README.md` as future work; no Room Analyzer
+      code, type, or registry exists (DS-7.4)
+- [ ] Commercial readiness is emergent — Restaurant/Office/Retail/Salon/
+      Hotel/Hospital/Airport/School/Warehouse/Museum are all composable via
+      `getSpatialPromptContext(id)` using the same `SpatialPromptAdapter`
+      code path as every residential `SpaceTypeId`; no commercial-specific
+      type, adapter, or registry was introduced (DS-7.4)
+- [ ] Prompt Intelligence documented as composition, not concatenation —
+      `prompt-integration/README.md` states prompt quality evolves through
+      Style + Spatial Intelligence + Knowledge composition, not through
+      longer or concatenated prompt strings (DS-7.4)
+- [ ] Spatial Influence categories are illustrative, not implemented —
+      layout/traffic/workflow/privacy/accessibility/lighting/zoning/
+      functional furniture/circulation/focal points/negative space are
+      documented as a future direction; none is a field, type, or rule
+      implemented on DS-7.4 (DS-7.4)
+- [ ] Architecture Rules documented with no responsibility overlap —
+      Prompt Integration composes / Prompt Engine generates / Formatter
+      formats / Generation renders, each owning exactly one responsibility
+      (DS-7.4)
+- [ ] Reuse Strategy applied — `prompt-integration/**` was built by
+      applying the single official Decision Flow (`Reuse → Metadata →
+      Composition → Registry → Top-level Contract`, ADR-000 Principle 22);
+      no new ADR and no new Principle were introduced for this stage
+      (DS-7.4)
+- [ ] Future consumers documented without a shape change — Prompt Engine,
+      Furniture Planner, Material Engine, Object Detection, Automatic
+      Masks, Commercial Planner, Developer Studio, and Benchmark are named
+      as future readers of `SpatialPromptContext`; none imports
+      `prompt-integration/**` today (DS-7.4)
+- [ ] `prompt-integration/**` fully isolated — not imported from
+      `prompt-engine/**`, `prompt-domain/**`, Generation Engine, Provider,
+      Style Registry, Developer Studio, Benchmark, the public site, the
+      API, `buildEditPrompt()`, or `prompts.ts` (DS-7.4)
+- [ ] Registry Protection — `SpatialPromptContext` never becomes
+      `PromptContext`, never stores generated prompt text or provider
+      hints, and `SpaceType`/`KnowledgeFeature`/`PromptContext` top-level
+      contracts are not changed to accommodate this module (DS-7.4)
+- [ ] ADR-004 updated, not superseded — ADR-004 received an "Update —
+      DS-7.4" section confirming the Adapter/Mapping it anticipated in §5
+      and §8 now exists as `prompt-integration/**`; no new ADR was created,
+      and ADR-004's Boundary Invariant (§3) is unchanged (DS-7.4)
 - [ ] Is there an ADR for this architectural decision?
 - [ ] Is the ADR registered in [ADR_INDEX](adr/ADR_INDEX.md)?
 - [ ] Does an existing ADR already own this responsibility?
