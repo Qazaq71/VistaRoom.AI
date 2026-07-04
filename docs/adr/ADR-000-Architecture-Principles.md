@@ -129,6 +129,14 @@ and the module READMEs were already each independently enforcing.
     so would violate Principle 16. Ordering logic itself still lives
     exclusively in `PromptPipeline`.
 
+19. **Composition over Duplication.** `Feature`, `Entity`, `Relation`, and
+    `Context` (`knowledge/core/**`, `prompt-domain/**`) are the base
+    building blocks of AI Core. New functionality must combine existing
+    blocks — a new independent model is allowed only when it both (a)
+    describes a genuinely new problem domain and (b) cannot be expressed
+    through an existing Entity/Feature/Relation/Context/Registry. See
+    "Update — DS-6.4.3" below for the full rule, examples, and exceptions.
+
 ## Consequences
 
 - ADR-001 (Provider Terminology), ADR-002 (MY_STYLE Identifier), and
@@ -178,3 +186,127 @@ logic implemented). No `PromptRuleSet` is implemented; `InteriorRuleSet`,
 `LightingRuleSet`, `FurnitureRuleSet`, `MaterialRuleSet`, `DecorRuleSet`,
 `ConstraintRuleSet`, and `MyStyleRuleSet` are named in
 `rules/README.md` as future instances only.
+
+## Update — DS-6.4.3 Principle 19: Composition over Duplication
+
+Documentation-only stage, no code changed. Adds Principle 19 above and
+elaborates it here in full: motivation, the rule itself, examples of
+compliance/violation, allowed exceptions, and practical consequences for
+every future AI Core stage.
+
+### Мотивация
+
+По итогам Knowledge Core (DS-6.4/6.4.1/6.4.2) в AI Core накопился
+устойчивый набор строительных блоков — `Feature`, `Entity`, `Relation`,
+`Context` — каждый из которых уже прошёл собственную ревизию
+масштабируемости (DS-6.4.2 §5) и рассчитан на переиспользование за
+пределами интерьерного домена. Principle 19 фиксирует явное правило,
+которое до сих пор соблюдалось по факту, но нигде не было названо: любая
+новая функциональность AI Core должна строиться через **композицию** этих
+существующих сущностей. Новые независимые модели создаются только тогда,
+когда существующие сущности принципиально не способны выразить новую
+предметную область.
+
+### Основное правило
+
+`Feature`, `Entity`, `Relation` и `Context` — базовые строительные блоки
+AI Core. Новые возможности должны **комбинировать** существующие блоки, а
+не создавать параллельные модели данных, которые описывают то же самое
+другими словами.
+
+### Что считается правильным
+
+Новые продукты и домены собираются из существующих строительных блоков,
+а не порождают собственную параллельную иерархию типов:
+
+```
+Style
+  ↓
+Feature
+  ↓
+Knowledge
+  ↓
+Rule
+  ↓
+Prompt
+```
+
+```
+Room       → Feature
+Brand      → Feature
+Landscape  → Feature
+Hotel      → Feature
+```
+
+Т.е. новая предметная область (комната, бренд, ландшафт, отель, ...)
+выражается через существующий `Feature`/`Entity`/`Relation`/`Context`, а
+не через свой собственный тип с тем же назначением.
+
+### Что считается нарушением
+
+- `MaterialContextV2` — если уже существует `MaterialFeature`.
+- `AdvancedLighting` — если можно расширить `LightingFeature`.
+- `PromptStyle` — если уже существует `StyleKnowledge`.
+- `FurnitureRule2` — если правило можно добавить в существующий
+  `RuleSet`.
+
+Общий признак нарушения: новый тип не добавляет новую предметную
+область, а повторяет назначение уже существующего блока под другим
+именем — это дублирование, а не композиция.
+
+### Допустимые исключения
+
+Новая модель допускается, только если выполняются **оба** условия
+одновременно:
+
+1. Она описывает новую предметную область.
+2. Её невозможно выразить через существующие
+   Entity/Feature/Relation/Context.
+
+Если выполняется только одно из условий — новая модель не создаётся;
+вместо этого расширяется существующий блок (новым полем, новым
+`FeatureType`, новым `RelationType`).
+
+### Практические последствия
+
+Перед созданием любого нового класса/типа разработчик обязан
+последовательно проверить, можно ли использовать вместо него:
+
+1. существующий `Feature`;
+2. существующий `Entity`;
+3. существующий `Relation`;
+4. существующий `Context`;
+5. существующий `Registry`.
+
+Только после того, как все пять пунктов дали отрицательный ответ,
+допускается создание новой модели.
+
+### Связь с другими принципами
+
+Principle 19 усиливает:
+
+- **Principle 1** (Domain не знает UI) — композиция удерживает новую
+  функциональность внутри существующих доменных границ вместо того,
+  чтобы каждый новый домен изобретал собственные структуры данных.
+- **Principle 3** (Style Registry — единственный источник знаний о
+  стилях) — тот же дух Single Source of Truth, применённый ко всем
+  строительным блокам AI Core, не только к стилям: у каждой концепции
+  должен быть один, переиспользуемый источник, а не несколько
+  параллельных.
+- **Principle 5** (Prompt Engine работает только с `PromptContext`) —
+  domain separation: новый домен подключается через существующий
+  контракт (`Context`/`Feature`), а не читает и не порождает свою
+  отдельную форму данных в обход него.
+- **Principle 11** (Минимизировать magic strings) — тот же Knowledge-
+  first принцип "один источник на концепцию", распространённый с
+  строковых литералов на целые модели данных.
+- **Principle 15** (`PromptContext` immutable) — композиция существующих
+  блоков не отменяет иммутабельность; если новый `Context` всё же
+  оправдан исключением выше, он обязан следовать тому же правилу.
+- **Principle 18** (Rule priority — metadata, не логика) — то же различие
+  между "расширить существующее" и "изобрести параллельное" применяется
+  к правилам: новое правило расширяет существующий `RuleSet`, а не
+  порождает `FurnitureRule2`.
+
+`docs/AI_CORE_CHECKLIST.md` gained a matching check. No implementation
+changed.

@@ -356,7 +356,7 @@ Formatter/Pipeline), Generation Engine, Provider, Style Registry,
 Developer Studio, Benchmark, публичный сайт, API — не импортирует
 `knowledge/core/**`.
 
-### Phase 6.4.2 — Knowledge Core Cleanup & Unification (DS-6.4.2, текущий этап)
+### Phase 6.4.2 — Knowledge Core Cleanup & Unification (DS-6.4.2, завершён)
 
 Завершающий этап Knowledge Core перед началом реализации Prompt Engine
 (DS-6.5). Изменения затронули только `src/lib/interior/knowledge/**` и
@@ -430,7 +430,31 @@ Formatter/Pipeline), Rule Engine, Generation Engine, Provider, Style
 Registry, Developer Studio, Benchmark, публичный сайт, API не изменены.
 `knowledge/index.ts` по-прежнему не реэкспортирует `core/` напрямую;
 `types.ts` — единственный файл, получивший новую внутреннюю зависимость
-от `core/`, и она остаётся внутри `knowledge/**`. Следующий этап —
+от `core/`, и она остаётся внутри `knowledge/**`.
+
+### Phase 6.4.3 — ADR-000 Principle 19: Composition over Duplication (DS-6.4.3, текущий этап)
+
+Документационный этап, без единой строки кода. Начиная с этого этапа в
+AI Core действует **Principle 19 — Composition over Duplication**
+(см. [ADR-000 — Architecture Principles](adr/ADR-000-Architecture-Principles.md)):
+новая функциональность строится через композицию существующих
+`Feature`/`Entity`/`Relation`/`Context`, а не через создание параллельных
+моделей данных; новая независимая модель допускается только тогда, когда
+существующие сущности принципиально не способны выразить новую
+предметную область.
+
+- `docs/adr/ADR-000-Architecture-Principles.md` — добавлен Principle 19 в
+  список принципов и раздел "Update — DS-6.4.3" с мотивацией, основным
+  правилом, примерами (правильно/нарушение), допустимыми исключениями,
+  практическими последствиями и связью с принципами 1, 3, 5, 11, 15, 18.
+- `docs/AI_CORE_CHECKLIST.md` — добавлен пункт проверки: новые модели
+  строятся через композицию существующих Entity/Feature/Relation, а не
+  через параллельные структуры.
+- `docs/ARCHITECTURE.md` — этот раздел.
+
+Prompt Engine, Builder, Rule Engine, Formatter, Pipeline, Knowledge Core,
+Generation Engine, Benchmark, Developer Studio, API и публичный сайт не
+затронуты — изменена только документация. Следующий этап —
 **DS-6.5 Universal Interior Rules**.
 
 ## Phase 7 — Prompt Lab
