@@ -666,7 +666,8 @@ Prompt Engine
   Commercial, Hospitality, ...). См. подробности ниже и
   `src/lib/interior/design-domain/README.md`.
 - **DS-7.2 — Space Type Foundation** — конкретные типы помещений/объектов
-  внутри каждого Design Domain. Ещё не создан.
+  внутри каждого Design Domain. См. подробности ниже и
+  `src/lib/interior/space-type/README.md`.
 - **DS-7.3 — Design Knowledge Integration** — связывание Space Type со
   слоем Knowledge (`src/lib/interior/knowledge`). Ещё не создан.
 - **DS-7.4 — Prompt Integration** — подключение Spatial Architecture к
@@ -1061,4 +1062,55 @@ new knowledge — rather than architectural redesign.
 Prompt Engine, Prompt Domain, Knowledge Core, Design Domain, Rule Engine,
 Builder, Formatter, Pipeline, Developer Studio, Benchmark, API, and
 Production are not affected — this stage is documentation-only. `npm run
+build` passes.
+
+### Phase 7.2 — Space Type Foundation (DS-7.2)
+
+New, fully isolated module `src/lib/interior/space-type/` — the second
+spatial axis of AI Core, directly below Design Domain
+(`src/lib/interior/design-domain`, DS-7.1), continuing Phase 7 — Spatial
+Intelligence. Data only (types + lookup), no business logic, exactly the
+same discipline DS-7.1 used for Design Domain and required by ADR-004.
+
+- **`types.ts`** — `SpaceTypeId` (union of 51 illustrative literals across
+  Residential, Commercial, Hospitality, Industrial, Healthcare, Education,
+  Transportation, Outdoor, and Public), `SpaceTypeMetadata` (`priority`,
+  `enabled`, `notes?` — the same shape and role as `DesignDomainMetadata`,
+  reserved as the official future extension point), `SpaceType` (`id`,
+  `designDomainId`, `displayName`, `description`, `icon`, `metadata`),
+  `SpaceTypeRegistry` (`readonly SpaceType[]`). All fields `readonly`, no
+  methods. `SpaceType.designDomainId` references `DesignDomainId`
+  (imported from `../design-domain`) — the primitive identifier, not the
+  `DesignDomain` object — keeping the two registries independent
+  (Principle 21, ADR-000).
+- **`space-types.ts`** — `SPACE_TYPES`, 51 illustrative Space Types,
+  grouped by Design Domain for readability only (the grouping is not a
+  type). Intentionally incomplete and easy to extend — a new Space Type is
+  one new array element plus one new `SpaceTypeId` literal, no change to
+  existing entries or to `registry.ts`.
+- **`registry.ts`** — `SPACE_TYPE_REGISTRY`, `getSpaceType(id)`,
+  `getAllSpaceTypes()` — plain typed lookup, by analogy with
+  `DESIGN_DOMAIN_REGISTRY` (`design-domain/registry.ts`, DS-7.1) and
+  `INTERIOR_STYLE_REGISTRY` (`styles/registry.ts`, DS-4).
+- **`index.ts`** — the module's public surface.
+- **`README.md`** — architectural rationale: the difference between
+  Design Domain, Space Type, `RoomContext`, and the future Room Analyzer;
+  the ADR-004 boundary; the `metadata` extension point; universality
+  across future domains (Marine, Aircraft, Exhibition, Retail, Smart
+  Building, ...); and an explicitly non-implemented Future Extension list
+  (Space Analyzer, Knowledge integration, Prompt integration, Object
+  Detection, Furniture Planner, Material Engine, Automatic Masks).
+
+Space Type works exclusively with its own types plus `DesignDomainId`: it
+does not import Prompt Engine, Prompt Domain (`RoomContext`,
+`PromptContext`), Knowledge, Style Registry, Developer Studio, Benchmark,
+Provider, Generation Engine, React, or Next.js. It does not import the
+`DesignDomain` object itself, only the `DesignDomainId` type. It is fully
+isolated — nowhere imported. Per ADR-004, `RoomContext` and `PromptContext`
+are unchanged in every field, and no Mapping/Adapter between `RoomContext`
+and `SpaceType` is introduced at this stage — that remains DS-7.4 (Prompt
+Integration). Knowledge Integration (DS-7.3) is also not started. Prompt
+Engine, Prompt Domain, Knowledge, Knowledge Core, Design Domain, Style
+Registry, Rule Engine, Formatter, Pipeline, Builder, Developer Studio,
+Benchmark, the public site, API, and Production are not affected. `npm run
 build` passes.

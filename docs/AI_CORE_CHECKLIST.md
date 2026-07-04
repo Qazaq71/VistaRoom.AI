@@ -240,6 +240,33 @@ Not automated — reviewed by hand.
 - [ ] Новые пространственные модели (`SpaceType` и любые будущие) не
       изменяют `PromptContext` напрямую — интеграция происходит только
       через явный Adapter/Mapping, вводимый на DS-7.4 (ADR-004)
+- [ ] Space Type (`src/lib/interior/space-type/**`) не импортирует Prompt
+      Engine (DS-7.2)
+- [ ] Space Type не импортирует Style Registry (DS-7.2)
+- [ ] Space Type не импортирует Knowledge (`knowledge/**`) (DS-7.2)
+- [ ] Space Type не импортирует Prompt Domain (`prompt-domain/**`)
+      (DS-7.2)
+- [ ] Space Type ссылается на `DesignDomainId` (примитивный
+      идентификатор), а не на весь объект `DesignDomain` — реестры
+      Design Domain и Space Type остаются независимыми друг от друга
+      (DS-7.2, ADR-000 Principle 21)
+- [ ] Space Type полностью изолирован — ничто в Design Domain, Style
+      Registry, Knowledge, Prompt Domain, Prompt Engine, Generation
+      Engine, Provider, Developer Studio, Benchmark, публичном сайте или
+      API не импортирует `src/lib/interior/space-type/**` (DS-7.2)
+- [ ] `SpaceTypeMetadata` остаётся официальной, документированной точкой
+      расширения Space Type — новые возможности (`capabilities`,
+      `analysisHints`, `renderHints`, `providerHints`, `generationHints`,
+      `qualityHints`, `futureFlags`, ...) добавляются туда, а не как новые
+      поля верхнего контракта `SpaceType` (DS-7.2)
+- [ ] Верхний контракт `SpaceType` (`id`, `designDomainId`, `displayName`,
+      `description`, `icon`, `metadata`) не менялся с DS-7.2 — ни одно
+      новое поле не добавлено напрямую (DS-7.2)
+- [ ] `RoomContext` и `PromptContext` не изменены ни на одно поле при
+      создании Space Type (ADR-004, DS-7.2)
+- [ ] Между `RoomContext` и `SpaceType` по-прежнему нет ничего, кроме
+      будущего явного Mapping/Adapter (DS-7.4) — DS-7.2 намеренно не
+      вводит Mapping (ADR-004)
 - [ ] Is there an ADR for this architectural decision?
 - [ ] Is the ADR registered in [ADR_INDEX](adr/ADR_INDEX.md)?
 - [ ] Does an existing ADR already own this responsibility?
