@@ -149,6 +149,16 @@ and the module READMEs were already each independently enforcing.
     below for the full rule, examples, and the pre-breaking-change
     checklist.
 
+21. **Design Domain — верхняя пространственная ось.** `Design Domain`
+    (`src/lib/interior/design-domain/**`, Phase 7) is the topmost node of
+    AI Core's spatial hierarchy — above Space Type, and above Style.
+    Space Type always sits one level below Design Domain and references
+    it by `DesignDomainId`, never the reverse. Style must never rise
+    above Design Domain: Style stays an orthogonal axis (Principle 3)
+    that applies *within* any Design Domain/Space Type, not a layer that
+    gates or contains one. See "Update — DS-7.1" below for the full rule
+    and rationale.
+
 ## Consequences
 
 - ADR-001 (Provider Terminology), ADR-002 (MY_STYLE Identifier), and
@@ -562,3 +572,110 @@ sections/checks. `src/lib/interior/prompt-engine/README.md` gained a
 short "Architecture Evolution" note applying this principle to
 Builder/Rules/Formatter/Pipeline specifically. No implementation
 changed.
+
+## Update — DS-7.1 Design Domain Foundation
+
+Adds Principle 21 above and opens **Phase 7 — Spatial Intelligence**, a
+new, independent axis of AI Core alongside the Style/Knowledge/Prompt
+Engine chain built so far. This update introduces one new, fully
+isolated module — `src/lib/interior/design-domain/**` — and elaborates
+the spatial hierarchy rule in full.
+
+### Мотивация
+
+Every AI Core module built through DS-6.5.3 answers "how is this
+space styled?" (Style, Knowledge, Prompt Engine). None of them answer a
+logically prior question: "what kind of space is this in the first
+place?" — a hotel room and a living room can share the same style
+(`minimalist`) but belong to entirely different categories of space,
+with different constraints, different typical Space Types, and
+eventually different Knowledge. Phase 7 starts answering that prior
+question, layer by layer:
+
+```
+Design Domain
+  ↓
+Space Type
+  ↓
+Style
+  ↓
+Knowledge
+  ↓
+Prompt Engine
+```
+
+DS-7.1 builds only the first, topmost layer — `Design Domain` — and
+nothing below it. Space Type (DS-7.2), its Knowledge integration
+(DS-7.3), and its Prompt Engine integration (DS-7.4) are named as future
+stages, not built now, per Principle 20 (Evolution over Rewrite):
+introduce one layer, prove it, then build the next on top of it.
+
+### Основное правило
+
+`Design Domain` is the topmost node of the spatial hierarchy — above
+Space Type, and above Style:
+
+- **Space Type sits below Design Domain, not beside it.** A Space Type
+  (a concrete room/object kind — "living room", "hotel room", "operating
+  room") only makes sense *within* a Design Domain, because the set of
+  meaningful Space Types differs per domain. When Space Type is built
+  (DS-7.2), it will reference `DesignDomainId`
+  (`src/lib/interior/design-domain/types.ts`) — Design Domain will never
+  reference a Space Type back (would violate Principle 12, cyclical
+  imports).
+- **Style never rises above Design Domain.** Style (Principle 3) remains
+  an orthogonal axis — "in what visual language is this space
+  rendered?" — applicable *within* any Design Domain/Space Type. Style
+  must never become a gate, container, or prerequisite for a Design
+  Domain or Space Type to exist; doing so would collapse two independent
+  axes (spatial category vs. visual language) into one, violating
+  Principle 10 (Один термин = одна концепция).
+- **Design Domain does not know about anything below it.** Consistent
+  with Principle 1 (Domain не знает UI) and Principle 5 (Prompt Engine
+  работает только с `PromptContext`), `design-domain/**` does not import
+  Space Type (not yet built), Style Registry, Knowledge, Prompt Domain,
+  or Prompt Engine — a new top-of-hierarchy layer is not required to know
+  about the layers that will eventually sit below it.
+
+### Что построено на DS-7.1
+
+`src/lib/interior/design-domain/` — types (`DesignDomainId`,
+`DesignDomain`, `DesignDomainMetadata`, `DesignDomainRegistry`), 11
+top-level categories (`domains.ts`: `residential`, `commercial`,
+`hospitality`, `public`, `outdoor`, `industrial`, `entertainment`,
+`transportation`, `healthcare`, `education`, `mixed_use`), and a plain
+lookup registry (`registry.ts`: `DESIGN_DOMAIN_REGISTRY`,
+`getDesignDomain`, `getAllDesignDomains`) — by analogy with Style
+Registry (DS-4) and Knowledge Registry (DS-6.4). No Space Types, no
+business logic, no connection to any existing AI Core module.
+
+### Связь с другими принципами
+
+- **Principle 3** (Style Registry — единственный источник знаний о
+  стилях) — Principle 21 keeps Style's ownership of *style* data intact;
+  it only clarifies that Style is not, and must never become, the layer
+  spatial categorization is expressed through.
+- **Principle 12** (Избегать циклических импортов) — the spatial
+  hierarchy's dependency direction (Design Domain → Space Type → Style →
+  Knowledge → Prompt Engine) is a direct extension of the existing
+  dependency chain; Design Domain sits at its new topmost point and
+  nothing below it may import back up to it.
+- **Principle 19** (Composition over Duplication) — Space Type (DS-7.2)
+  is expected to reference `DesignDomainId` rather than inventing its own
+  parallel spatial categorization.
+- **Principle 20** (Evolution over Rewrite) — Phase 7 is built one
+  isolated layer at a time (Design Domain now, Space Type/Knowledge
+  Integration/Prompt Integration later), the same incremental pattern
+  already used for Style Registry → Prompt Domain → Prompt Engine →
+  Knowledge Base.
+
+`docs/ARCHITECTURE.md` gained a new "Phase 7 — Spatial Intelligence"
+section (renumbering the not-yet-started "Prompt Lab"/"Production
+Integration"/"Architecture Refactoring 2.0" stages from Phase 7–9 to
+Phase 8–10 — no code depended on those numbers).
+`docs/AI_CORE_CHECKLIST.md` gained matching isolation checks. Prompt
+Engine, Prompt Domain, Knowledge, Rule Engine, Builder, Formatter,
+Pipeline, Style Registry, Developer Studio, Benchmark, the public site,
+the API, and Production are untouched — `design-domain/**` is not
+imported from anywhere. Space Type is intentionally not part of this
+stage — it is DS-7.2.

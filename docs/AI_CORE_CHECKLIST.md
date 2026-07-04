@@ -170,3 +170,15 @@ Not automated — reviewed by hand.
 - [ ] Можно ли провести staged migration (старое и новое сосуществуют,
       пока миграция не завершена) вместо одномоментного переключения
       (ADR-000 Principle 20, DS-6.5.3)
+- [ ] Design Domain (`src/lib/interior/design-domain/**`) не импортирует
+      Prompt Engine (DS-7.1)
+- [ ] Design Domain не импортирует Style Registry (DS-7.1)
+- [ ] Design Domain не импортирует Knowledge (`knowledge/**`) (DS-7.1)
+- [ ] Design Domain не импортирует Prompt Domain (`prompt-domain/**`)
+      (DS-7.1)
+- [ ] Design Domain ничего не знает о SpaceType — SpaceType (DS-7.2)
+      будет ссылаться на `DesignDomainId`, а не наоборот (DS-7.1)
+- [ ] Design Domain полностью изолирован — ничто в Style Registry,
+      Knowledge, Prompt Domain, Prompt Engine, Generation Engine,
+      Provider, Developer Studio, Benchmark, публичном сайте или API не
+      импортирует `src/lib/interior/design-domain/**` (DS-7.1)

@@ -633,18 +633,92 @@ Formatter, Pipeline, Developer Studio, Benchmark, публичный сайт и
 затронуты — изменена только документация. `npm run build` проходит.
 Следующий этап — **DS-6.6 Formatter**.
 
-## Phase 7 — Prompt Lab
+## Phase 7 — Spatial Intelligence
+
+_Нумерация: "Prompt Lab" и последующие этапы, ранее занимавшие Phase
+7–9, сдвинуты на Phase 8–10 (ни один из них ещё не был начат — "Ещё не
+создан"/"Ещё не выполнено" — сдвиг не затрагивает никакой код). Spatial
+Intelligence получает Phase 7, чтобы совпадать с фактической нумерацией
+этапов (DS-7.1, DS-7.2, ...), уже согласованной для этой ветки работы._
+
+Новая, независимая от Prompt Engine ось AI Core: пространственная модель,
+описывающая, *что* за пространство генерируется, прежде чем к нему
+применяется стиль. Целевая иерархия по завершении всей фазы:
+
+```
+Design Domain
+  ↓
+Space Type
+  ↓
+Style
+  ↓
+Knowledge
+  ↓
+Prompt Engine
+```
+
+Каждый уровень строится независимо, отдельным этапом, и не подключается
+к предыдущим уровням AI Core до тех пор, пока явно не запланирована его
+интеграция:
+
+- **DS-7.1 — Design Domain Foundation** (текущий этап) — верхний уровень:
+  фиксированный список категорий назначения пространства (Residential,
+  Commercial, Hospitality, ...). См. подробности ниже и
+  `src/lib/interior/design-domain/README.md`.
+- **DS-7.2 — Space Type Foundation** — конкретные типы помещений/объектов
+  внутри каждого Design Domain. Ещё не создан.
+- **DS-7.3 — Design Knowledge Integration** — связывание Space Type со
+  слоем Knowledge (`src/lib/interior/knowledge`). Ещё не создан.
+- **DS-7.4 — Prompt Integration** — подключение Spatial Architecture к
+  Prompt Engine через `PromptContext`. Ещё не создан.
+
+### Phase 7.1 — Design Domain Foundation (DS-7.1, текущий этап)
+
+Новый, полностью изолированный модуль
+`src/lib/interior/design-domain/` — фундамент верхнего уровня будущей
+Spatial Architecture. Только данные (типы + лукап), без единой строки
+бизнес-логики.
+
+- **`types.ts`** — `DesignDomainId` (union из 11 литералов:
+  `residential`, `commercial`, `hospitality`, `public`, `outdoor`,
+  `industrial`, `entertainment`, `transportation`, `healthcare`,
+  `education`, `mixed_use`), `DesignDomainMetadata` (`priority`,
+  `enabled`, `notes?`), `DesignDomain` (`id`, `displayName`,
+  `description`, `icon`, `metadata`), `DesignDomainRegistry` (`readonly
+  DesignDomain[]`). Все поля `readonly`, никаких методов.
+- **`domains.ts`** — `DESIGN_DOMAINS`, 11 верхнеуровневых категорий
+  пространства. Это категории, а не список помещений и не список
+  объектов.
+- **`registry.ts`** — `DESIGN_DOMAIN_REGISTRY`, `getDesignDomain(id)`,
+  `getAllDesignDomains()` — обычный typed lookup, по аналогии с Style
+  Registry (`styles/registry.ts`, DS-4) и Knowledge Registry
+  (`knowledge/registry/KnowledgeRegistry.ts`, DS-6.4).
+- **`index.ts`** — публичная поверхность модуля.
+- **`README.md`** — архитектурное обоснование: почему Design Domain
+  отделён от Style, почему стоит выше Space Type, почему ничего не знает
+  о Prompt Engine.
+
+Design Domain работает исключительно с собственными типами: не
+импортирует Style Registry, Knowledge, Prompt Domain, Prompt Engine,
+Generation Engine, Provider, Developer Studio, Benchmark, React или
+Next.js. Ничего не знает о SpaceType (SpaceType — предмет DS-7.2, и он
+будет ссылаться на `DesignDomainId`, а не наоборот). Полностью
+изолирован — нигде не импортируется. Публичный сайт, API, Prompt Engine,
+Prompt Domain, Knowledge, Style Registry, Developer Studio, Benchmark и
+Production не затронуты.
+
+## Phase 8 — Prompt Lab
 
 Внутренний инструмент Developer Studio для итеративной отладки и
 сравнения промптов, построенных Prompt Engine. Ещё не создан.
 
-## Phase 8 — Production Integration
+## Phase 9 — Production Integration
 
 Подключение Prompt Engine к реальной генерации на публичном сайте
 (замена/дополнение текущего `buildEditPrompt()` в `src/lib/prompts.ts`).
 Ещё не выполнено.
 
-## Phase 9 — Architecture Refactoring 2.0
+## Phase 10 — Architecture Refactoring 2.0
 
 Не выполняется сейчас — только документируется как будущее направление:
 
