@@ -19,6 +19,9 @@ Builder отвечает за сборку/дополнение `PromptContext` 
   Provider, API, React — только про `PromptContext`.
 - Не содержит бизнес-правил трансформации — это ответственность Rules
   (`../rules/README.md`).
+- Не мутирует входной `PromptContext` — возвращает новый экземпляр
+  (`ADR-000` [Principle 15 — PromptContext immutable](../../../../../docs/adr/ADR-000-Architecture-Principles.md)).
+  Контракт `PromptBuilder.build` принимает `Readonly<PromptContext>`.
 
 ## Статус
 

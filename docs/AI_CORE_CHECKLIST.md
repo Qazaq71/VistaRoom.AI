@@ -31,3 +31,15 @@ Not automated — reviewed by hand.
       Generation Engine, Benchmark, Developer Studio
 - [ ] Публичный сайт, API, `buildEditPrompt()`, `prompts.ts` не затронуты,
       если этап явно не про Production Integration (Phase 8)
+- [ ] Prompt Engine ничего не знает об AI Provider — no `GPT`/`OpenAI`/
+      `FLUX`/`Gemini`/`Claude`/`ComfyUI`/local-model branching anywhere
+      under `src/lib/interior/prompt-engine/**` (ADR-000 Principle 14)
+- [ ] `PromptContext` immutable — Builder/Rules/Pipeline never write to an
+      existing `PromptContext` (`context.x = ...`); every step returns a
+      new instance (`{ ...context, ... }`) (ADR-000 Principle 15)
+- [ ] Rules независимы — no `PromptRule` reads, calls, or assumes the
+      execution order of another rule; only `PromptPipeline` sequences
+      them (ADR-000 Principle 16)
+- [ ] Pipeline определяет порядок выполнения — rule/step ordering lives
+      only in `PromptPipeline`, not in Builder, a Rule, or Formatter
+      (ADR-000 Principle 16)

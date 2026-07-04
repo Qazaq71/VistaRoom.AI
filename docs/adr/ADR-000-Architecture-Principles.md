@@ -96,6 +96,23 @@ and the module READMEs were already each independently enforcing.
     conflict, the domain boundary wins — UI code adapts to the domain
     model, not the other way around.
 
+14. **Prompt Engine — AI-agnostic.** `src/lib/interior/prompt-engine/**`
+    (Phase 6) does not know about GPT, OpenAI, FLUX, Gemini, Claude,
+    ComfyUI, or any local model. It works only with `PromptContext`.
+    Which specific AI model/vendor is used is exclusively Provider's
+    concern (Principle 8) — Prompt Engine never branches on it.
+
+15. **PromptContext immutable.** Builder, Rules, and Pipeline
+    (`src/lib/interior/prompt-engine/**`) never mutate an existing
+    `PromptContext`. Every step returns a *new* `PromptContext` instance.
+    Forbidden: `context.style = ...` or any other mutation of an
+    existing instance. Allowed: `return { ...context, ... }`.
+
+16. **Prompt Rules независимы.** A `PromptRule` does not know about other
+    rules, does not call other rules, and does not depend on execution
+    order. `PromptPipeline` is the single place that decides the sequence
+    rules run in — no rule, Builder, or Formatter sequences them.
+
 ## Consequences
 
 - ADR-001 (Provider Terminology), ADR-002 (MY_STYLE Identifier), and
@@ -108,3 +125,20 @@ and the module READMEs were already each independently enforcing.
   check) as of DS-5.2 — they are enforced by review discipline only.
   Adding automated enforcement (e.g. an import-boundary lint rule) is a
   candidate for a future stage, not decided here.
+
+## Update — DS-6.1.1 Prompt Engine Architecture Contracts
+
+Principles 14–16 added ahead of DS-6.2 (the first Prompt Engine
+implementation stage), to name the guarantees Prompt Engine's contracts
+must hold before any Builder/Rules/Formatter code is written:
+AI-agnosticism (14), `PromptContext` immutability (15), and Rule
+independence (16). No implementation changed. The only code effect is
+type-only: `PromptBuilder.build`, `PromptRule.apply`,
+`PromptFormatter.format`, `PromptValidator.validate`,
+`PromptTemplate.apply`, and `PromptPipeline.run`
+(`src/lib/interior/prompt-engine/types.ts`) now take
+`Readonly<PromptContext>` instead of `PromptContext`, so a future
+implementation cannot satisfy the contract while mutating its input —
+return types are unchanged (still a plain `PromptContext`/`PromptResult`,
+signalling "return a new instance"). `docs/AI_CORE_CHECKLIST.md` gained
+matching checks.
