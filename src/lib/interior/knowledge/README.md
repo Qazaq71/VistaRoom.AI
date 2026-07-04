@@ -211,4 +211,48 @@ Engine — три разных вопроса) — `spaces/README.md`.
 Knowledge Base по-прежнему нигде не используется production-кодом —
 `spaces/**` не подключён ни к Prompt Domain, ни к Prompt Engine, ни к
 Rule Engine, ни к Style Registry, ни к производству. Подробности —
-`spaces/README.md` §10 "Status".
+`spaces/README.md` §20 "Status".
+
+**DS-7.3.1 — Spatial Knowledge Governance & Evolution Foundation**
+(документация, без единой строки кода) закрывает governance-модель этого
+домена — по аналогии с тем, как DS-7.2.1 закрыл её для `space-type/**`.
+`spaces/README.md` получил десять постоянных governance-разделов:
+Spatial Knowledge Governance (единственная ответственность — "что вообще
+верно для пространств этого типа", явно НЕ generation/rendering/
+prompting/classification/analysis/detection), Canonical Knowledge Policy
+(таблица разрешённых vs запрещённых категорий знаний с указанием, где
+запрещённое должно жить на самом деле — Project Model, `RoomContext`,
+Room Analyzer, Generation Engine, Provider, Formatter, будущий Rules),
+Knowledge Stability Contract (Knowledge хранит только стабильное,
+общее, переиспользуемое; никогда — project-specific/customer-specific/
+session-specific/AI-generated/runtime/user-specific/dynamic данные),
+Future Knowledge Layers (иллюстративная будущая композиция — Structural/
+Environmental/Operational/Behavioral/Commercial/Safety/Accessibility/
+Compliance/Workflow/Building Code — явно не metadata-поля, не реестры, не
+реализовано), Metadata Evolution (расширенный иллюстративный список:
+behavior/workflow/environment/accessibility/operations/compliance/
+buildingCode/security/maintenance/visitorFlow/occupancy/energy/
+sustainability — ничего не реализовано, текущая модель не изменена),
+Knowledge Boundary (`SpaceType → Spatial Knowledge → Rules → Prompt Draft
+→ Formatter → Generation`, четыре роли: identify/explain/interpret/
+generate, ответственности не пересекаются), Future Consumers (один
+Knowledge-слой, много будущих потребителей: Prompt Engine, Room Analyzer,
+Furniture Planner, Material Engine, Object Detection, Automatic Zoning,
+Commercial/Healthcare/Hospitality/Industrial/Landscape Planner, Developer
+Studio, Benchmark, будущие BIM-интеграции), Reuse Policy (единственный
+официальный Decision Flow — `Reuse → Metadata → Composition → Registry →
+Top-level Contract` — применён к Spatial Knowledge, ссылка на Principles
+19–22), Registry Protection / "What MUST NEVER happen" (двенадцать
+постоянных запретов: Knowledge не становится Prompt, не хранит prompt
+text/providers/rendering/project data/generated results/user preferences/
+координаты/detected objects, не импортирует Prompt Engine/`RoomContext`/
+Space Type runtime), Knowledge Identity (пять слоёв, пять разных
+вопросов: `SpaceType`/Spatial Knowledge/Room Analyzer/Prompt Engine/
+Generation), и Spatial Knowledge Invariants (семь постоянных
+инвариантов: never classifies/generates/analyzes/stores runtime
+facts/owns Prompt logic/owns rendering; always remains reusable).
+
+Никакой файл `spaces/*.ts` этим этапом не изменён — ни одного нового
+поля, типа или registry entry. Новый ADR не создан: ответственность уже
+принадлежит ADR-000 (Principles 19–22) и ADR-004 — DS-7.3.1 применяет их
+к Spatial Knowledge, а не вводит новое архитектурное решение.

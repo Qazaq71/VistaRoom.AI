@@ -1233,3 +1233,78 @@ affected. `spaces/**` is not imported from anywhere outside itself — fully
 isolated, exactly like every other Knowledge domain on the day it was
 created. `docs/AI_CORE_CHECKLIST.md` and `knowledge/README.md` received
 corresponding entries. `npm run build` passes.
+
+### Phase 7.3.1 — Spatial Knowledge Governance & Evolution Foundation (DS-7.3.1, документация)
+
+Governance-этап перед DS-7.4, без единой строки runtime-кода —
+`knowledge/spaces/{registry,index}.ts` not modified. **Spatial Knowledge
+(DS-7.3) is considered architecturally closed** at this level of detail:
+its single responsibility, its content boundaries, and its evolution path
+are now permanently documented, the same way DS-7.2.1 closed governance
+for `space-type/**`.
+
+`knowledge/spaces/README.md` received ten permanent governance sections:
+
+- **Spatial Knowledge Governance** — the single responsibility ("what is
+  generally true about this type of space?"); explicitly not generation,
+  rendering, prompting, classification, analysis, or detection.
+- **Canonical Knowledge Policy** — a table of allowed knowledge (typical
+  circulation, privacy, lighting, storage, functional zones,
+  accessibility, occupancy, acoustics, maintenance, safety) versus
+  forbidden knowledge (client/project requirements, the current uploaded
+  or generated room, furniture coordinates, prompt wording, provider
+  hints, rendering instructions, camera settings, business rules,
+  temporary project data), each mapped to where it actually belongs
+  (Project Model, `RoomContext`, Room Analyzer, Generation Engine,
+  Provider, Formatter, future Rules).
+- **Knowledge Stability Contract** — Spatial Knowledge holds only stable,
+  general, reusable architectural knowledge; never project-specific,
+  customer-specific, session-specific, AI-generated, runtime, user-
+  specific, or otherwise dynamic facts, which belong instead to Room
+  Analyzer, a future Project Model, `PromptContext`, or future runtime
+  layers.
+- **Future Knowledge Layers** — an illustrative future composition
+  (Structural, Environmental, Operational, Behavioral, Commercial,
+  Safety, Accessibility, Compliance, Workflow, Building Code), explicitly
+  not current `metadata` fields, not separate registries, and not
+  implemented.
+- **Metadata Evolution** — an expanded illustrative list (`behavior`,
+  `workflow`, `environment`, `accessibility`, `operations`, `compliance`,
+  `buildingCode`, `security`, `maintenance`, `visitorFlow`, `occupancy`,
+  `energy`, `sustainability`), explicitly none implemented, current model
+  unchanged.
+- **Knowledge Boundary** — the permanent pipeline `SpaceType → Spatial
+  Knowledge → Rules → Prompt Draft → Formatter → Generation`, with four
+  non-overlapping roles (identify / explain / interpret / generate).
+- **Future Consumers** — one Knowledge layer designed to serve many future
+  consumers without a shape change: Prompt Engine, Room Analyzer,
+  Furniture Planner, Material Engine, Object Detection, Automatic Zoning,
+  Commercial/Healthcare/Hospitality/Industrial/Landscape Planner,
+  Developer Studio, Benchmark, future BIM integrations.
+- **Reuse Policy** — the single official Decision Flow (`Reuse →
+  Metadata → Composition → Registry → Top-level Contract`, ADR-000
+  Principles 19–22) applied explicitly to this domain.
+- **Registry Protection ("What MUST NEVER happen")** — twelve permanent
+  prohibitions: Knowledge never becomes Prompt, never stores prompt
+  text/providers/rendering instructions/project data/generated
+  results/user preferences/coordinates/detected objects, and never
+  imports Prompt Engine, `RoomContext`, or Space Type runtime.
+- **Knowledge Identity** — five layers, five distinct questions
+  (`SpaceType` / Spatial Knowledge / Room Analyzer / Prompt Engine /
+  Generation), extending the three-question Boundary Protection from
+  DS-7.3 to the full future chain.
+- **Spatial Knowledge Invariants** — seven permanent constraints: never
+  classifies, never generates, never analyzes, never stores runtime
+  facts, never owns Prompt logic, never owns rendering; always remains
+  reusable.
+
+No new ADR was created — this stage applies ADR-000 Principles 19–22 and
+the existing ADR-004 boundary discipline to Spatial Knowledge; it does
+not introduce a new architectural decision, so `docs/adr/ADR_INDEX.md` is
+unchanged. `docs/AI_CORE_CHECKLIST.md` and `knowledge/README.md` received
+corresponding entries. `knowledge/spaces/{registry,index}.ts`,
+`knowledge/core/**`, `knowledge/types.ts`, `space-type/**`,
+`design-domain/**`, Prompt Engine, Prompt Domain, `PromptContext`,
+`RoomContext`, Rule Engine, Builder, Formatter, Pipeline, Style Registry,
+Developer Studio, Benchmark, the public site, the API, and Production are
+not affected. `npm run build` passes.

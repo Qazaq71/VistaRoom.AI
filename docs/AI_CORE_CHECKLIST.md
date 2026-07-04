@@ -355,6 +355,77 @@ Not automated — reviewed by hand.
       Coworking coverage in `SPATIAL_KNOWLEDGE_REGISTRY` uses the same
       `KnowledgeFeature` composition as every residential entry; no
       commercial-specific type, field, or registry was introduced (DS-7.3)
+- [ ] Spatial Knowledge Governance stated once — `knowledge/spaces/README.md`
+      declares a single permanent responsibility ("what is generally true
+      about this type of space?"), explicitly excluding generation,
+      rendering, prompting, classification, analysis, and detection
+      (DS-7.3.1)
+- [ ] Canonical Knowledge Policy documented — allowed knowledge (typical
+      circulation, privacy, lighting, storage, functional zones,
+      accessibility, occupancy, acoustics, maintenance, safety) versus
+      forbidden knowledge (client/project requirements, current
+      uploaded/generated room, furniture coordinates, prompt wording,
+      provider hints, rendering instructions, camera settings, business
+      rules, temporary project data) is tabulated with where each
+      forbidden category actually belongs instead (DS-7.3.1)
+- [ ] Knowledge Stability Contract documented — Spatial Knowledge holds
+      only stable/general/reusable architectural knowledge; never
+      project-specific, customer-specific, session-specific,
+      AI-generated, runtime, user-specific, or dynamic facts, which
+      belong to Room Analyzer, a future Project Model, `PromptContext`,
+      or future runtime layers (DS-7.3.1)
+- [ ] Future Knowledge Layers are illustrative, not implemented —
+      Structural/Environmental/Operational/Behavioral/Commercial/Safety/
+      Accessibility/Compliance/Workflow/Building Code are documented as a
+      possible future composition; none is a current `metadata` field,
+      none is a separate registry, none is implemented (DS-7.3.1)
+- [ ] Metadata Evolution documented, current model unchanged — the
+      illustrative list (`behavior`, `workflow`, `environment`,
+      `accessibility`, `operations`, `compliance`, `buildingCode`,
+      `security`, `maintenance`, `visitorFlow`, `occupancy`, `energy`,
+      `sustainability`) is not implemented; `SPATIAL_KNOWLEDGE_REGISTRY`'s
+      `metadata` field set is unchanged by DS-7.3.1 (DS-7.3.1)
+- [ ] Knowledge Boundary documented as four non-overlapping roles —
+      `SpaceType → Spatial Knowledge → Rules → Prompt Draft → Formatter →
+      Generation`; identify (`SpaceType`) / explain (Spatial Knowledge) /
+      interpret (Rules) / generate (Prompt Engine) never overlap
+      (DS-7.3.1)
+- [ ] Future Consumers documented without a shape change — Prompt Engine,
+      Room Analyzer, Furniture Planner, Material Engine, Object
+      Detection, Automatic Zoning, Commercial/Healthcare/
+      Hospitality/Industrial/Landscape Planner, Developer Studio,
+      Benchmark, and future BIM integrations are named as future readers
+      of the same `KnowledgeFeature` registry shape — none imports
+      `knowledge/spaces/**` today (DS-7.3.1)
+- [ ] Reuse Policy documented — the single official Decision Flow
+      (`Reuse → Metadata → Composition → Registry → Top-level Contract`,
+      ADR-000 Principles 19–22) is applied explicitly to
+      `knowledge/spaces/**` as the mandatory evaluation order for any
+      future extension (DS-7.3.1)
+- [ ] Registry Protection formalized — `knowledge/spaces/README.md` lists
+      twelve permanent prohibitions (Knowledge never becomes Prompt,
+      never stores prompt text/providers/rendering instructions/project
+      data/generated results/user preferences/coordinates/detected
+      objects, never imports Prompt Engine/`RoomContext`/Space Type
+      runtime) as "What MUST NEVER happen" (DS-7.3.1)
+- [ ] Knowledge Identity documented across five layers — `SpaceType`
+      ("what space is this?") / Spatial Knowledge ("what is generally
+      true about spaces of this type?") / Room Analyzer ("what is true
+      about THIS uploaded room?") / Prompt Engine ("how should AI use
+      this knowledge?") / Generation ("produce the image") each answer a
+      distinct question (DS-7.3.1)
+- [ ] Spatial Knowledge Invariants recorded — Knowledge never classifies,
+      never generates, never analyzes, never stores runtime facts, never
+      owns Prompt logic, never owns rendering; always remains reusable
+      (DS-7.3.1)
+- [ ] DS-7.3.1 is documentation-only — `knowledge/spaces/{registry,
+      index}.ts`, `knowledge/core/**`, `knowledge/types.ts`,
+      `space-type/**`, `design-domain/**`, Prompt Engine, Prompt Domain,
+      `PromptContext`, `RoomContext`, Rule Engine, Builder, Formatter,
+      Pipeline, Style Registry, Developer Studio, Benchmark, the public
+      site, the API, and Production are unmodified; no new ADR was
+      created (ADR-000 Principles 19–22 and ADR-004 already own this
+      responsibility) (DS-7.3.1)
 - [ ] Is there an ADR for this architectural decision?
 - [ ] Is the ADR registered in [ADR_INDEX](adr/ADR_INDEX.md)?
 - [ ] Does an existing ADR already own this responsibility?
