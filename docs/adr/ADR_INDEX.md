@@ -102,11 +102,19 @@ Dashboard](#architecture-dashboard).
 | **PRODUCTION** | Public site, API, `buildEditPrompt()`, production integration | none yet — Phase 9 candidate |
 | **DEVELOPER** | Developer Studio (internal tooling, config, navigation) | none yet — governed today by ADR-000 Principle 2 |
 | **BENCHMARK** | Benchmark tool, `BenchmarkSource`, provider comparison | none yet — governed today by ADR-001 (`BenchmarkSource`) |
+| **BRIDGE-PROMPT** | Track 1 ↔ Track 2 bridge — Formatter `decisionTrace` contract (mapped to ACS-004 Prompt Intelligence) | ADR-005 |
+| **BRIDGE-GENERATION** | Track 1 ↔ Track 2 bridge — Generation Intelligence `mode` contract (mapped to ACS-001 Generation Intelligence) | ADR-006 |
 
-**Verified (DS-7.1.3d):** every current ADR belongs to exactly one Area —
-ADR-000→CORE, ADR-001→PROVIDER, ADR-002→STYLE, ADR-003→PROMPT,
-ADR-004→SPATIAL. No ADR claims two Areas; no Area has two owning ADRs. See
-[Governance Health](#governance-health) for the full check.
+**Verified (Architecture Freeze Resolution R4):** every current ADR
+belongs to exactly one Area — ADR-000→CORE, ADR-001→PROVIDER,
+ADR-002→STYLE, ADR-003→PROMPT, ADR-004→SPATIAL, ADR-005→BRIDGE-PROMPT,
+ADR-006→BRIDGE-GENERATION. No ADR claims two Areas; no Area has two
+owning ADRs. `BRIDGE-PROMPT`/`BRIDGE-GENERATION` are new Areas, not
+extensions of `PROMPT`/`PROVIDER` — they own a genuinely distinct
+responsibility (the narrow Track1↔Track2 mapping table from Architecture
+Freeze Resolution R1), not the existing Track-1-internal responsibilities
+already owned by ADR-003/ADR-001. See [Governance
+Health](#governance-health) for the full check.
 
 ## ADR Timeline
 
@@ -117,6 +125,8 @@ ADR-004→SPATIAL. No ADR claims two Areas; no Area has two owning ADRs. See
 | ADR-002 | DS-5 (+ updates DS-5.1/5.2) | MY_STYLE_ID Identifier | Active |
 | ADR-003 | DS-5 (+ updates DS-5.1/5.2) | Prompt Context Contracts | Proposed |
 | ADR-004 | DS-7.1.3 (+ update DS-7.1.3a) | Spatial Classification Boundary | Active |
+| ADR-005 | Architecture Freeze Resolution R4 | Formatter `decisionTrace` Contract | Accepted |
+| ADR-006 | Architecture Freeze Resolution R4 | Generation Intelligence Mode Contract | Accepted |
 
 ## ADR Registry
 
@@ -132,6 +142,8 @@ Evolution Rules](#architecture-evolution-rules).
 | [ADR-002](ADR-002-MyStyle-Identifier.md) | MY_STYLE_ID Identifier | STYLE | Style Identity (`MY_STYLE_ID`) | 1.2 | Active | Stable | Style Registry | DS-5.2 | ADR-000 (Principle 11) | ADR-001 (terminology-discipline family), ADR-003 (`MY_STYLE_ID` underlies `PromptGenerationMode`) | Style Registry, Prompt Domain (`PromptGenerationMode`) | Style, Identity, MagicString, Registry |
 | [ADR-003](ADR-003-PromptContext-Contracts.md) | Prompt Context Contracts | PROMPT | Prompt Context Contracts | 1.2 | Proposed | Growing | Prompt Engine / Prompt Domain | DS-5.2 | ADR-000 (Principles 4, 5, 6, 7) | ADR-002 (`generationMode` options reference `MY_STYLE_ID`), ADR-004 (same `PromptContext` family, different boundary) | Prompt Domain, Prompt Engine, Generation Engine, Production Integration (future) | Prompt, Generation, Contracts, NegativePrompt |
 | [ADR-004](ADR-004-Spatial-Classification-Boundary.md) | Spatial Classification Boundary | SPATIAL | Spatial Classification Boundary | 2.0 | Active | Growing | Spatial Intelligence | DS-7.1.3a | ADR-000 (Principles 10, 12, 19, 20, 21, 22) | ADR-003 (same `PromptContext` family — see ADR-004 §10) | Prompt Domain (`RoomContext`), Spatial Intelligence (`SpaceType`, DS-7.2), Prompt Integration (DS-7.4) | Spatial, Boundary, Room, Space, Composition |
+| [ADR-005](ADR-005-Formatter-DecisionTrace-Contract.md) | Formatter `decisionTrace` Contract | BRIDGE-PROMPT | Formatter obligatory `decisionTrace` output + Track1↔Track2 Prompt Intelligence bridge | 1.0 | Accepted | Growing | Architecture (Prompt Intelligence / Prompt Engine, Formatter) | Architecture Freeze Resolution R4 | ADR-000 (Principles 5, 6) | ADR-003 (same Prompt Engine/Formatter family, different responsibility — decisionTrace vs. negativePrompt/generationMode) | Prompt Engine, Formatter, ACS-004 Prompt Intelligence, PCS-008 Design Reasoning | Prompt, Formatter, DecisionTrace, Bridge, Gate1 |
+| [ADR-006](ADR-006-Generation-Intelligence-Mode-Contract.md) | Generation Intelligence Mode Contract | BRIDGE-GENERATION | Generation Intelligence `mode` contract (`FULL_GENERATION`/`PARTIAL_EDIT`/`INPAINTING`) + Track1↔Track2 Generation Intelligence bridge | 1.0 | Accepted | Growing | Architecture (Generation Engine / Provider Layer) | Architecture Freeze Resolution R4 | ADR-000 (Principles 7, 8) | ADR-001 (same Provider/Generation Engine family, different responsibility — terminology vs. mode contract), ADR-003 (Contract 2 names a different, non-equivalent "mode" enum — `PromptGenerationMode`, not `mode`) | Generation Engine, Provider Layer, ACS-001 Generation Intelligence, PCS-001, PCS-002 | Generation, Mode, Provider, Bridge, Gate1 |
 
 **Consistency correction (DS-7.1.3c, carried forward):** ADR-003's
 `Status` is `Proposed`, not `Active` — its own file says so, and its
@@ -191,6 +203,18 @@ there.
 | 1.0 | Created — `RoomContext` ↔ `SpaceType` boundary decided ahead of DS-7.2 (DS-7.1.3) |
 | 2.0 | Boundary Invariant added — the boundary declared permanent for the lifetime of the architecture (DS-7.1.3a) |
 
+### ADR-005 History
+
+| Version | Change |
+|---|---|
+| 1.0 | Created — formalizes the `decisionTrace` contract already fully specified in ACS-004, plus the R1 narrow Track1↔Track2 bridge row for Prompt Intelligence, per Architecture Freeze Resolution R4. No new decision content; no code changed (Formatter implementation remains Gate 1 / R3 work). |
+
+### ADR-006 History
+
+| Version | Change |
+|---|---|
+| 1.0 | Created — formalizes the `mode` contract (`FULL_GENERATION`/`PARTIAL_EDIT`/`INPAINTING`) already fully specified in ACS-001, plus the R1 narrow Track1↔Track2 bridge row for Generation Intelligence, per Architecture Freeze Resolution R4. No new decision content; no code changed. |
+
 ## Review Frequency
 
 Allowed values: `Every Phase`, `Every Major Architecture Review`, `Every 6
@@ -203,6 +227,8 @@ Months`, `Every 12 Months`, `Only When Modified`.
 | ADR-002 | Only When Modified | Single-constant decision is settled (Stable); revisit only when a new production call site is migrated. |
 | ADR-003 | Every Phase | `Experimental` confidence and `Proposed` status — both open contracts must be re-checked at the start of every Prompt Engine phase (DS-6+) until resolved. |
 | ADR-004 | Every Phase | In practice, every Spatial Intelligence milestone (DS-7.2 Space Type, DS-7.3 Knowledge Integration, DS-7.4 Prompt Integration) must re-check the boundary still holds before proceeding. |
+| ADR-005 | Every Phase | `Accepted` status with the underlying Formatter implementation still pending (Gate 1 / R3) — must be re-checked once Gate 1 lands and again at each subsequent phase that touches Prompt Intelligence. |
+| ADR-006 | Every Phase | `Accepted` status; the `mode` contract must be re-verified as each subsequent Generation Intelligence consumer (Gate 1 Formatter, Gate 5 Room Transformation, Gate 9 Quality Intelligence refinement) is implemented. |
 
 ## Decision Confidence
 
@@ -224,6 +250,8 @@ Allowed values: `High`, `Medium`, `Low`.
 | ADR-002 | High | Same pattern — every partial application has held without reversal. |
 | ADR-003 | Medium | Both contracts are explicitly "documented, not implemented" — the boundary between Prompt Domain and Prompt Engine is solid, but the concrete resolution is still open (matches `Growing` stability, `Proposed` status). |
 | ADR-004 | High | The boundary has held since DS-7.1.3 and was reinforced (not revised) by the DS-7.1.3a Boundary Invariant — a strengthening, not a re-litigation. |
+| ADR-005 | Medium | Contract itself is fully specified (ACS-004) and formally accepted, but has zero implementations yet — Formatter is Gate 1 / R3 work, not yet started. Matches `Growing` stability, same pattern as ADR-003 at its own creation. |
+| ADR-006 | Medium | Contract itself is fully specified (ACS-001) and formally accepted, but the invariant (reject `FULL_GENERATION`+mask, reject `PARTIAL_EDIT`/`INPAINTING` without mask) has no contract tests yet — pending Gate 1 implementation. |
 
 ## ADR Dependency Graph
 
@@ -232,7 +260,9 @@ ADR-000
 ├── ADR-001  Provider Terminology
 ├── ADR-002  MY_STYLE_ID
 ├── ADR-003  Prompt Context Contracts
-└── ADR-004  Spatial Classification Boundary
+├── ADR-004  Spatial Classification Boundary
+├── ADR-005  Formatter decisionTrace Contract
+└── ADR-006  Generation Intelligence Mode Contract
 ```
 
 ADR-000 is the root — it contains the global principles. ADR-001 through
@@ -253,7 +283,7 @@ and they must not be confused:
 | **Meaning** | A hard architectural dependency | A conceptual relationship, not a dependency |
 | **Effect** | Affects implementation order — the dependency must exist/hold before the dependent decision can be exercised | No effect on order — purely for a reader's navigation ("what else touches this area?") |
 | **Example** | ADR-004 depends on ADR-000 (Principles 19/20/21/22 must exist for the boundary's rationale to hold) | ADR-004 relates to ADR-003 (both concern the `PromptContext` family, but neither's implementation blocks the other — ADR-004 §10 states this explicitly: "unrelated axis; no overlap" for ADR-001/002, "same `PromptContext` family" for ADR-003) |
-| **Cardinality today** | Every ADR-001..004 depends on ADR-000 only | ADR-001↔ADR-002 (terminology family), ADR-002↔ADR-003 (`MY_STYLE_ID` reference), ADR-003↔ADR-004 (`PromptContext` family) |
+| **Cardinality today** | Every ADR-001..006 depends on ADR-000 only | ADR-001↔ADR-002 (terminology family), ADR-002↔ADR-003 (`MY_STYLE_ID` reference), ADR-003↔ADR-004 (`PromptContext` family), ADR-003↔ADR-005 (Prompt Engine/Formatter family), ADR-001↔ADR-006 (Provider/Generation Engine family), ADR-003↔ADR-006 (both name a "mode"-shaped concept, explicitly non-equivalent) |
 
 Neither relationship changes ownership — see [Governance
 Rules](#governance-rules).
@@ -285,6 +315,8 @@ Supersedes the DS-7.1.3c Architecture Coverage Dashboard with `Owner ADR`,
 | PRODUCTION | none | Future | — | High | Production Integration ADR at Phase 9 (gates production cutover) |
 | DEVELOPER | none (ADR-000 Principle 2) | Partial | — | Low | Dedicated ADR only if config/navigation grows a real invariant |
 | BENCHMARK | none (ADR-001, `BenchmarkSource`) | Partial | — | Low | Dedicated ADR only if Benchmark gains its own invariant |
+| BRIDGE-PROMPT | ADR-005 | Complete (documented) | Growing | Medium | Formatter implementation itself is Gate 1 / R3 (Engineering), not this Area — this Area is closed once the contract is implemented and contract-tested |
+| BRIDGE-GENERATION | ADR-006 | Complete (documented) | Growing | Medium | `mode` invariant contract tests, Gate 1; possible `MULTI_STAGE` mode extension at Phase H requires a new ADR, not an extension of ADR-006 |
 
 ## Architecture Maturity
 
@@ -319,23 +351,26 @@ Concrete, checkable claims about the current state of the registry (not a
 process description — a snapshot, re-verifiable any time by reading the
 [ADR Registry](#adr-registry)):
 
-- [x] **Every Area has an owner or an explicit "none yet."** All 9 Areas
+- [x] **Every Area has an owner or an explicit "none yet."** All 11 Areas
       appear in [Architecture Areas](#architecture-areas) with either an
       owning ADR or a named ADR-000 principle governing it provisionally.
 - [x] **Every ADR has an owner.** See `Owner` column, [ADR
-      Registry](#adr-registry) — all five populated.
+      Registry](#adr-registry) — all seven populated.
 - [x] **Every invariant has an owner.** See [Local Invariants
-      Registry](#local-invariants-registry) — the one existing invariant
-      (Boundary Invariant) is owned by ADR-004.
+      Registry](#local-invariants-registry) — Boundary Invariant is owned
+      by ADR-004; `decisionTrace` Invariant by ADR-005; `mode` Invariant by
+      ADR-006.
 - [x] **Every boundary has an owner.** `RoomContext` ↔ `SpaceType` →
       ADR-004; Prompt Domain data-only vs. Prompt Engine assembly →
-      ADR-003/ADR-000 Principle 4.
+      ADR-003/ADR-000 Principle 4; the narrow Track1↔Track2 bridge rows →
+      ADR-005 (Prompt Intelligence) and ADR-006 (Generation Intelligence),
+      per Architecture Freeze Resolution R1/R4.
 - [x] **Every dependency is documented.** See `Depends On` column, [ADR
-      Registry](#adr-registry) — every ADR-001..004 names ADR-000 and the
+      Registry](#adr-registry) — every ADR-001..006 names ADR-000 and the
       specific Principles it depends on.
 - [x] **No duplicate ownership.** No Area, boundary, or invariant appears
       under two different `Owner ADR` values anywhere in this document.
-- [x] **No orphan ADR.** All five ADRs (000–004) are reachable from the
+- [x] **No orphan ADR.** All seven ADRs (000–006) are reachable from the
       [ADR Timeline](#adr-timeline), the [ADR Registry](#adr-registry),
       and [ADR_MAP.md](ADR_MAP.md).
 
@@ -450,7 +485,12 @@ Rules:
 
 Today's snapshot: ADR-000/001/002/004 are `Active`; ADR-003 is `Proposed`
 (has not yet reached `Accepted`, since its Decision explicitly defers
-implementation choice to DS-6+). No ADR is `Superseded` or `Archived` yet.
+implementation choice to DS-6+); ADR-005/006 are `Accepted` (the contracts
+are settled and formally recorded per Architecture Freeze Resolution R4,
+but neither yet governs real, contract-tested code — Formatter
+implementation is Gate 1 / R3, and the `mode` invariant has no tests yet —
+so neither has reached `Active`). No ADR is `Superseded` or `Archived`
+yet.
 
 ## ADR Versioning Policy
 
@@ -498,12 +538,24 @@ Applied:
 - **ADR-004 → Growing.** The boundary and its invariant are settled, but
   DS-7.2 (`SpaceType`), DS-7.3 (Knowledge Integration), and DS-7.4 (the
   Adapter/Mapping) will all extend how this ADR is exercised in practice.
+- **ADR-005 → Growing.** The `decisionTrace` contract itself is settled
+  (documented, accepted, not in question) — but Formatter has zero
+  implementation yet (Gate 1 / R3), so the *shape* is fixed while its
+  *exercise in practice* is still ahead. Same reasoning pattern ADR-003
+  used at its own creation.
+- **ADR-006 → Growing.** The `mode` contract and its invariant are
+  settled, but no contract tests exist yet, and future consumers (Gate 1
+  Formatter output feeding `generate()`, Gate 5 Room Transformation, Gate 9
+  Quality Intelligence refinement calls) will all extend how this ADR is
+  exercised.
 
 ## Local Invariants Registry
 
 | Invariant | Owning ADR | Protected Boundary | Description |
 |---|---|---|---|
 | Boundary Invariant | ADR-004 | `RoomContext` ↔ `SpaceType` | Prevents `RoomContext` and `SpaceType` from collapsing into one model; only an explicit Adapter/Mapping connects them. |
+| `decisionTrace` Invariant | ADR-005 | Formatter output (`promptString` + `decisionTrace`) | Formatter must never omit `decisionTrace`, and must never fabricate a `sourceRule` — an element with no source must be recorded as `sourceRule: null`, never a plausible guess. |
+| `mode` Invariant | ADR-006 | Generation Intelligence `generate()` input (`mode` ↔ `maskRegion`) | Generation Intelligence must reject any call where `mode = FULL_GENERATION` carries a `maskRegion`, or where `mode = PARTIAL_EDIT`/`INPAINTING` lacks one — enforced by contract tests, never left to caller discipline. |
 | Future invariants | TBD | TBD | TBD |
 
 ## ADR Health Checklist
@@ -531,6 +583,8 @@ Current snapshot:
 | ADR-002 | ✓ | — (single-constant decision, no model boundary) | — | ✓ | ✓ (3 entries) | ✓ | ✓ (production migration, one pass) | ✓ On-modify / High |
 | ADR-003 | ✓ | — (none yet — deferred to DS-6+) | ✓ (Prompt Domain data-only vs Prompt Engine assembly) | ✓ | ✓ (3 entries) | ✓ | ✓ (two open contract options each) | ✓ Every Phase / Medium |
 | ADR-004 | ✓ | ✓ (Boundary Invariant) | ✓ (`RoomContext` ↔ `SpaceType`) | ✓ | ✓ (2 entries) | ✓ | ✓ (§8 Future Evolution) | ✓ Every Phase / High |
+| ADR-005 | ✓ | ✓ (`decisionTrace` Invariant) | ✓ (Track1↔Track2 Prompt Intelligence bridge row, R1) | ✓ | ✓ (1 entry) | ✓ (Principles 5, 6) | ✓ (Gate 1 Formatter implementation, R3) | ✓ Every Phase / Medium |
+| ADR-006 | ✓ | ✓ (`mode` Invariant) | ✓ (Track1↔Track2 Generation Intelligence bridge row, R1) | ✓ | ✓ (1 entry) | ✓ (Principles 7, 8) | ✓ (Gate 1 contract tests, future `MULTI_STAGE` mode via new ADR) | ✓ Every Phase / Medium |
 
 ## Architecture Drift Prevention
 

@@ -61,6 +61,28 @@ own ADR or an extension of an existing one is decided when that stage
 starts, per [ADR_INDEX's ADR Creation
 Checklist](ADR_INDEX.md#adr-creation-checklist).
 
+### Track 1 ↔ Track 2 Bridge (ADR-005, ADR-006)
+
+Not a placeholder — already resolved by Architecture Freeze Resolution R1
+and formalized in [ADR-005](ADR-005-Formatter-DecisionTrace-Contract.md)
+and [ADR-006](ADR-006-Generation-Intelligence-Mode-Contract.md). Shown
+here only as the visual counterpart of the narrow bridge table each of
+those ADRs already carries — this map introduces no additional mapping:
+
+```
+Track 1                          Track 2
+────────────────────────────     ──────────────────────────────
+Prompt                        →  ACS-004 Prompt Intelligence
+  └── Formatter                    (ADR-005)
+
+Provider                      →  ACS-001 Generation Intelligence
+  └── Generation Engine             (ADR-006)
+```
+
+This is deliberately narrower than the full Area chain above — R1
+explicitly rejected building a full bridge across all 20 PCS/ACS
+documents as redesign; only the two nodes exercised by Gate 1 are mapped.
+
 ## Architecture Milestone Map
 
 Coarser-grained than the [Architecture Map](#architecture-map) above (ADR
@@ -128,6 +150,8 @@ Map](#adr-ownership-map) below for all nine Areas together.
 | PRODUCTION | none yet | (none yet) | Candidate: Production Integration ADR at Phase 9 |
 | DEVELOPER | none yet (ADR-000 Principle 2) | Developer Studio consumes AI Core, never defines it | Candidate ADR only if Developer Studio's own config/navigation grows a real invariant |
 | BENCHMARK | none yet (ADR-001, `BenchmarkSource`) | Benchmark input source naming (`Source`, not `Provider`) | Candidate ADR only if Benchmark gains its own protected boundary |
+| BRIDGE-PROMPT | ADR-005 | `decisionTrace` Invariant (Formatter must never fabricate a `sourceRule`) | Formatter implementation itself (Gate 1 / R3) |
+| BRIDGE-GENERATION | ADR-006 | `mode` Invariant (`FULL_GENERATION` ↔ `PARTIAL_EDIT`/`INPAINTING` vs. `maskRegion`) | Contract tests (Gate 1); future `MULTI_STAGE` mode requires a new ADR, not an extension of ADR-006 |
 
 ## ADR Dependency Tree
 
@@ -136,26 +160,29 @@ ADR-000
 ├── ADR-001
 ├── ADR-002
 ├── ADR-003
-└── ADR-004
+├── ADR-004
+├── ADR-005
+└── ADR-006
 ```
 
 **Why ADR-000 stays root:** every other ADR is stated, in its own text, to
 be a concrete application of ADR-000's principles rather than an
 independent rule (ADR-001's Status line, ADR-002's Status line, ADR-003's
-Consequences section, and ADR-004 §10 all say this explicitly). None of
-ADR-001/002/003/004 depend on each other — they are siblings, each
-applying a different subset of ADR-000's principles to a different Area
-(see [ADR_INDEX's Principle Mapping](ADR_INDEX.md#principle-mapping)).
-This keeps the dependency graph a flat tree, one level deep, with no
-cross-edges between siblings — consistent with ADR-000 Principle 12
-(avoid cyclical imports) applied to the documentation graph itself.
+Consequences section, ADR-004 §10, and ADR-005/ADR-006's "Depends On"
+entries all say this explicitly). None of ADR-001..006 depend on each
+other — they are siblings, each applying a different subset of ADR-000's
+principles to a different Area (see [ADR_INDEX's Principle
+Mapping](ADR_INDEX.md#principle-mapping)). This keeps the dependency
+graph a flat tree, one level deep, with no cross-edges between siblings —
+consistent with ADR-000 Principle 12 (avoid cyclical imports) applied to
+the documentation graph itself.
 
 This tree shows **`Depends On` edges only**. `Related ADRs` (ADR-001↔002,
-ADR-002↔003, ADR-003↔004 — see [ADR_INDEX's ADR
-Relationships](ADR_INDEX.md#adr-relationships)) are conceptual links, not
-dependency edges, and deliberately do not appear here — drawing them on
-this tree would make it look like a cross-edge dependency exists where
-none does.
+ADR-002↔003, ADR-003↔004, ADR-003↔005, ADR-001↔006, ADR-003↔006 — see
+[ADR_INDEX's ADR Relationships](ADR_INDEX.md#adr-relationships)) are
+conceptual links, not dependency edges, and deliberately do not appear
+here — drawing them on this tree would make it look like a cross-edge
+dependency exists where none does.
 
 ## Cross-links
 
