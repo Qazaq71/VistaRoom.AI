@@ -16,25 +16,15 @@
 
 Проект завершил архитектурную стадию и официально перешёл к инженерной реализации.
 
-Architecture Freeze завершён.
-
 Начата реализация **Phase C — Integration Foundation**.
 
 Первый инженерный компонент новой архитектуры реализован и контрактно верифицирован.
 
----
-
-# Mission
-
-Создать AI-платформу мирового уровня для проектирования жилых и коммерческих пространств.
-
-Главное конкурентное преимущество платформы — интеллектуальная генерация интерьеров, сохраняющая структуру помещения и принимающая архитектурно обоснованные решения.
-
----
-
-# Current State
-
 ## Architecture
+
+**Status:** Completed
+
+Architecture Freeze завершён. Архитектура платформы утверждена.
 
 Полностью завершены:
 
@@ -51,17 +41,34 @@ Architecture Freeze завершён.
 - Architecture Freeze Validation
 - Architecture Freeze Completed
 
-Архитектура считается утверждённой.
+## Engineering
 
----
+**Phase A:** Frozen
 
-# Engineering
+**Phase B:** Frozen
 
-В рамках **Gate 1** реализован первый инженерный компонент новой архитектуры.
+**Architecture Freeze:** Completed
 
-## Completed Component
+**Current Phase:** Phase C — Integration Foundation
 
-### ADR-005 Formatter Foundation
+### Current Gate
+
+**Gate 1**
+
+**Status:** In Progress
+
+#### Completed Components
+
+- ADR-005 Formatter Foundation
+- ADR-005 Contract Verification
+- ED-001 — Project Test Runner
+- Engineering Decisions Guide
+
+**ADR-005 Formatter Foundation**
+
+**Status:** Completed
+
+**Contract:** Verified
 
 Созданы:
 
@@ -70,19 +77,11 @@ Architecture Freeze завершён.
 
 Formatter реализован как независимый контракт ADR-005 без изменения существующей Track-1 реализации.
 
----
-
-# Contract Verification
+**Contract Verification**
 
 В проект внедрена инфраструктура контрактной проверки.
 
-Принято инженерное решение:
-
-**ED-001 — Project Test Runner**
-
-Стандартный тестовый раннер проекта:
-
-**Vitest**
+Принято инженерное решение **ED-001 — Project Test Runner**. Стандартный тестовый раннер проекта — **Vitest**.
 
 Vitest выбран как единый тестовый раннер проекта, поскольку он:
 
@@ -93,9 +92,7 @@ Vitest выбран как единый тестовый раннер проек
 
 Полное обоснование приведено в **ED-001**.
 
-Контракт ADR-005 успешно верифицирован автоматическими тестами.
-
-Подтверждено:
+Контракт ADR-005 успешно верифицирован автоматическими тестами. Подтверждено:
 
 - promptString contract;
 - decisionTrace contract;
@@ -106,65 +103,7 @@ Vitest выбран как единый тестовый раннер проек
 - отсутствие colorTranslationStrategy;
 - отсутствие изменений Track-1.
 
----
-
-# Engineering Decisions
-
-В проекте появился отдельный уровень инженерной документации.
-
-Engineering Decisions предназначены для фиксации инженерных решений, не изменяющих архитектуру платформы.
-
-Созданы:
-
-- ED-001 — Project Test Runner
-- Engineering Decisions Guide
-
-Engineering Decisions определяют:
-
-- инженерные стандарты;
-- правила выбора инструментов;
-- процессы разработки;
-- инженерные соглашения;
-- практики тестирования;
-- правила документирования инженерных решений.
-
----
-
-# Engineering Roadmap
-
-## Phase A
-
-**Status:** Frozen
-
-## Phase B
-
-**Status:** Frozen
-
-## Architecture Freeze
-
-**Status:** Completed
-
-## Current Phase
-
-**Phase C — Integration Foundation**
-
----
-
-# Current Gate
-
-## Gate 1
-
-**Status:** In Progress
-
-### Completed
-
-✅ Formatter Foundation
-
-**Status:** Completed
-
-**Contract:** Verified
-
-### Remaining Scope
+#### Remaining Scope
 
 Для завершения Gate 1 необходимо реализовать:
 
@@ -173,9 +112,17 @@ Engineering Decisions определяют:
 - ADR-005 Integration
 - ADR-006 Integration
 
-### Next Milestone
+#### Next Milestone
 
 Complete Gate 1 — Integration Foundation.
+
+---
+
+# Mission
+
+Создать AI-платформу мирового уровня для проектирования жилых и коммерческих пространств.
+
+Главное конкурентное преимущество платформы — интеллектуальная генерация интерьеров, сохраняющая структуру помещения и принимающая архитектурно обоснованные решения.
 
 ---
 
@@ -239,6 +186,15 @@ Roadmap Update
 Engineering Decision (ED)
 
 Engineering Decisions не изменяют архитектуру платформы и не заменяют Architecture Decision Records.
+
+Engineering Decisions определяют:
+
+- инженерные стандарты;
+- правила выбора инструментов;
+- процессы разработки;
+- инженерные соглашения;
+- практики тестирования;
+- правила документирования инженерных решений.
 
 ---
 
@@ -512,13 +468,7 @@ Style Intelligence обязан одинаково работать как с:
 
 ## Engineering Consistency
 
-Подтверждено:
-
-- корректный статус Gate 1;
-- корректный статус Formatter Foundation;
-- корректный статус Contract Verification;
-- корректная интеграция Engineering Decisions;
-- корректная интеграция ED-001.
+Подтверждено соответствие фактического инженерного состояния проекта состоянию, зафиксированному в разделе **Project Status**.
 
 ## Documentation Consistency
 
@@ -529,56 +479,6 @@ Style Intelligence обязан одинаково работать как с:
 - соблюдение принципа Single Source of Truth;
 - соблюдение принципа Documentation Neutrality;
 - соответствие принятой структуре документации проекта.
-
----
-
-# Approved Project State
-
-На момент утверждения Project Context v2.1 состояние проекта определяется следующим образом.
-
-## Architecture
-
-**Status:** Completed
-
-Architecture Freeze завершён.
-
-Архитектура платформы утверждена.
-
----
-
-## Engineering
-
-**Current Phase**
-
-Phase C — Integration Foundation
-
-**Current Gate**
-
-Gate 1
-
-**Status**
-
-In Progress
-
----
-
-## Completed
-
-- ADR-005 Formatter Foundation
-- ADR-005 Contract Verification
-- ED-001 — Project Test Runner
-- Engineering Decisions Guide
-
----
-
-## Remaining Gate 1 Scope
-
-Для завершения Gate 1 необходимо реализовать:
-
-- Prompt Pipeline
-- Prompt Engine
-- ADR-005 Integration
-- ADR-006 Integration
 
 ---
 
