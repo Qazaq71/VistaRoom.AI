@@ -65,6 +65,37 @@ Those belong in ADR.
 
 ------------------------------------------------------------
 
+## Decision Flow
+
+```
+New implementation question?
+        ↓
+Does it change platform architecture?
+        ↓
+       YES → Create ADR
+        ↓
+        NO
+        ↓
+Does it affect engineering practice, tooling,
+development workflow or implementation standards?
+        ↓
+       YES → Create Engineering Decision (ED)
+        ↓
+        NO
+        ↓
+   Implement directly
+```
+
+An ADR is required whenever architecture changes.
+
+An Engineering Decision is required whenever an engineering practice becomes
+shared across the project.
+
+Small, local implementation decisions usually do not require either an ADR
+or an ED.
+
+------------------------------------------------------------
+
 ## Difference between ADR and ED
 
 | ADR | ED |
@@ -140,6 +171,35 @@ capture organizational and process decisions at the project level; EDs
 capture implementation-level engineering practice. An ED does not replace or
 duplicate the governance decision process described in
 [../governance/decision-playbook/](../governance/decision-playbook/).
+
+------------------------------------------------------------
+
+## Documentation Hierarchy
+
+Engineering Decisions sit inside a larger VistaRoom AI documentation
+ecosystem:
+
+```
+Platform Vision
+        ↓
+Living Strategic Roadmap
+        ↓
+Architecture Decision Records (ADR)
+        ↓
+Engineering Decisions (ED)
+        ↓
+Implementation
+        ↓
+Tests
+```
+
+Architecture answers: **"What should the platform become?"**
+
+Engineering answers: **"How should we implement it consistently?"**
+
+Implementation answers: **"How is the solution built?"**
+
+Tests answer: **"How do we verify the implementation?"**
 
 ------------------------------------------------------------
 
