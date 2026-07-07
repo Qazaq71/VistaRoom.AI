@@ -26,24 +26,24 @@
 
 | Файл | Причина изменения |
 |---|---|
-| src/app/api/generate/route.ts | Замена buildEditPrompt() + buildColorPrefix() на вызов mapToDomainDecisions() → buildPromptDraft() → applyRules() → format() для построения promptUsed. negative, mode, operation, aspectRatio, guidanceScale остаются как есть (owner decisions 2, 3). |
+| src/app/api/generate/route.ts | Замена buildEditPrompt() + buildColorPrefix() на вызов mapToDomainDecisions() → buildPromptDraft() → applyRules() → format() для построения promptUsed. negative, mode, operation, aspectRatio, guidanceScale остаются как есть (owner decisions 2, 3) |
 
 ### New
 
 | Файл | Причина создания |
 |---|---|
-| src/lib/interior/prompt-engine/bridge/mapToDomainDecisions.ts | Реализация ED-003 — bridge-функция RoomDetails/room/style → DomainDecision[]. |
-| src/lib/interior/prompt-engine/bridge/mapToDomainDecisions.contract.test.ts | Contract tests согласно ТЗ п.6. |
+| src/lib/interior/prompt-engine/bridge/mapToDomainDecisions.ts | Реализация ED-003 — bridge-функция RoomDetails/room/style → DomainDecision[] |
+| src/lib/interior/prompt-engine/bridge/mapToDomainDecisions.contract.test.ts | Contract tests согласно ТЗ п.6 |
 
 ### No changes
 
 | Файл | Причина отсутствия изменений |
 |---|---|
-| src/lib/prompts.ts | buildEditPrompt(), hexToColorDescription(), buildMyStylePart() переиспользуются как есть внутри bridge, не модифицируются. |
-| src/lib/interior/prompt-engine/acs004-prompt-builder-rules/acs004-prompt-builder-rules.ts | Публичный контракт ACS-004, не меняется. |
-| src/lib/interior/prompt-engine/formatter/formatter.ts, formatter.types.ts | Публичный контракт ADR-005, не меняется. |
-| src/services/InteriorService.ts | Не участвует в построении prompt. |
-| src/providers/image/OpenAIImageProvider.ts | Принимает готовый prompt в InteriorEditRequest, откуда он взят — не его забота. |
+| src/lib/prompts.ts | buildEditPrompt(), hexToColorDescription(), buildMyStylePart() переиспользуются как есть внутри bridge, не модифицируются |
+| src/lib/interior/prompt-engine/acs004-prompt-builder-rules/acs004-prompt-builder-rules.ts | Публичный контракт ACS-004, не меняется |
+| src/lib/interior/prompt-engine/formatter/formatter.ts, formatter.types.ts | Публичный контракт ADR-005, не меняется |
+| src/services/InteriorService.ts | Не участвует в построении prompt |
+| src/providers/image/OpenAIImageProvider.ts | Принимает готовый prompt в InteriorEditRequest, откуда он взят — не его забота |
 
 ## 3. Target Pipeline
 
@@ -78,15 +78,15 @@ negative, mode, operation, aspectRatio, guidanceScale вне этой цепоч
 
 Step 1 — реализовать mapToDomainDecisions() согласно ED-003 и таблице маппинга из финального ТЗ. Независим от route.ts.
 
-Step 2 — написать contract tests для mapToDomainDecisions().
+Step 2 — написать contract tests для mapToDomainDecisions() (раздел 8 ниже). Независим от Step 3–4.
 
-Step 3 — подключить в route.ts вызов mapToDomainDecisions() → buildPromptDraft() → applyRules() → format() для веток mode === 'style' и mode === 'partial'. Обработка StructuralValidationFailure — как явная ветка, без throw.
+Step 3 — подключить в route.ts вызов mapToDomainDecisions() → buildPromptDraft() → applyRules() → format() для веток mode === 'style' и mode === 'partial'. Обработка StructuralValidationFailure (возврат из applyRules()) — как явная ветка, без throw.
 
-Step 4 — проверить, что mode === 'clear' не затронут — там prompt: '' и новый pipeline не вызывается.
+Step 4 — проверить, что mode === 'clear' (erase) не затронут — там prompt: '' и новый pipeline не вызывается.
 
-Step 5 — прогнать regression checklist.
+Step 5 — прогнать regression checklist (раздел 7).
 
-Каждый шаг проверяем отдельно.
+Каждый шаг проверяем и коммитим отдельно.
 
 ## 5. Rules for Claude Code
 
@@ -100,7 +100,7 @@ Step 5 — прогнать regression checklist.
 НЕ реализовывать Prompt Engine
 НЕ реализовывать Prompt Reasoning, refinePromptDraft()
 НЕ реализовывать semantic conflict resolution (Material/Color/Layout)
-НЕ трогать Track-1 типы PromptDraft.ts, PromptBuilder, RuleEngine в src/lib/interior/prompt-engine/builder/, rules/
+НЕ трогать Track-1 типы (PromptDraft.ts, PromptBuilder, RuleEngine в src/lib/interior/prompt-engine/builder/, rules/) — это отдельная, не подключаемая в Gate 1 линия
 НЕ добавлять negative в FormatterPromptDraft/FormatterResult
 НЕ добавлять mode/operation/aspectRatio/guidanceScale в elements[]
 
@@ -110,65 +110,64 @@ mapToDomainDecisions() реализован и вызывается из route.t
 buildPromptDraft() реально вызывается с результатом mapToDomainDecisions()
 applyRules() реально вызывается с GATE1_DEFAULT_RULESET
 format() реально вызывается, promptUsed строится из result.promptString
-StructuralValidationFailure обрабатывается явно
-Все contract tests проходят
-Существующие тесты formatter и acs004-prompt-builder-rules проходят без изменений
-Legacy-функциональность erase, negative prompt, aspectRatio не сломана
+StructuralValidationFailure обрабатывается явно (не игнорируется, не падает в exception)
+Все contract tests (раздел 8) проходят
+Существующие тесты (formatter, acs004-prompt-builder-rules) проходят без изменений
+Legacy-функциональность (erase, negative prompt, aspectRatio) не сломана
 
 ## 7. Regression Checklist
 
-Генерация в режиме style
-Генерация в режиме partial
-Режим clear / erase
-Режим my_style
-negative prompt по-прежнему передаётся в editRequest
-Пустые/отсутствующие поля RoomDetails не ломают сборку
+Генерация в режиме style (все стили из STYLE_DESCRIPTIONS)
+Генерация в режиме partial (с маской)
+Режим clear / erase (не затронут новым pipeline)
+Режим my_style (кастомные HEX-цвета через hexToColorDescription)
+negative prompt по-прежнему передаётся в editRequest (не потерян)
+Пустые/отсутствующие поля RoomDetails (furniture, lighting и т.д.) не ломают сборку
 Fallback для неизвестного roomKey/styleKey
-aspectRatio, guidanceScale рассчитываются и передаются как раньше
-OpenAIImageProvider.submit() получает непустой prompt во всех сценариях кроме erase
-promptUsed, возвращаемый клиенту, не изменил формат ответа API
+aspectRatio, guidanceScale по-прежнему рассчитываются и передаются как раньше
+Финальный запрос к провайдеру (OpenAIImageProvider.submit()) получает непустой prompt во всех сценариях кроме erase
+promptUsed, возвращаемый клиенту (обрезка до 300 символов), не изменил формат ответа API
 
 ## 8. Required Tests
 
-Contract tests
+Contract tests:
 
-Полный набор полей RoomDetails → корректный DomainDecision[]
+Полный набор полей RoomDetails → корректный DomainDecision[] (mapToDomainDecisions)
 Пустые/undefined поля не создают элемент
 Массив → один DomainDecision на категорию, не N
 sourceRule всегда null
 Неизвестный styleKey/roomKey не вызывает исключение
 Порядок элементов детерминирован
 
-Integration tests
+Integration tests:
 
-route.ts mode style → mapToDomainDecisions → buildPromptDraft → applyRules → format возвращает непустой promptString
-route.ts mode partial → та же цепочка
+route.ts (mode: style) → полная цепочка mapToDomainDecisions → buildPromptDraft → applyRules → format возвращает непустой promptString
+route.ts (mode: partial) — то же самое
 StructuralValidationFailure корректно обрабатывается без падения запроса
 
-Regression tests
+Regression tests:
 
-Существующие сценарии генерации дают результат, эквивалентный по смыслу текущему
+Существующие сценарии генерации (все пункты раздела 7) дают результат, эквивалентный по смыслу текущему (не обязательно побайтово идентичный текст prompt, так как формат сборки меняется)
 
-Smoke tests
+Smoke tests:
 
 POST /api/generate с валидным изображением и минимальным набором полей завершается без 500 ошибки
 
 ## 9. Deliverables
 
 Изменённый route.ts
-Новый mapToDomainDecisions.ts
-Новый mapToDomainDecisions.contract.test.ts
-Отчёт о прохождении тестов
-Список фактически изменённых файлов для owner review
+Новый mapToDomainDecisions.ts + mapToDomainDecisions.contract.test.ts
+Отчёт о прохождении всех тестов (contract, integration, regression, smoke)
+Список фактически изменённых файлов (git diff) для owner review
 
-## 10. Final Acceptance Criteria
+## 10. Final Acceptance Criteria (Project Owner Checklist)
 
-mapToDomainDecisions() реализован строго по ED-003
-Builder / Rule Engine / Formatter вызываются в production pipeline впервые
-Публичные контракты ACS-004 / ADR-005 не изменены
-ED-002, ED-003, Gate1-TZ Revision 2 не изменены
-Track-1 типы не изменены
-Regression-сценарии пройдены
-negative prompt не потерян и не перемещён в Formatter
-mode/operation/aspectRatio/guidanceScale не появились в elements[]
-Prompt Engine / refinePromptDraft() не реализованы
+- [ ] mapToDomainDecisions() реализован строго по ED-003, без отклонений
+- [ ] Builder/Rule Engine/Formatter вызываются в production pipeline впервые
+- [ ] Ни один публичный контракт ACS-004/ADR-005 не изменён (проверяется diff'ом)
+- [ ] ED-002, ED-003, Gate1-TZ Revision 2 не изменены
+- [ ] Track-1 типы не изменены (git diff + SHA-256, по прецеденту ADR-005 Formatter Foundation)
+- [ ] Все regression-сценарии (раздел 7) пройдены вручную или тестами
+- [ ] negative prompt не потерян и не перемещён в Formatter
+- [ ] mode/operation/aspectRatio/guidanceScale не появились в elements[]
+- [ ] Prompt Engine / refinePromptDraft() не реализованы
