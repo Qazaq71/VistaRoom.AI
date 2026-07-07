@@ -3,9 +3,10 @@
 ## Ответственность
 
 Реализует два из четырёх компонентов ACS-004 (Prompt Intelligence) —
-**Prompt Builder** и **Rule Engine** — по контракту, зафиксированному в
-инженерном ТЗ `Gate1-Prompt-Pipeline-TZ.md` (Revision 2, вне репозитория).
-Formatter (третий компонент) уже реализован по ADR-005
+**Prompt Builder** и **Rule Engine** — по контракту ACS-004, утверждённому
+Gate 1 scope и подтверждённому владельцем проекта по итогам Architecture
+Compliance Review (инженерный ТЗ `Gate1-Prompt-Pipeline-TZ.md`, вне
+репозитория). Formatter (третий компонент) уже реализован по ADR-005
 (`../formatter/`) и не изменяется этим модулем. Prompt Reasoning (четвёртый
 компонент) и полный жизненный цикл Prompt Engine (`refinePromptDraft`) не
 реализуются в Gate 1.
@@ -53,6 +54,6 @@ Gate1-Prompt-Pipeline-TZ.md, раздел 9, п. 2.
 
 ## Статус
 
-Gate 1 (Revision 2 ТЗ) — реализовано: `buildPromptDraft`, `applyRules`,
+Gate 1 (утверждённый scope, подтверждён владельцем проекта) — реализовано: `buildPromptDraft`, `applyRules`,
 `GATE1_DEFAULT_RULESET`, `isStructuralValidationFailure`. Не подключено ни к
 какому production-коду, публичному сайту, API или Generation Engine.

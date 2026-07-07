@@ -1,9 +1,10 @@
 /**
  * ACS-004 Gate 1 contract types (Prompt Builder + Rule Engine). Independent
  * of Track-1 (`../types.ts` `PromptRuleSet`/`PromptRule`, `../rules/*`) —
- * new names to avoid collision, per the same precedent ADR-005 established
- * for Formatter (Gate1-Prompt-Pipeline-TZ.md Revision 2, section 9). Track-1
- * types are not reused, extended, or modified here.
+ * new names to avoid collision, per the same naming precedent ADR-005
+ * established for Formatter, confirmed for this module by the Architecture
+ * Compliance Review and the project owner. Track-1 types are not reused,
+ * extended, or modified here.
  */
 
 /**
@@ -22,8 +23,8 @@ export interface DomainDecision {
 /**
  * One structural rule for Gate 1. Validates only the shape of a single
  * DomainDecision (e.g. "non-empty value") — never domain content, never
- * cross-element conflicts (Gate1-Prompt-Pipeline-TZ.md Revision 2,
- * decisions 1-3).
+ * cross-element conflicts (Gate 1 scope decisions, confirmed by the
+ * project owner; see ACS-004 Responsibilities/Non-responsibilities).
  */
 export interface StructuralRule {
   readonly name: string;
@@ -37,12 +38,13 @@ export interface StructuralViolation {
 
 /**
  * Minimal, structural-only RuleSet for Gate 1. Carries no domain priority
- * and resolves no semantic conflicts (decisions 1-3, Revision 2 section 2).
+ * and resolves no semantic conflicts (Gate 1 scope decisions, confirmed by
+ * the project owner).
  *
  * Named `Acs004RuleSet` (not bare `RuleSet`) because Track-1 already
  * declares `PromptRuleSet` in `prompt-engine/types.ts` for an unrelated
- * entity — this prefix removes the naming ambiguity flagged in the
- * Architecture Compliance Review (Revision 2, section 9, item 3).
+ * entity — this prefix removes a naming ambiguity identified by the
+ * Architecture Compliance Review and confirmed by the project owner.
  */
 export interface Acs004RuleSet {
   readonly rules: readonly StructuralRule[];

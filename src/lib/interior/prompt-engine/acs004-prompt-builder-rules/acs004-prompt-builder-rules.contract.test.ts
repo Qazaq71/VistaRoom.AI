@@ -9,7 +9,6 @@ import {
   isStructuralValidationFailure,
 } from "./acs004-prompt-builder-rules";
 import type {
-  Acs004RuleSet,
   DomainDecision,
   StructuralValidationFailure,
 } from "./acs004-prompt-builder-rules.types";
@@ -17,9 +16,10 @@ import type { FormatterPromptDraft } from "../formatter/formatter.types";
 
 const REPO_ROOT = path.resolve(__dirname, "../../../../..");
 
-// Full Track-1 protected surface (Gate1-Prompt-Pipeline-TZ.md Revision 2,
-// section 6) — deliberately wider than the Formatter contract test's
-// TRACK1_PATHS, which only covers types.ts/builder/*.
+// Full Track-1 protected surface, per the Architecture Compliance Review
+// finding confirmed by the project owner — deliberately wider than the
+// Formatter contract test's TRACK1_PATHS, which only covers
+// types.ts/builder/*.
 const TRACK1_PATHS = [
   "src/lib/interior/prompt-engine/types.ts",
   "src/lib/interior/prompt-engine/index.ts",
