@@ -24,7 +24,7 @@ export const ROOM_NAMES: Record<string, string> = {
   kids:     "children's room interior",
 }
 
-const STYLE_DESCRIPTIONS: Record<string, string> = {
+export const STYLE_DESCRIPTIONS: Record<string, string> = {
   minimalist:       'minimalist style, clean lines, neutral colors, uncluttered space',
   scandinavian:     'Scandinavian style, light wood, white walls, cozy textiles, functional furniture',
   luxury:           'luxury style, premium materials, gold accents, rich textures, sophisticated atmosphere',
@@ -94,7 +94,7 @@ export function buildEditPrompt(
   return { positive: parts.join(' ').substring(0, 950), negative }
 }
 
-function hexToColorDescription(hex: string): string {
+export function hexToColorDescription(hex: string): string {
   const h = hex.replace('#', '').toLowerCase()
   const r = parseInt(h.slice(0, 2), 16)
   const g = parseInt(h.slice(2, 4), 16)
@@ -268,7 +268,7 @@ function getHueFromRGB(r: number, g: number, b: number): string {
   return 'gray'
 }
 
-function buildMyStylePart(details?: Partial<RoomDetails>): string {
+export function buildMyStylePart(details?: Partial<RoomDetails>): string {
   const parts: string[] = ['custom interior design']
   if (details?.wallColorHex) {
     const wallColor = hexToColorDescription(details.wallColorHex)
