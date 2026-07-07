@@ -2,8 +2,8 @@
  * ACS-004 Gate 1 contract types (Prompt Builder + Rule Engine). Independent
  * of Track-1 (`../types.ts` `PromptRuleSet`/`PromptRule`, `../rules/*`) —
  * new names to avoid collision, per the same naming precedent ADR-005
- * established for Formatter, confirmed for this module by the Architecture
- * Compliance Review and the project owner. Track-1 types are not reused,
+ * established for Formatter. Directory naming and Acs004RuleSet naming are
+ * owner-confirmed governance corrections. Track-1 types are not reused,
  * extended, or modified here.
  */
 
@@ -43,8 +43,8 @@ export interface StructuralViolation {
  *
  * Named `Acs004RuleSet` (not bare `RuleSet`) because Track-1 already
  * declares `PromptRuleSet` in `prompt-engine/types.ts` for an unrelated
- * entity — this prefix removes a naming ambiguity identified by the
- * Architecture Compliance Review and confirmed by the project owner.
+ * entity — this prefix removes a naming ambiguity. Directory naming and
+ * Acs004RuleSet naming are owner-confirmed governance corrections.
  */
 export interface Acs004RuleSet {
   readonly rules: readonly StructuralRule[];
@@ -55,7 +55,8 @@ export interface Acs004RuleSet {
  * already applied in ACS-002 (`ErrorNotFound`) and ADR-005
  * (`sourceRule: null`). Not an exception: an ordinary return value,
  * returned as the alternative member of the union type produced by
- * `applyRules` (see acs004-prompt-builder-rules.ts).
+ * `applyRules` (see acs004-prompt-builder-rules.ts). Union-return contract
+ * for `applyRules` is owner-confirmed post-review.
  */
 export interface StructuralValidationFailure {
   readonly violations: readonly StructuralViolation[];

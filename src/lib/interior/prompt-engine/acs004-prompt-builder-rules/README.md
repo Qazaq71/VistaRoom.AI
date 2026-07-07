@@ -3,10 +3,10 @@
 ## Ответственность
 
 Реализует два из четырёх компонентов ACS-004 (Prompt Intelligence) —
-**Prompt Builder** и **Rule Engine** — по контракту ACS-004, утверждённому
-Gate 1 scope и подтверждённому владельцем проекта по итогам Architecture
-Compliance Review (инженерный ТЗ `Gate1-Prompt-Pipeline-TZ.md`, вне
-репозитория). Formatter (третий компонент) уже реализован по ADR-005
+**Prompt Builder** и **Rule Engine** — по контракту ACS-004. Gate 1
+implementation follows owner-confirmed decisions after architectural
+review (инженерный ТЗ `Gate1-Prompt-Pipeline-TZ.md`, вне репозитория).
+Formatter (третий компонент) уже реализован по ADR-005
 (`../formatter/`) и не изменяется этим модулем. Prompt Reasoning (четвёртый
 компонент) и полный жизненный цикл Prompt Engine (`refinePromptDraft`) не
 реализуются в Gate 1.
@@ -17,6 +17,8 @@ Compliance Review (инженерный ТЗ `Gate1-Prompt-Pipeline-TZ.md`, вн
 buildPromptDraft(structuredScene, projectDesignContext, domainDecisions[]) => FormatterPromptDraft
 applyRules(promptDraft, ruleSet) => FormatterPromptDraft | StructuralValidationFailure
 ```
+
+Union-return contract for `applyRules` is owner-confirmed post-review.
 
 ## Track-1 / Track-2
 
@@ -33,7 +35,8 @@ legacy-контракту `PromptFormatter` из Track-1 (`../types.ts`). У Tra
 Директория намеренно не называется `prompt-pipeline/` (во избежание
 коллизии с уже существующим Track-1 `../pipeline/`, который описывает
 оркестратор Builder → Rules → Formatter, ADR-000 Principle 16) — см.
-Gate1-Prompt-Pipeline-TZ.md, раздел 9, п. 2.
+Gate1-Prompt-Pipeline-TZ.md, раздел 9, п. 2. Directory naming and
+Acs004RuleSet naming are owner-confirmed governance corrections.
 
 ## Что этот модуль НЕ делает (Gate 1 scope)
 
@@ -57,3 +60,8 @@ Gate1-Prompt-Pipeline-TZ.md, раздел 9, п. 2.
 Gate 1 (утверждённый scope, подтверждён владельцем проекта) — реализовано: `buildPromptDraft`, `applyRules`,
 `GATE1_DEFAULT_RULESET`, `isStructuralValidationFailure`. Не подключено ни к
 какому production-коду, публичному сайту, API или Generation Engine.
+
+## Governance note
+
+Initial implementation preceded formal approval; this is recorded as a
+governance correction.
