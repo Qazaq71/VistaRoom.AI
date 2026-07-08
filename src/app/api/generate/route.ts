@@ -1,13 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
 import { put } from '@vercel/blob'
-import { buildEditPrompt, RoomDetails } from '@/lib/prompts'
+import { RoomDetails } from '@/lib/prompts'
 import { getRateLimit } from '@/lib/rateLimit'
 import { InteriorService } from '@/services/InteriorService'
 import { createImageProvider } from '@/providers/image/createImageProvider'
 import type { InteriorMode } from '@/types/image'
 import type { InteriorEditRequest } from '@/domain/interior/InteriorEditRequest'
 import type { InteriorEditResult } from '@/domain/interior/InteriorEditResult'
+import { mapToDomainDecisions } from '@/lib/interior/prompt-engine/bridge/mapToDomainDecisions'
+import {
+  buildPromptDraft,
+  applyRules,
+  isStructuralValidationFailure,
+  GATE1_DEFAULT_RULESET,
+} from '@/lib/interior/prompt-engine/acs004-prompt-builder-rules/acs004-prompt-builder-rules'
+import { format } from '@/lib/interior/prompt-engine/formatter/formatter'
 
 export const maxDuration = 60
 
@@ -38,6 +46,9 @@ async function compressImage(buffer: Buffer): Promise<{ data: Buffer; width: num
   return { data, width, height }
 }
 
+// Retained for mode === 'clear' and any future callers; no longer invoked in the
+// style/partial branches below, which build promptUsed via the Gate 1 ACS-004
+// pipeline (mapToDomainDecisions → buildPromptDraft → applyRules → format) instead.
 function buildColorPrefix(details: Partial<RoomDetails>, style: string): string {
   if (style !== 'my_style') return ''
   const parts: string[] = []
@@ -168,9 +179,29 @@ export async function POST(req: NextRequest) {
         prompt:    '',
       }
     } else if (mode === 'partial' && maskUrl) {
-      const { positive } = buildEditPrompt(room, style, details, 'partial')
-      const colorPrefix  = buildColorPrefix(details, style)
-      promptUsed = (colorPrefix + positive).substring(0, 950)
+      const domainDecisions = mapToDomainDecisions(details, room, style)
+
+      // Gate 1 limitation: structuredScene/projectDesignContext mapping — открытый
+      // архитектурный вопрос (blocking ADR gap). Для Step 3 передаются как opaque
+      // null-плейсхолдеры без декомпозиции в elements.
+      const promptDraft = buildPromptDraft(null, null, domainDecisions)
+
+      const ruleResult = applyRules(promptDraft, GATE1_DEFAULT_RULESET)
+
+      if (isStructuralValidationFailure(ruleResult)) {
+        console.error(JSON.stringify({
+          event: 'prompt_structural_validation_failed',
+          mode,
+          violations: ruleResult.violations,
+        }))
+        return NextResponse.json(
+          { error: 'Не удалось сформировать промпт для генерации. Попробуйте изменить параметры.' },
+          { status: 500 },
+        )
+      }
+
+      const formatted = format(ruleResult, 'gpt-image-2/edit')
+      promptUsed = formatted.promptString.substring(0, 950)
       editRequest = {
         operation: 'replace',
         mode:      mode as InteriorMode,
@@ -179,9 +210,29 @@ export async function POST(req: NextRequest) {
         prompt:    promptUsed,
       }
     } else {
-      const { positive } = buildEditPrompt(room, style, details, 'style')
-      const colorPrefix  = buildColorPrefix(details, style)
-      promptUsed = (colorPrefix + positive).substring(0, 950)
+      const domainDecisions = mapToDomainDecisions(details, room, style)
+
+      // Gate 1 limitation: structuredScene/projectDesignContext mapping — открытый
+      // архитектурный вопрос (blocking ADR gap). Для Step 3 передаются как opaque
+      // null-плейсхолдеры без декомпозиции в elements.
+      const promptDraft = buildPromptDraft(null, null, domainDecisions)
+
+      const ruleResult = applyRules(promptDraft, GATE1_DEFAULT_RULESET)
+
+      if (isStructuralValidationFailure(ruleResult)) {
+        console.error(JSON.stringify({
+          event: 'prompt_structural_validation_failed',
+          mode,
+          violations: ruleResult.violations,
+        }))
+        return NextResponse.json(
+          { error: 'Не удалось сформировать промпт для генерации. Попробуйте изменить параметры.' },
+          { status: 500 },
+        )
+      }
+
+      const formatted = format(ruleResult, 'gpt-image-2/edit')
+      promptUsed = formatted.promptString.substring(0, 950)
       const aspectRatio = nearestAspectRatio(imgWidth, imgHeight)
       editRequest = {
         operation:     'redesign',
