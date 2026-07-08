@@ -237,3 +237,4 @@ docs/adr/
 
 - [ED-001 — Project Test Runner (Vitest)](ED-001-project-test-runner.md)
 - [ED-002 — ACS-004/ADR-005 Type Naming (Track-1 Collision Avoidance)](ED-002-acs004-type-naming.md)
+- [ED-004 — ADR-006 Integration Readiness Assessment](ED-004-ADR-006-Integration-Readiness-Assessment.md)
