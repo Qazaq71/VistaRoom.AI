@@ -134,7 +134,7 @@ export class OpenAIImageProvider implements ImageProvider {
     const payload: Record<string, unknown> = {
       image_urls: [request.image],
       prompt,
-      quality: OPENAI_IMAGE_DEFAULT_QUALITY,
+      quality: request.quality ?? OPENAI_IMAGE_DEFAULT_QUALITY,
       num_images: FAL_NUM_IMAGES,
       output_format: FAL_OUTPUT_FORMAT,
     }
