@@ -144,7 +144,7 @@ export class OpenAIImageProvider implements ImageProvider {
       provider: PROVIDER_NAME,
       model: MODEL_NAME,
       operation: request.operation,
-      quality: OPENAI_IMAGE_DEFAULT_QUALITY,
+      quality: request.quality ?? OPENAI_IMAGE_DEFAULT_QUALITY,
     })
 
     return submitToFal(OPENAI_IMAGE_MODEL_URL, payload, request.operation)
