@@ -19,6 +19,8 @@
 
 **Revision note (v1.1):** по Owner Direction добавлен стратегический кандидат C8 (раздел 8) и сравнение направлений Gate 2 — Option A / B / C (раздел 9). Анализ C1–C7 (разделы 2–7) не пересматривался и не признан ошибочным; добавление C8 расширяет рассматриваемое пространство кандидатов, не отменяя ранее проведённую оценку.
 
+**Revision note (v1.2):** после принятия ADR-010 (Accepted, `a3ce075`) обновлены статусы Readiness Requirements в разделе 10.1 и governance-статус в разделах 10.3–10.4. Анализ C1–C8, сравнение Option A/B/C и Owner Decision по Option C (раздел 10, основной текст) не пересматривались.
+
 ---
 
 ## 2. Candidates Under Review
@@ -268,11 +270,11 @@ Prompt Engine (C2) и generation pipeline (ADR-005/006, C1, C5, C6, C7) рабо
 
 | # | Требование | Статус |
 |---|---|---|
-| 1 | C3 — ADR-004 gap review выполняется первым | Pending |
-| 2 | C8 оценивается на предмет требуемых архитектурных решений | Pending (предварительный вывод — раздел 8.7; требует формального подтверждения) |
-| 3 | Если Architecture Decision Required подтверждается — подготовить требуемый ADR до любого implementation planning | Pending, зависит от п. 2 |
+| 1 | C3 — ADR-004 gap review | **Completed / Accepted** (`df0b2d1`) |
+| 2 | C8 оценивается на предмет требуемых архитектурных решений (Formal C8 Architecture Assessment) | **Unblocked / Ready to start** |
+| 3 | Architecture Decision Required — подготовка требуемого ADR | **Completed** — ADR-010 Accepted / Published (`docs/adr/ADR-010-Room-Analyzer-SpaceType-StructuredScene-Boundary.md`, `a3ce075`) |
 | 4 | Определить, требует ли C8 обновлений/дополнений ACS / PCS / ADR / Project Context | Pending |
-| 5 | Повторная оценка финального Gate 2 scope после завершения readiness по C3 и C8 | Pending, зависит от п. 1–4 |
+| 5 | Повторная оценка финального Gate 2 scope после завершения readiness по C3 и C8 | Pending, зависит от п. 2 и п. 4 |
 
 ### 10.2 Clarifications (зафиксированы Owner Decision)
 
@@ -286,4 +288,15 @@ Prompt Engine (C2) и generation pipeline (ADR-005/006, C1, C5, C6, C7) рабо
 
 ### 10.3 Governance Status
 
-**Architecture Decision Required по C8 не запущен формально.** Раздел 8.7 фиксирует это как предварительный архитектурный вывод (assessment finding), а не как утверждённое требование — формальное подтверждение возможно только после выполнения readiness-шагов 1–2 (сначала C3, затем формальная оценка C8). До завершения этих шагов ADR по C8 не готовится и Architecture Freeze не переоткрывается.
+**Architecture Decision Required по границе Room Analyzer / SpaceType / StructuredScene — разрешён.** Gap, зафиксированный между ADR-004 и ADR-007 (C3 ADR-004 Gap Review, раздел 7), разрешён принятием **ADR-010 — Room Analyzer / SpaceType / StructuredScene Boundary** (Accepted, `a3ce075`). Architecture Freeze (ADR-000–006) не переоткрывался; ADR-004 и ADR-007 не изменялись.
+
+### 10.4 Readiness Path Update (после принятия ADR-010)
+
+- **Architecture gap Room Analyzer / SpaceType / StructuredScene — resolved** решением ADR-010.
+- **Финальный scope Gate 2 остаётся не утверждённым.**
+- **Formal C8 Architecture Assessment — следующий governance-шаг.**
+- Roadmap не создаётся.
+- Implementation Package не создаётся.
+- Планирование кода не начинается.
+
+Анализ кандидатов C1–C8 (разделы 2–8), сравнение Option A/B/C (раздел 9) и Owner Decision по Option C (раздел 10, выше) не пересматриваются данным обновлением — изменены только статусы readiness-пути.
