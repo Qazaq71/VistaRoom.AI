@@ -16,6 +16,7 @@ import {
   GATE1_DEFAULT_RULESET,
 } from '@/lib/interior/prompt-engine/acs004-prompt-builder-rules/acs004-prompt-builder-rules'
 import { format } from '@/lib/interior/prompt-engine/formatter/formatter'
+import { checkMaskInvariant } from '@/lib/interior/generation-intelligence/acs001-mask-invariant/acs001-mask-invariant'
 
 export const maxDuration = 60
 
@@ -163,6 +164,23 @@ export async function POST(req: NextRequest) {
       )
       console.log(`[Timing] Upload Mask to Blob: ${Date.now() - tMaskStart}ms`)
       maskUrl = url
+    }
+
+    const maskInvariantCheck = checkMaskInvariant(mode as InteriorMode, !!maskUrl)
+    if (!maskInvariantCheck.valid) {
+      console.error(JSON.stringify({
+        event: 'mask_invariant_violation',
+        mode: maskInvariantCheck.mode,
+        hasMask: maskInvariantCheck.hasMask,
+        reason: maskInvariantCheck.reason,
+      }))
+      return NextResponse.json(
+        {
+          error: 'Некорректная комбинация режима и маски для этого запроса.',
+          code: 'mask_invariant_violation',
+        },
+        { status: 400 },
+      )
     }
 
     const tFalStart = Date.now()
