@@ -50,6 +50,12 @@ function falHeaders(): Record<string, string> {
   }
 }
 
+// Submission phase only (ADR-009 Decision 2). This function performs
+// Fal.ai queue submission and returns requestId/statusUrl/responseUrl —
+// it does not perform or wait for resolution. Resolution Phase
+// (status/resultImage/actualCost/actualLatency per ADR-006 Public
+// Contract) is explicitly out of scope for ADR-006 Implementation
+// Package v1.0 — see ADR-009 Decision 2 and the Package, section 2/3.
 async function submitToFal(
   url: string,
   body: Record<string, unknown>,
@@ -126,6 +132,11 @@ const ERASE_FALLBACK_PROMPT =
 
 export class OpenAIImageProvider implements ImageProvider {
   async submit(request: InteriorEditRequest): Promise<InteriorEditResult> {
+    // Traceability point for ADR-009 Decision 5: this is the provider-layer
+    // behavior point where operation === 'erase' affects fallback prompt
+    // selection. This is not a second dispatch point and not an ADR-009
+    // decision — see ADR-006 Implementation Package v1.0, section 5 and
+    // the Traceability Note in ADR-009.
     const prompt = request.prompt || (request.operation === 'erase' ? ERASE_FALLBACK_PROMPT : '')
 
     // Fields match Fal.ai's openai/gpt-image-2/edit input schema exactly:
