@@ -1,7 +1,7 @@
 # Gate 1 Closure Review
 
 **Document Type:** Governance Review
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-07-09
 **Baseline Reference:** Project Context v2.2 (commit `8c01187`)
 **Prepared by:** Claude (Chief Software Architect / Specification Partner)
@@ -112,9 +112,9 @@ Gate 1 включает два слоя решений:
 
 | Поле | Значение |
 |---|---|
-| Решение | ☐ Approved — Gate 1 Closed ☐ Revision Requested |
-| Дата | |
-| Комментарий | |
+| Решение | ☑ Approved — Gate 1 Closed ☐ Revision Requested |
+| Дата | 2026-07-09 |
+| Комментарий | Gate 1 Closure Review is approved. Gate 1 is formally accepted for closure based on completed Architecture Freeze, accepted governance chain (ADR-007–009, ED-001–004), verified ADR-005/ADR-006 integrations, and no outstanding Architecture Decision Required. |
 
 ---
 
