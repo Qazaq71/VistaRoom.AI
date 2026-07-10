@@ -340,3 +340,28 @@ Boundaries:
 
 Step 4 Resolution Note:
 Step 5 may close the residual Step 4 partial-validity question only after implementation and explicit verification that the Step 5 partial-validity rule covers the original Step 4 concern. This must be recorded as explicit review/commit trace, not assumed automatically.
+
+---
+
+### Step 4 Resolution — Partial Validity Covered by Step 5 Boundary Validator
+
+Status: Resolved. Step 4 residual question closed.
+
+Prior disposition (see Step 4 record above):
+Step 4 was reduced to trace/documentation clarification. Partial-scene representation was covered by Step 1 (`StructuredSceneV0`, `Observed<T>`, valid-partial fixture). Partial candidate normalization was covered by Step 2 (`normalizeObserved`). The remaining open question — partial `StructuredSceneV0` validity and acceptance — was explicitly deferred to Step 5 Boundary Validator scope review, with closure permitted only after implementation and explicit verification that the Step 5 partial-validity rule covers the original Step 4 concern.
+
+Verification:
+Step 5 Boundary Validator (commit `3d56d178f0829c5b47efaf05956e7131bbeebda9`) implements read-only structural validation of arbitrary `StructuredSceneV0`-like objects, including explicit handling of partial scenes:
+
+* The `Observed<T>` unknown branch (`confidence: "unknown_not_inferable"`, `provenance: "unknown_not_inferable"`, no `value` field) is validated as a structurally valid terminal state, not rejected as an error.
+* A dedicated `valid-partial` fixture exercises this path and is accepted by `validateStructuredSceneBoundary`.
+* Contract tests for this behavior are included in `boundary-validator.contract.test.ts` and pass.
+* Architect review during Step 5 post-implementation review confirmed the implementation against the Step 1 contract (`types.ts`) field-by-field and found no invented structural requirements beyond what Step 1 declares.
+
+Disposition:
+The Step 4 partial-validity question is closed. No standalone Step 4 implementation was required. Partial-scene structural validity is fully covered by the combination of Step 1 (representation), Step 2 (candidate normalization), and Step 5 (independent boundary validation, this resolution).
+
+Constraints (unchanged):
+No retroactive changes to Step 1 types, Step 2 normalization, or Step 5 Boundary Validator are authorized by this resolution record. This is a trace/documentation entry only.
+
+---
