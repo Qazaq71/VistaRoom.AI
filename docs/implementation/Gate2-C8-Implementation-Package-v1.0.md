@@ -297,3 +297,46 @@ Constraints:
 - No BoundaryValidator implementation under Step 4.
 - No Evaluation Harness.
 - No Q1–Q11 reporting.
+
+### Step 5 — Boundary Validator Scope
+
+Status: Accepted by Owner Decision.
+Implementation: Authorized for execution planning only; implementation requires a separate Claude Code execution prompt.
+
+Rationale:
+Step 1 defines the `StructuredSceneV0` schema/type contract, including closed node categories, closed relation categories, `schemaVersion`, confidence/provenance representation, and partial scene representation.
+
+Step 2 defines the candidate → `StructuredSceneV0` normalization boundary.
+
+Neither Step 1 nor Step 2 provides an independent runtime validator for arbitrary StructuredScene-like objects. Step 5 is therefore necessary as a separate boundary validation layer.
+
+Accepted Scope:
+Step 5 is limited to read-only structural validation of arbitrary runtime objects. The preferred function shape is:
+
+`validateStructuredSceneBoundary(scene: unknown): BoundaryValidationResult`
+
+The validator must:
+
+* accept `unknown`;
+* validate structure only;
+* validate `schemaVersion`;
+* validate closed node categories;
+* validate closed relation categories;
+* validate required identity and structural fields;
+* validate confidence/provenance presence where required by the `Observed<T>` contract;
+* validate structurally valid partial scenes;
+* reject unsupported contract expansion;
+* return structured accept/reject diagnostics;
+* remain pure and deterministic;
+* not mutate input.
+
+Boundaries:
+
+* Step 1 owns schema/types/constants.
+* Step 2 owns candidate → `StructuredSceneV0` normalization.
+* Step 5 must not normalize, repair, mutate, enrich, or semantically interpret the scene.
+* Step 5 must not check whether the scene matches the original room photo.
+* Step 5 must not implement Room Analyzer, Evaluation Harness, Q1–Q11 reporting, or downstream consumer integration.
+
+Step 4 Resolution Note:
+Step 5 may close the residual Step 4 partial-validity question only after implementation and explicit verification that the Step 5 partial-validity rule covers the original Step 4 concern. This must be recorded as explicit review/commit trace, not assumed automatically.
