@@ -242,3 +242,58 @@ Canonical Query Suite (ADR-012): room identity, inventory, spatial relations, tr
 - Reopening ADR-011–014
 - Создание ADR-015
 - Изменения Project Context или Roadmap
+
+## 20. Execution Trace / Owner Decisions
+
+### Step 3 — Confidence/Provenance Propagation Beyond Normalization Boundary
+
+Status: Deferred by Owner Decision.
+Implementation: Not authorized.
+
+Rationale:
+Step 1 defines confidence/provenance as part of `StructuredSceneV0` through `Observed<T>`.
+Step 2 enforces confidence/provenance at the temporary candidate → `StructuredSceneV0` normalization boundary through `normalizeObserved`.
+No downstream `StructuredSceneV0` consumer is currently scoped.
+Standalone Step 3 implementation would either duplicate Step 2 behavior or require speculative assumptions about future consumers, creating hidden scope expansion.
+
+Disposition:
+Step 3 is explicitly deferred, not silently removed.
+The question may return only when a concrete downstream `StructuredSceneV0` consumer is explicitly proposed and scoped.
+
+Constraints:
+
+- No Step 3 implementation is authorized.
+- No candidate normalization changes.
+- No Room Analyzer orchestration.
+- No downstream consumer.
+- No BoundaryValidator.
+- No Evaluation Harness.
+- No Q1–Q11 reporting.
+
+### Step 4 — Partial StructuredScene Handling
+
+Status: Reduced to trace/documentation clarification pending Step 5 Boundary Validator scope review.
+Implementation: Not authorized as standalone Step 4.
+
+Rationale:
+Step 1 already supports partial-scene representation through `StructuredSceneV0`, `Observed<T>`, and the valid partial fixture.
+Step 2 already handles candidate-level partiality through candidate → `StructuredSceneV0` normalization, including handling of insufficient or unknown values.
+The remaining question — partial `StructuredSceneV0` validity and acceptance — overlaps with Step 5 Boundary Validator responsibility.
+Standalone Step 4 implementation would risk duplicating Step 1 schema/type behavior, duplicating Step 2 normalization behavior, or prematurely implementing Step 5 Boundary Validator responsibility.
+
+Disposition:
+Step 4 is not silently removed.
+Step 4 is reduced to trace/documentation clarification.
+Partial-scene representation remains covered by Step 1.
+Partial candidate normalization remains covered by Step 2.
+Partial-scene validity/acceptance must be explicitly reviewed under Step 5 Boundary Validator scope.
+
+Constraints:
+
+- No standalone Step 4 implementation is authorized.
+- No changes to `Observed<T>`.
+- No changes to `StructuredSceneV0`.
+- No changes to `normalizeObserved`.
+- No BoundaryValidator implementation under Step 4.
+- No Evaluation Harness.
+- No Q1–Q11 reporting.
