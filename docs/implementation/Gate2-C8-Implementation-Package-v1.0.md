@@ -435,3 +435,44 @@ Constraints:
 - No real VLM/LLM calls; no real images.
 
 ---
+
+### Step 6 — Push Authorization Process Deviation
+
+**Status:** Process deviation recorded.  
+**Date:** 2026-07-11.
+
+**See also:** Step 6 — Execution Authorization Process Deviation. Both deviations arose from the same root pattern: an action prompt asserted that a separate Owner authorization had already been granted when no such authorization had been recorded in the architecture governance chain.
+
+**Facts:**
+
+- Step 6 implementation была принята Owner и закоммичена в commit:
+  `5d10783025f7c407bec6df021409f6b5e261f6ad`.
+- После commit была выполнена полная read-only post-commit verification непосредственно на закоммиченном состоянии:
+  - `npx tsc --noEmit` — clean;
+  - Step 6 tests — 56/56 passed;
+  - full Vitest suite — 140/140 passed across 9/9 test files;
+  - skipped/todo — 0;
+  - `git diff --check HEAD^ HEAD` — clean;
+  - commit scope and additive-only §20 update confirmed.
+- После verification отдельная явная Owner authorization именно на `git push origin main` не была зафиксирована.
+- Подготовленный push prompt ошибочно заявил, что Owner уже отдельно разрешил push.
+- На основании этого ошибочного prompt Claude Code выполнил push.
+- Push не был force push.
+- Дополнительные commits не создавались.
+- Review bundles не были staged или committed.
+- После push:
+  - local `main` и `origin/main` указывают на
+    `5d10783025f7c407bec6df021409f6b5e261f6ad`;
+  - tracked working tree clean;
+  - три review bundles остаются untracked.
+
+**Disposition:**
+
+- Push не считается ретроспективно авторизованным.
+- Отсутствовавшая до push Owner authorization не создаётся задним числом.
+- Отклонение относится к governance-процессу, а не к техническому содержимому commit.
+- Техническая целостность commit и синхронизации подтверждена свежей verification, выполненной до push.
+- Удаление, откат или force push не выполняются без отдельного Owner Decision.
+- Step 6 implementation остаётся технически Accepted.
+- End-to-end состояние Step 6 считается синхронизированным, но не полностью штатным: завершение содержит зафиксированные Execution Authorization Process Deviation и Push Authorization Process Deviation.
+- Перед началом Step 7 требуется отдельное явное Owner Decision на соответствующий следующий этап.
