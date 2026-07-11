@@ -365,3 +365,73 @@ Constraints (unchanged):
 No retroactive changes to Step 1 types, Step 2 normalization, or Step 5 Boundary Validator are authorized by this resolution record. This is a trace/documentation entry only.
 
 ---
+
+### Step 6 — Evaluation Harness + Staged Q1-Q11 Reporting
+
+Status: Implemented and Accepted by Owner Decision (2026-07-11).
+Implementation: `src/lib/interior/structured-scene/evaluation-harness/` (21 files).
+
+Rationale:
+Step 1 defines the StructuredSceneV0 contract. Step 5 provides independent
+runtime boundary validation. Neither provides queryability against the
+ADR-012 Canonical Query Suite (Q1-Q11). Step 6 closes this gap: every
+evaluation always validates input through Step 5 first, rejecting without
+running any evaluator on a non-conformant scene, and evaluates the staged
+supported subset (Q1, Q2, Q3, Q6, Q7, Q8, Q9) against an accepted
+StructuredSceneV0, recording Q4, Q5, Q10, Q11 as explicitly deferred
+(not unsupported), per Final Gate 2 Scope Decision §9.
+
+Public entry point: `evaluateStructuredScene(input: EvaluationHarnessInput): EvaluationHarnessResult`.
+
+Key contract decisions:
+- Step 5 (`validateStructuredSceneBoundary`) is called unconditionally as
+  the first action; rejection returns `accepted: false`, preserves
+  diagnostics verbatim, `report: null`, and runs no evaluator.
+- Relation-level confidence/provenance gating (Q3, Q6, Q9): a relation with
+  `confidence` or `provenance` equal to `unknown_not_inferable` is excluded
+  from any `answered` result; if no usable evidence remains, the result is
+  `insufficient_scene_data` rather than a fabricated negative claim.
+- Every `answered` result carries non-empty, runtime-validated grounding
+  and an explicit per-evidence-unit `EvidenceConfidence` snapshot
+  (`confidence`/`provenance`), so uncertainty is disclosed directly in the
+  structured answer, not only implied via grounding.
+- `AnswerCompleteness` (`complete_for_known_scene_data` /
+  `partial_due_to_unknown_scene_data`) is part of every answered result.
+- Bounded harness-level literal vocabulary for Q6-Q9 (`typeLabel:"window"`,
+  `affordances:"illumination"`, `blockingType:"light"|"traffic"|"clearance"`)
+  does not create a new enum or close Step 1's open vocabulary.
+- `PerceptionFidelity` is reported as a fixed diagnostic-only,
+  not-measured value; ADR-012's other unmeasured evaluation dimensions
+  (Query Accuracy, Graph/Relation Consistency, Explanation Faithfulness,
+  Version/Before-After Consistency, Human Understanding Review) are
+  explicitly listed as unmeasured in each report.
+- Q4, Q5, Q10, Q11 have registry entries with traceable reason codes only;
+  no evaluator files exist for these queries.
+
+Verification: `tsc --noEmit` clean; full Vitest suite 140/140 passing
+(56 Step 6 tests, 9/9 files); Step 1, Step 2, Step 5, and ADR-011-014
+confirmed unmodified via `git diff`.
+
+Process note:
+Implementation execution began without a separately recorded Owner
+authorization distinct from Claude Code prompt-preparation authorization
+(Step 6 — Execution Authorization Process Deviation, recorded 2026-07-11).
+This deviation is preserved in the governance trace and does not
+retroactively function as prior authorization. Technical acceptance of the
+implementation, following full independent architect review (two review
+passes, one correction cycle), is recorded separately from this process
+finding.
+
+Architect review verdict: Implementation Review Passed — ready for Owner
+commit decision (Главный Архитектор, 2026-07-11, two-pass consolidated
+review against primary sources and verbatim code).
+
+Constraints:
+- Commit authorized by Owner Decision (2026-07-11), scope limited to
+  `evaluation-harness/` and this §20 entry.
+- No push performed as part of this step; push requires a separate Owner
+  Decision.
+- No production route, UI, or Room Analyzer integration.
+- No real VLM/LLM calls; no real images.
+
+---
