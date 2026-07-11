@@ -438,41 +438,129 @@ Constraints:
 
 ### Step 6 — Push Authorization Process Deviation
 
-**Status:** Process deviation recorded.  
+**Status:** Process deviation recorded.
 **Date:** 2026-07-11.
 
-**See also:** Step 6 — Execution Authorization Process Deviation. Both deviations arose from the same root pattern: an action prompt asserted that a separate Owner authorization had already been granted when no such authorization had been recorded in the architecture governance chain.
+**See also:** Step 6 — Execution Authorization Process Deviation. All three deviations recorded for
+Step 6 arose from the same root pattern: an action prompt asserted that a separate Owner
+authorization had already been granted for a specific repository-write action (execution, first
+push, second push) when no such authorization had been recorded in the architecture governance
+chain at the time the action was taken.
 
-**Facts:**
+**Facts — first push (implementation commit):**
 
-- Step 6 implementation была принята Owner и закоммичена в commit:
-  `5d10783025f7c407bec6df021409f6b5e261f6ad`.
-- После commit была выполнена полная read-only post-commit verification непосредственно на закоммиченном состоянии:
-  - `npx tsc --noEmit` — clean;
-  - Step 6 tests — 56/56 passed;
-  - full Vitest suite — 140/140 passed across 9/9 test files;
-  - skipped/todo — 0;
-  - `git diff --check HEAD^ HEAD` — clean;
-  - commit scope and additive-only §20 update confirmed.
-- После verification отдельная явная Owner authorization именно на `git push origin main` не была зафиксирована.
-- Подготовленный push prompt ошибочно заявил, что Owner уже отдельно разрешил push.
-- На основании этого ошибочного prompt Claude Code выполнил push.
-- Push не был force push.
-- Дополнительные commits не создавались.
-- Review bundles не были staged или committed.
-- После push:
-  - local `main` и `origin/main` указывают на
-    `5d10783025f7c407bec6df021409f6b5e261f6ad`;
-  - tracked working tree clean;
-  - три review bundles остаются untracked.
+- Implementation commit `5d10783025f7c407bec6df021409f6b5e261f6ad` was accepted by Owner Decision
+  (2026-07-11) and committed under that authorization, scope limited to
+  `evaluation-harness/` and the additive Implementation Package §20 entry.
+- A full read-only post-commit verification was performed directly on the committed state before
+  push: `npx tsc --noEmit` clean; Step 6 tests 56/56 passed; full Vitest suite 140/140 passed
+  across 9/9 test files; 0 skipped/todo; `git diff --check HEAD^ HEAD` clean; commit scope and
+  additive-only §20 update confirmed.
+- A separate explicit Owner authorization specifically for `git push origin main` of this commit
+  was not recorded in the architecture governance chain before the push occurred.
+- The prepared push prompt erroneously asserted that Owner had already separately authorized the
+  push. Claude Code performed the push on the basis of that erroneous prompt.
+- The push was not a force push. No additional commits were created during this push. Review
+  bundles were not staged or committed.
+- Post-push state: local `main` and `origin/main` both at `5d10783025f7c407bec6df021409f6b5e261f6ad`;
+  tracked working tree clean; three review bundles remained untracked.
+
+**Facts — second push (governance-only commit):**
+
+- Governance-only commit `586b568cc5571db5af99c6cec130428fb29d840b`
+  (`docs(c8): record Step 6 push authorization deviation`) was authorized by a separate Owner
+  Decision limited to exactly one file
+  (`docs/implementation/Gate2-C8-Implementation-Package-v1.0.md`), additive-only, 41 insertions,
+  0 deletions, adding only the original (pre-expansion) §20 "Push Authorization Process Deviation"
+  entry. That Owner Decision explicitly stated push would require a separate Owner Decision.
+- A separate explicit Owner authorization specifically for `git push origin main` of this
+  governance commit was not recorded in the architecture governance chain before the push
+  occurred.
+- A subsequently prepared prompt again erroneously asserted that Owner had already separately
+  authorized this push. Claude Code performed the push on the basis of that erroneous prompt.
+- The push was not a force push. No additional commits were created during this push. Review
+  bundles were not staged or committed.
+- Post-push state: local `main` and `origin/main` both at
+  `586b568cc5571db5af99c6cec130428fb29d840b`; tracked working tree clean; three review bundles
+  remained untracked.
 
 **Disposition:**
 
-- Push не считается ретроспективно авторизованным.
-- Отсутствовавшая до push Owner authorization не создаётся задним числом.
-- Отклонение относится к governance-процессу, а не к техническому содержимому commit.
-- Техническая целостность commit и синхронизации подтверждена свежей verification, выполненной до push.
-- Удаление, откат или force push не выполняются без отдельного Owner Decision.
-- Step 6 implementation остаётся технически Accepted.
-- End-to-end состояние Step 6 считается синхронизированным, но не полностью штатным: завершение содержит зафиксированные Execution Authorization Process Deviation и Push Authorization Process Deviation.
-- Перед началом Step 7 требуется отдельное явное Owner Decision на соответствующий следующий этап.
+- Neither push is considered retroactively authorized by its own erroneous prompt or by the fact
+  that it occurred.
+- The absent pre-push Owner authorizations are not created after the fact by this record.
+- Both deviations concern the governance process of authorizing a write action, not the technical
+  correctness of either commit's content.
+- The technical integrity of both commits and of the resulting `main == origin/main`
+  synchronization is independently confirmed by verification performed on the committed state,
+  separate from the authorization question.
+- No rollback, reset, or force push is performed without a separate explicit Owner Decision.
+- Step 6 implementation remains technically Accepted; this record does not reopen or downgrade
+  that technical acceptance.
+- The end-to-end Step 6 governance trace is synchronized and technically correct, but not fully
+  procedurally clean: it contains three recorded process deviations (one execution-authorization,
+  two push-authorization) arising from the same erroneous-prompt pattern, none retroactively
+  legitimized.
+- Any further repository-write action for Step 6 or subsequent steps (including Step 7) requires
+  a separate explicit Owner Decision recorded in this architecture governance chain before the
+  action is taken — not inferred from an action prompt's own claims.
+- Canonical Accepted Step 6 Scope Decision: `docs/engineering-decisions/reviews/Gate2-C8-Step6-Scope-Decision.md`.
+
+### Step 6 — Working-Tree Documentation Normalization Authorization Deviation
+
+**Status:** Process deviation recorded.
+**Date:** 2026-07-11.
+
+**See also:** Step 6 — Execution Authorization Process Deviation; Step 6 — Push Authorization
+Process Deviation. This is the fourth process deviation recorded for Step 6, arising from the
+same root pattern as the first three: a Claude Code prompt was executed before a separate
+explicit execution authorization for that specific action had been recorded in the architecture
+governance chain. Unlike the first three deviations (implementation execution, first push, second
+push), this deviation concerns the creation of working-tree documentation changes rather than a
+commit or push action.
+
+**Facts:**
+
+- A combined Claude Code prompt, prepared prior to the Owner's subsequent selection of a
+  two-prompt execution plan (Owner message specifying "два отдельных Claude Code prompt... два
+  независимых working-tree diff"), was executed before that later plan superseded it and before a
+  separate explicit execution authorization for this specific working-tree change had been
+  recorded in the architecture governance chain.
+- This resulted in the following working-tree changes, present but not staged, committed, or
+  pushed:
+  1. Modified: `docs/implementation/Gate2-C8-Implementation-Package-v1.0.md`
+     (Push Authorization Process Deviation record expanded to cover both push events).
+  2. New (untracked): `docs/engineering-decisions/reviews/Gate2-C8-Step6-Scope-Decision.md`
+     (canonical Accepted repository version of the Step 6 Scope Decision).
+- No `git add`, commit, or push was performed as part of, or subsequent to, this action.
+- Step 7 was not started.
+- A full consolidated verbatim review of both resulting files was independently performed against
+  primary sources (a self-verifying review bundle containing a direct `diff -u` between the
+  confirmed source document and the new canonical file, an isolated re-diff of sections 4–26
+  showing no differences, and grep-based governance assertions).
+- Architect review verdict: **Review Passed — ready for governance disposition and Owner commit
+  decision** (Главный Архитектор, 2026-07-11).
+
+**Disposition:**
+
+- This deviation is not retroactively authorized by the fact that the resulting content passed
+  architect review. Technical correctness of content and procedural authorization of the action
+  that produced it are independent questions.
+- The absent pre-action Owner authorization is not created after the fact by this record or by
+  the passing review verdict.
+- This deviation does not reopen, downgrade, or invalidate the architect's technical review
+  verdict on the content of either file.
+- No `git add`, commit, or push is authorized by this record. Each requires a separate explicit
+  Owner Decision, taken before the corresponding action, not inferred from an action prompt's own
+  claims.
+- The Step 6 governance trace now contains four recorded process deviations, all arising from the
+  same erroneous-prompt / premature-execution pattern, none retroactively legitimized:
+  1. Execution Authorization Process Deviation (implementation code generation).
+  2. Push Authorization Process Deviation — first push (implementation commit
+     `5d10783025f7c407bec6df021409f6b5e261f6ad`).
+  3. Push Authorization Process Deviation — second push (governance-only commit
+     `586b568cc5571db5af99c6cec130428fb29d840b`).
+  4. Working-Tree Documentation Normalization Authorization Deviation (this record).
+- Any further repository-write action for Step 6 or subsequent steps (including Step 7) requires
+  a separate explicit Owner Decision recorded in this architecture governance chain before the
+  action is taken.
