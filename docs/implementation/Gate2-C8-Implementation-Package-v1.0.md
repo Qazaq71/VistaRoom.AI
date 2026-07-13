@@ -564,3 +564,75 @@ commit or push action.
 - Any further repository-write action for Step 6 or subsequent steps (including Step 7) requires
   a separate explicit Owner Decision recorded in this architecture governance chain before the
   action is taken.
+
+### Step 7 — Traceability Comments + Closure Review Readiness Artefact
+
+**Status:** Implementation completed and verified. Awaiting commit and push authorization.
+**Date:** 2026-07-13.
+
+**Owner authorization:** Owner authorized Claude Code to begin and complete Step 7 implementation
+on 2026-07-13, corresponding to phase 9 of §23 of the Accepted Step 7 Scope Decision
+(`docs/engineering-decisions/reviews/Gate2-C8-Step7-Scope-Decision.md`, Revision 5, Owner Decision:
+Accepted, 2026-07-13).
+
+**Immediate pre-execution repository state (§14):**
+
+- Branch: `main`.
+- HEAD: `3b7178581df75641f7fa380ab8ce7ce5333c7564`.
+- `origin/main`: `3b7178581df75641f7fa380ab8ce7ce5333c7564` (identical).
+- `git status --short`: empty (clean working tree).
+- Scope Decision commit present in current history: `3b71785 docs(gate2): accept Step 7 scope
+  decision` (`git log -1 --oneline` for the Scope Decision file).
+
+**Immediate pre-execution TypeScript/Vitest baseline (§14):**
+
+- `npx tsc --noEmit`: passed, zero errors.
+- `npx vitest run`: 9 test files passed, 140 tests passed, 0 failed. This is the binding baseline
+  for post-modification comparison.
+
+**Historical gap state observed at baseline (§14):** both `boundary-validator/validate.ts` and
+`evaluation-harness/grounding.ts` still carried zero ADR references at this baseline — both gaps
+were open and required closure under §7/§15/§17 of the Scope Decision.
+
+**Modified subset of the accepted 12-file source boundary:** exactly the two files carrying the
+confirmed traceability gap —
+
+1. `src/lib/interior/structured-scene/boundary-validator/validate.ts` — added one canonical TRACE
+   block citing ADR-014 §4.7 (Boundary Validation and Failure Modes).
+2. `src/lib/interior/structured-scene/evaluation-harness/grounding.ts` — added one canonical
+   TRACE block citing ADR-012 §4.3 (Grounding Requirement).
+
+The remaining 10 files in the maximum permitted boundary were inspected and left unmodified: each
+already carries a specific ADR-number-and-section citation in its existing header comment (e.g.
+`types.ts` → ADR-013/ADR-014; `hybrid-validation/validate.ts` → ADR-014; `evaluation-harness/
+types.ts` → ADR-012/013/014; each Q1/Q2/Q3/Q6/Q7/Q8/Q9 evaluator → its exact ADR-012 §4.2 query ID
+and ADR-011 §5 class). None presented a missing or non-canonical traceability link rising to the
+level requiring a change, per Scope Decision §7 ("no file is required to change solely because it
+appears here") and §11 ("do not add comments merely to make every permitted file appear in the
+diff").
+
+**Readiness artefact:** `docs/engineering-decisions/reviews/Gate2-C8-Step7-Closure-Readiness.md`,
+Status: Prepared for Closure Review. Contains the full eight-block (A–H) nodes/relations/
+attributes → Q1–Q11 traceability matrix.
+
+**Verification commands run (pre- and post-modification, §16):**
+
+```
+test -f docs/engineering-decisions/reviews/Gate2-C8-Step7-Scope-Decision.md
+git log -1 --oneline -- docs/engineering-decisions/reviews/Gate2-C8-Step7-Scope-Decision.md
+git branch --show-current
+git rev-parse HEAD
+git rev-parse origin/main
+git status --short
+npx tsc --noEmit
+npx vitest run
+git diff --check
+git diff --name-only
+git diff
+git diff --cached
+git diff --cached --name-only
+```
+
+**Post-modification results:** TypeScript clean (zero errors, identical to baseline); Vitest 9
+test files / 140 tests passed, 0 failed (identical to baseline); `git diff --check` clean;
+`git diff --cached` and `git diff --cached --name-only` both empty (no staging occurred).

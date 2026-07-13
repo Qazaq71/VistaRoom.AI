@@ -7,6 +7,10 @@
  * duplicate of the Step 5 Boundary Validator's full structural validation
  * — it only checks that grounding is truthful, not that the scene as a
  * whole is schema-conformant (Step 5 already guarantees that).
+ *
+ * TRACE: ADR-012 §4.3 Grounding Requirement — answers to the Canonical
+ * Query Suite must be grounded in the StructuredScene's actual structure
+ * and content, not generated as free-form inference disconnected from it.
  */
 
 import type { StructuredSceneV0 } from "../types";

@@ -8,6 +8,10 @@
  * (../types.ts) and returns accept/reject diagnostics. It performs no
  * semantic truth validation (it never checks whether a scene matches a real
  * room) and has no dependency on the Step 2 candidate-normalization mechanism.
+ *
+ * TRACE: ADR-014 §4.7 Boundary Validation — checks structural/schema
+ * conformance to ADR-013 and presence of required confidence/provenance;
+ * does not replace ADR-012 evaluation of content accuracy or usefulness.
  */
 
 import {
