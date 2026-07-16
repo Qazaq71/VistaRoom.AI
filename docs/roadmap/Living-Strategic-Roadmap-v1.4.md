@@ -393,3 +393,73 @@ Roadmap может изменяться только при выполнении
 11. Категорийное лидерство измеряется совокупностью критериев, а не только визуальным качеством генерации.
 
 ---
+---
+
+## OWNER-APPROVED ROADMAP AMENDMENT (2026-07-16)
+
+Настоящий раздел является явно датированным Owner-approved дополнением к принятому **Living Strategic Roadmap v1.4**.
+
+Он не изменяет и не переоткрывает существующие разделы документа, включая Mission, Strategic Ambition, Levels 0–4, Decision Governance, Living Roadmap Governance и Guiding Principles.
+
+Дополнение внесено прямым решением Project Owner для фиксации обязательной последовательности будущих архитектурных и governance-шагов.
+
+**Статус:** Owner-approved amendment, 2026-07-16  
+**Тип:** Governance sequencing addition; не Architecture Assessment и не implementation authorization  
+**Effect on document version:** Roadmap остаётся v1.4; настоящее дополнение не создаёт v1.5 и не требует отдельного sequencing-документа
+
+### Mandatory Next Sequence After Supporting Contracts 1–10
+
+Текущая авторизованная работа:
+
+**Revision 13 Supporting Contracts 1–10 Preparation Cycle.**
+
+После подготовки, review и Project Owner acceptance Supporting Contracts 1–10 обязательна следующая последовательность:
+
+1. **Combined Diagnosability & Security Compatibility Assessment**
+   1. **Assessment Criteria checkpoint** — критерии оценки должны быть явно подтверждены Project Owner до начала оценки уже принятых архитектурных блоков.
+   2. **One full retrospective compatibility pass** — один полный review, одна compatibility matrix и один консолидированный результат, без автоматического переоткрытия или изменения принятых решений.
+2. **AI Brain Diagnosability Architecture**
+3. **Security Architecture Baseline**
+4. **Mandatory cross-check** между AI Brain Diagnosability Architecture и Security Architecture Baseline, включая совместимость provider-boundary, logging, evidence, incident и configuration contracts.
+5. **Phase-1 Scope Decision / Execution Profile**
+6. **Section 22 data-governance artifacts 1–7 and 9–10**
+7. **Tier 1 Corpus Preparation Authorization**
+
+### Hard Security Stop
+
+Никакой реальный внешний provider invocation, использование рабочих provider credentials или экспозиция governed data внешнему provider не допускаются до принятия применимых требований Security Architecture и верификации обязательных security controls.
+
+Предварительное изучение публичной документации, условий использования и иных материалов для due diligence не является provider invocation или governed-data exposure и само по себе не авторизует дальнейшее взаимодействие.
+
+### Diagnosability and Security Integration Boundary
+
+Diagnosability requirements не могут служить основанием для хранения или раскрытия:
+
+- secrets и raw credentials;
+- запрещённых персональных данных;
+- неавторизованных sensitive payloads;
+- held-out ground truth;
+- иных данных, запрещённых действующими security, privacy и data-governance решениями.
+
+Diagnostic и security contracts, относящиеся к одной provider-boundary operation, должны использовать совместимую identity, event и incident model и пройти обязательную взаимную сверку до принятия соответствующих архитектур.
+
+### Non-Authorization
+
+Настоящее дополнение фиксирует только обязательность и порядок будущих шагов.
+
+Оно не авторизует:
+
+- начало Combined Diagnosability & Security Compatibility Assessment;
+- подготовку или применение Assessment Criteria;
+- retrospective compatibility review;
+- подготовку AI Brain Diagnosability Architecture;
+- подготовку Security Architecture Baseline;
+- Phase-1 Scope Decision или Execution Profile;
+- подготовку Section 22 data-governance artifacts;
+- Tier 1 Corpus Preparation;
+- provider invocation, использование рабочих provider credentials или governed-data exposure;
+- repository persistence иных документов;
+- Implementation Package;
+- implementation.
+
+Единственная текущая авторизованная работа — **Revision 13 Supporting Contracts 1–10 Preparation Cycle**.
