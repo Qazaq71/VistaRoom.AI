@@ -1285,14 +1285,14 @@ This synchronization does not alter the normative content.
 
 #### D.3 Repository Persistence
 
-Repository persistence is authorized only by the direct Project Owner instruction contained at the beginning of this execution prompt.
+Repository persistence was authorized by a separate subsequent Project Owner Decision following formal acceptance of this Amendment.
 
 ```text
 Repository persistence:
 PERSISTED
 
-Commit:
+Initial persistence commit:
 a6e0982c00107b74ed203b1dc2b4645585339bda
 ```
 
-Do not infer authorization for any other artifact or downstream activity.
+This repository-persistence event does not authorize any other artifact, module, implementation, provider activity, governed-data exposure or downstream governance transition.
