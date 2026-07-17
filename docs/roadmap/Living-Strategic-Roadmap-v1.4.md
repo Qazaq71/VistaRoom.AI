@@ -1285,13 +1285,14 @@ This synchronization does not alter the normative content.
 
 #### D.3 Repository Persistence
 
-Repository persistence is authorized only by the direct Project Owner instruction contained in the execution prompt for this amendment.
+Repository persistence is authorized only by the direct Project Owner instruction contained at the beginning of this execution prompt.
 
 ```text
 Repository persistence:
 PERSISTED
-```
 
-The commit recording this persistence is identified in the repository's own commit history (`git log`) rather than restated here, since a commit cannot record its own hash in advance.
+Commit:
+a6e0982c00107b74ed203b1dc2b4645585339bda
+```
 
 Do not infer authorization for any other artifact or downstream activity.
