@@ -463,3 +463,835 @@ Diagnostic и security contracts, относящиеся к одной provider-
 - implementation.
 
 Единственная текущая авторизованная работа — **Revision 13 Supporting Contracts 1–10 Preparation Cycle**.
+
+---
+---
+
+## OWNER-APPROVED ROADMAP AMENDMENT — MODULE-COMPLETION-FIRST (REVISION 5, 2026-07-17)
+
+```text
+Amendment status:
+OWNER-APPROVED ROADMAP AMENDMENT
+
+Proposed amendment date:
+2026-07-17
+
+Acceptance date:
+2026-07-17
+
+Effective date:
+2026-07-17
+
+Amendment type:
+Append-only governance sequencing addition
+
+Roadmap version:
+v1.4
+
+New lifecycle framework:
+NONE
+
+New sequencing framework:
+NONE
+
+Authoritative sequencing source:
+Module Completion and Sequencing Policy — Revision 4
+```
+
+### Section A — Permanent Roadmap Sequencing Rule
+
+#### A.1 Purpose
+
+Настоящий append-only amendment — отдельное неразрушающее дополнение к принятому Living Strategic Roadmap v1.4.
+
+Его цель — применить принцип:
+
+```text
+Module-Completion-First
+```
+
+к стратегической структуре Roadmap, включая раздел:
+
+```text
+PARALLEL ENGINEERING TRACKS (Post–Gate 2)
+```
+
+и Tracks A–H.
+
+Настоящий Amendment не создаёт:
+
+- собственную lifecycle-модель;
+- собственные Transition Authority Classes;
+- отдельную Definition of Done;
+- отдельный Module Applicability Profile;
+- собственные Remediation States;
+- собственные Control States;
+- новые exception-механизмы;
+- отдельный sequencing framework.
+
+Единственным нормативным владельцем этих механизмов остаётся:
+
+```text
+VistaRoom AI
+Module Completion and Sequencing Policy — Revision 4
+```
+
+Roadmap фиксирует только стратегическое применение Policy к своей структуре Tracks.
+
+#### A.2 Relationship to Existing Roadmap Content
+
+Настоящий Amendment не редактирует исторический текст:
+
+- Mission;
+- Strategic Ambition;
+- Levels 0–4;
+- Guiding Principles;
+- Decision Governance;
+- Living Roadmap Governance;
+- PARALLEL ENGINEERING TRACKS;
+- Tracks A–H;
+- Owner-Approved Roadmap Amendment от 2026-07-16.
+
+```text
+Historical Roadmap text:
+UNCHANGED
+
+Historical Amendment dated 2026-07-16:
+UNCHANGED
+
+Prospective sequencing interpretation:
+QUALIFIED BY THIS LATER AMENDMENT
+ONLY AFTER PROJECT OWNER ACCEPTANCE
+```
+
+Если более ранняя формулировка Roadmap допускает более широкое параллельное прочтение, чем принятая Policy Revision 4 и настоящий более поздний Amendment, применяется более позднее явное Project Owner Decision в пределах sequencing-вопроса.
+
+Настоящий Amendment не изменяет внутреннюю `Decision Governance` процедуру Living Strategic Roadmap.
+
+Изменения самого Roadmap по-прежнему должны выполняться в соответствии с его собственной governance-процедурой.
+
+#### A.3 Governing Source
+
+Настоящий Amendment операционализирует:
+
+```text
+VistaRoom AI
+Module Completion and Sequencing Policy — Revision 4
+
+Status:
+ACCEPTED — PROJECT OWNER
+
+Acceptance date:
+2026-07-17
+
+Repository:
+docs/engineering-decisions/reviews/Module-Completion-and-Sequencing-Policy-Rev4.md
+```
+
+Policy Revision 4 остаётся единственным нормативным владельцем:
+
+- определения Major Module;
+- Primary Active Module;
+- lifecycle states;
+- Transition Authority Classes;
+- Architectural Readiness;
+- Practical Completion;
+- Closure Readiness;
+- Module Closure;
+- Post-Closure Governance;
+- Module Applicability Profile;
+- Bounded Scope Change Control;
+- Cross-Cutting Dependencies;
+- Owner-Authorized Exception Workstreams;
+- Temporary Multi-Module Exceptions;
+- residual-risk handling;
+- remediation;
+- suspension;
+- termination;
+- Non-Authorization boundaries.
+
+Настоящий Amendment не копирует, не заменяет и не изменяет эти механизмы.
+
+#### A.4 Strategic Track and Major Module Separation
+
+Strategic Track и Major Module являются различными governance-единицами.
+
+```text
+Strategic Track:
+Long-term strategic development direction recorded in the Roadmap
+
+Major Module:
+Separately bounded capability governed through its own
+architecture, preparation, implementation, evaluation and closure cycle
+```
+
+Применяются следующие правила:
+
+1. Один Strategic Track может содержать несколько Major Modules.
+2. Один Major Module может зависеть от нескольких Strategic Tracks.
+3. Наличие Track в Roadmap не означает, что соответствующий Major Module выбран.
+4. Roadmap priority не означает architecture authorization.
+5. Roadmap priority не означает implementation authorization.
+6. Закрытие одного bounded Major Module не означает автоматического закрытия всего Strategic Track.
+7. Открытие одного Major Module внутри Track не открывает автоматически все capabilities этого Track.
+
+#### A.5 Module-Completion-First Applied to Tracks A–H
+
+С даты Project Owner Acceptance настоящего Amendment стратегические Tracks A–H должны интерпретироваться совместно с Policy Revision 4.
+
+Roadmap сохраняет Tracks A–H как долгосрочные стратегические направления.
+
+Их присутствие в Roadmap само по себе не создаёт:
+
+- Primary Active Module selection;
+- architecture-cycle authorization;
+- Implementation Preparation authorization;
+- implementation authorization;
+- formal evaluation authorization;
+- provider authorization;
+- governed-data authorization;
+- repository-persistence authorization.
+
+В обычном режиме проект имеет один Primary Active Module.
+
+Другой Major Module не открывается автоматически из-за:
+
+- стратегической важности Track;
+- возможности использовать synthetic data;
+- доступности provider;
+- наличия свободных ресурсов;
+- perceived technical independence;
+- желания создать foundation;
+- будущей коммерческой ценности.
+
+#### A.6 Ordinary Opening of the Next Primary Active Module
+
+Обычное открытие следующего Primary Active Module допускается только после:
+
+```text
+Module Closure текущего Primary Active Module
+→ Post-Closure Synchronization
+→ Post-Closure Governance Complete
+→ отдельное Project Owner Decision о выборе следующего Primary Active Module
+→ preliminary Bounded Scope
+→ отдельная authorization подготовки Module Applicability Profile
+→ отдельная authorization architecture cycle
+```
+
+Само Module Closure:
+
+- не выбирает следующий Major Module;
+- не открывает следующий Track;
+- не авторизует architecture work;
+- не авторизует implementation;
+- не авторизует formal evaluation;
+- не заменяет отдельное Project Owner selection.
+
+Roadmap sequence или strategic priority также не заменяют отдельные lifecycle authorizations.
+
+#### A.7 Prospective Interpretation of Track C
+
+Исторический текст Roadmap о возможности независимого начала Track C на synthetic или curated data сохраняется физически без изменений.
+
+После Project Owner Acceptance настоящего Amendment эта формулировка:
+
+```text
+не создаёт самостоятельной execution authorization
+```
+
+и не разрешает автоматическое открытие Designer Intelligence как второго active Major Module.
+
+До состояния:
+
+```text
+Post-Closure Governance Complete
+```
+
+текущего Primary Active Module любая существенная работа, способная продвигать самостоятельную Designer Intelligence capability, допускается только через один из механизмов Policy Revision 4.
+
+К такой существенной работе относятся:
+
+- normative architecture drafting;
+- acceptance-oriented architecture work;
+- persistent architecture deliverables;
+- Implementation Package preparation;
+- implementation;
+- integration;
+- formal evaluation;
+- provider-enabled execution;
+- governed-data processing;
+- создание самостоятельной capability Track C.
+
+Без открытия Track C допустимы:
+
+- ненормативное обсуждение;
+- Owner-requested comparison;
+- preliminary non-normative assessment;
+- анализ альтернатив без создания persistent architecture deliverables;
+- подготовка будущего Owner Decision.
+
+Подготовка будущего Owner Decision допускается только:
+
+1. по прямому поручению Project Owner; либо
+2. на основании ранее принятой применимой authorization.
+
+Подготовка такого решения:
+
+- не авторизует предмет будущего решения;
+- не создаёт accepted architecture;
+- не создаёт implementation artifacts;
+- не создаёт execution authorization;
+- не должна использоваться как обход Module-Completion-First.
+
+#### A.8 Permitted Governance Mechanisms for Pre-Closure Track C Work
+
+##### A.8.1 Cross-Cutting Dependency
+
+Каждая конкретная Cross-Cutting Dependency требует отдельного Owner-authorized Bounded Scope и должна полностью удовлетворять Policy Revision 4 §15.
+
+В частности, она должна:
+
+- иметь прямую traceability к requirement текущего Primary Active Module;
+- иметь отдельный Owner-authorized Bounded Scope;
+- не создавать самостоятельную capability другого Major Module;
+- не создавать неограниченный foundation для будущих модулей;
+- не расширять implementation scope;
+- иметь closure condition;
+- прекращаться после выполнения closure condition либо требовать новой authorization;
+- не нарушать Hard Security Stop;
+- не использоваться как обход Module-Completion-First.
+
+Приведённый перечень воспроизводит девять условий Policy Revision 4 §15 для удобства чтения.
+
+Единственным нормативным источником требований к Cross-Cutting Dependency остаётся Policy Revision 4 §15.
+
+Если reference-list настоящего Amendment расходится с Policy Revision 4 §15:
+
+```text
+POLICY REVISION 4 §15 PREVAILS
+```
+
+и применяется Documentation Synchronization Stop до исправления reference-list.
+
+Настоящий Amendment только признаёт существование механизма Cross-Cutting Dependency.
+
+Он не авторизует ни одну конкретную Cross-Cutting Dependency.
+
+##### A.8.2 Owner-Authorized Exception Workstream
+
+Работа должна быть отдельно разрешена по Policy Revision 4 §17 с явным определением:
+
+- rationale;
+- Bounded Scope;
+- разрешённых activities;
+- запрещённых activities;
+- duration или closure condition;
+- priority;
+- resource impact;
+- dispersion risk;
+- termination criteria;
+- reporting;
+- closure record.
+
+Настоящий Amendment не создаёт Exception Workstream автоматически.
+
+##### A.8.3 Temporary Multi-Module Exception
+
+Полноценное параллельное открытие дополнительного active Major Module допускается только через отдельное:
+
+```text
+Temporary Multi-Module Exception Decision
+```
+
+по Policy Revision 4 §18.
+
+Настоящий Amendment не является таким решением.
+
+##### A.8.4 Synthetic Data Rule
+
+Использование:
+
+- synthetic data;
+- curated data;
+- mocked data;
+- isolated fixtures;
+
+само по себе:
+
+- не создаёт authorization;
+- не создаёт Cross-Cutting Dependency;
+- не создаёт Exception Workstream;
+- не открывает Track C;
+- не открывает Designer Intelligence как самостоятельный Major Module.
+
+#### A.9 Relationship to the Owner-Approved Amendment Dated 2026-07-16
+
+Owner-Approved Roadmap Amendment от 2026-07-16 остаётся действующим и не изменяется.
+
+Настоящий Amendment:
+
+- не редактирует его текст;
+- не переоткрывает его решения;
+- не переупорядочивает Mandatory Next Sequence;
+- не ослабляет Hard Security Stop;
+- не изменяет Diagnosability/Security Integration Boundary.
+
+Module-Completion-First определяет:
+
+```text
+какой Major Module является активным
+```
+
+Amendment от 2026-07-16 определяет:
+
+```text
+обязательную внутреннюю последовательность
+внутри текущего Primary Active Module
+```
+
+Эти governance-слои дополняют друг друга.
+
+#### A.10 Authoritative Mandatory Next Sequence Reference
+
+Для текущего Primary Active Module действует Mandatory Next Sequence, установленная Owner-Approved Roadmap Amendment от 2026-07-16:
+
+```text
+Supporting Contracts 1–10 accepted
+→ Combined Diagnosability & Security Compatibility Assessment
+→ Project Owner checkpoint on Assessment Criteria
+→ one retrospective compatibility pass
+→ AI Brain Diagnosability Architecture
+→ Security Architecture Baseline
+→ mandatory Diagnosability ↔ Security cross-check
+→ Phase-1 Scope Decision / Execution Profile
+→ Section 22 data-governance artifacts 1–7, 9–10
+→ Tier 1 Corpus Preparation Authorization
+```
+
+Приведённая последовательность является reference-copy для удобства чтения.
+
+Единственным нормативным источником этой последовательности остаётся:
+
+```text
+Owner-Approved Roadmap Amendment (2026-07-16)
+```
+
+При обнаружении любого расхождения между reference-copy и Amendment от 2026-07-16 применяется:
+
+```text
+DOCUMENTATION SYNCHRONIZATION STOP
+```
+
+В этом случае:
+
+- reference-copy не должна использоваться для execution;
+- reference-copy не должна использоваться как authorization basis;
+- reference-copy должна быть исправлена через применимое governance-действие;
+- нормативный Amendment от 2026-07-16 остаётся действующим;
+- его authoritative sequence продолжает применяться без изменения.
+
+Настоящий Amendment:
+
+- не изменяет состав Section 22 artifacts;
+- не добавляет новые artifacts;
+- не исключает artifacts 1–7, 9–10;
+- не изменяет prerequisite order;
+- не создаёт authorization на выполнение любого этапа.
+
+#### A.11 Hard Security Stop
+
+Hard Security Stop, установленный Owner-Approved Roadmap Amendment от 2026-07-16 и подтверждённый Policy Revision 4, остаётся без изменений.
+
+Для удобства чтения его применимый смысл кратко воспроизводится следующим образом:
+
+До принятия и проверки применимых security requirements запрещены:
+
+- реальные внешние provider invocations с governed data;
+- использование рабочих provider credentials;
+- передача governed data внешним AI-провайдерам.
+
+Безопасная due diligence может проводиться только в отдельно допустимых границах:
+
+- анализ публичной документации;
+- сравнение capabilities;
+- анализ terms;
+- работа без governed-data exposure;
+- работа без production credentials.
+
+Due diligence не авторизует:
+
+- provider evaluation;
+- provider selection;
+- implementation;
+- governed-data exposure.
+
+Настоящий раздел является reference-paraphrase для удобства чтения, а не отдельным нормативным определением Hard Security Stop.
+
+Единственным нормативным источником Hard Security Stop остаётся:
+
+```text
+Owner-Approved Roadmap Amendment (2026-07-16)
+```
+
+Если reference-paraphrase настоящего §A.11 расходится с нормативным текстом Amendment от 2026-07-16, применяется:
+
+```text
+DOCUMENTATION SYNCHRONIZATION STOP
+```
+
+В этом случае:
+
+- reference-paraphrase не должна использоваться для execution;
+- reference-paraphrase не должна использоваться как authorization basis;
+- она должна быть исправлена через применимое governance-действие;
+- нормативный Hard Security Stop от 2026-07-16 остаётся действующим;
+- более строгая применимая граница сохраняется до устранения расхождения.
+
+#### A.12 Roadmap Version Effect
+
+Living Strategic Roadmap остаётся:
+
+```text
+Version 1.4
+```
+
+Настоящий Amendment:
+
+- не создаёт v1.5;
+- не заменяет Roadmap v1.4;
+- не создаёт самостоятельный sequencing framework;
+- не заменяет Policy Revision 4;
+- добавляется append-only после Amendment от 2026-07-16.
+
+#### A.13 Permanent Non-Authorization
+
+Настоящий Amendment не авторизует:
+
+- открытие Track B, C, D, E, F, G или H как Primary Active Module;
+- открытие связанного будущего Major Module;
+- normative architecture drafting другого Major Module;
+- acceptance-oriented architecture work другого Major Module;
+- persistent architecture deliverables другого Major Module;
+- Implementation Package другого Major Module;
+- implementation другого Major Module;
+- formal evaluation другого Major Module;
+- Cross-Cutting Dependency;
+- Owner-Authorized Exception Workstream;
+- Temporary Multi-Module Exception;
+- изменение Mandatory Next Sequence;
+- изменение Hard Security Stop;
+- изменение Section 22 artifact set;
+- provider contact;
+- provider invocation;
+- provider credentials;
+- governed-data exposure;
+- provider/model evaluation;
+- provider/model selection;
+- любую implementation или deployment, не разрешённые отдельным применимым Project Owner Decision;
+- repository persistence иных документов.
+
+Каждая конкретная downstream authorization требует отдельного применимого Project Owner Decision.
+
+### Section B — Initial Application Record
+
+```text
+Record type:
+Time-bounded initial Roadmap application record
+
+Record date:
+2026-07-17
+
+Nature:
+Current-state snapshot, not permanent sequencing law
+
+Future state changes:
+Must be recorded through Project Owner Decisions and Project Context.
+
+Roadmap amendment revision:
+Not required solely because current module state later changes,
+unless the permanent sequencing rule itself changes.
+```
+
+#### B.1 Current Primary Active Module
+
+На дату вступления настоящего Amendment в силу текущим Primary Active Module является:
+
+```text
+Bounded Room Understanding / Spatial Perception
+```
+
+Его strategic Roadmap placement:
+
+```text
+Track A — Spatial Perception
+```
+
+Это является mapping текущего bounded Major Module к Strategic Track.
+
+Это не означает, что:
+
+- весь Track A является одним Major Module;
+- весь Track A открыт;
+- весь Track A входит в текущий Bounded Scope;
+- закрытие текущего модуля автоматически закрывает Track A;
+- будущие perception capabilities Track A уже авторизованы.
+
+#### B.2 Current Bounded Scope Reference
+
+Текущий Bounded Scope определяется исключительно действующими authoritative Candidate A governance documents и Policy Revision 4 Annex A.
+
+Настоящий Amendment:
+
+- не воспроизводит полный Bounded Scope;
+- не создаёт отдельное scope definition;
+- не изменяет действующий scope;
+- не заменяет Candidate A Bounded Scope Decision;
+- не заменяет Test Data Handling Decision;
+- не заменяет Evaluation Threshold Plan.
+
+Ненормативное краткое описание:
+
+```text
+Current bounded module:
+single-room spatial perception from a single image,
+as defined by the authoritative Candidate A baseline
+
+Classification:
+INFORMATIONAL SUMMARY ONLY —
+NOT A SEPARATE SCOPE DEFINITION
+```
+
+#### B.3 Current Lifecycle State
+
+```text
+Current Primary Active Module:
+Bounded Room Understanding / Spatial Perception
+
+Current lifecycle state:
+ARCHITECTURE CYCLE IN PROGRESS
+
+Architectural Readiness:
+NOT ACHIEVED
+
+Implementation Preparation:
+NOT AUTHORIZED
+
+Implementation:
+NOT AUTHORIZED
+
+Formal Evaluation:
+NOT AUTHORIZED
+
+Module Closure:
+NOT ACHIEVED
+```
+
+#### B.4 Current Roadmap Status of Tracks B–H
+
+Tracks B–H сохраняют Roadmap-status:
+
+```text
+PLANNED
+```
+
+`Planned` является Roadmap-status и не является lifecycle-state Policy Revision 4.
+
+На эту дату ни один bounded Major Module, стратегически относящийся к Tracks B–H:
+
+- не выбран как Primary Active Module;
+- не имеет automatic architecture authorization;
+- не имеет automatic implementation authorization;
+- не имеет automatic formal evaluation authorization.
+
+Если отдельное Project Owner Decision не установило иной статус конкретного bounded Major Module, такой модуль не считается продвинутым выше:
+
+```text
+Identified
+```
+
+Это time-bounded status statement, а не вечное присвоение одного lifecycle-state всем будущим модулям Tracks B–H.
+
+#### B.5 Current Tracks B–H
+
+```text
+Track B — Project & Asset Foundation
+Roadmap status: PLANNED
+Currently selected bounded Major Module from this Track: NONE
+
+Track C — Designer Intelligence
+Roadmap status: PLANNED
+Currently selected bounded Major Module from this Track: NONE
+
+Track D — Editing and Continuity
+Roadmap status: PLANNED
+Currently selected bounded Major Module from this Track: NONE
+
+Track E — MultiView and Project Memory
+Roadmap status: PLANNED
+Currently selected bounded Major Module from this Track: NONE
+
+Track F — Professional Workflow
+Roadmap status: PLANNED
+Currently selected bounded Major Module from this Track: NONE
+
+Track G — Implementation and Commerce
+Roadmap status: PLANNED
+Currently selected bounded Major Module from this Track: NONE
+
+Track H — Platform Operations
+Roadmap status: PLANNED
+Currently selected bounded Major Module from this Track: NONE
+```
+
+#### B.6 Current Mandatory Internal Sequence
+
+Для текущего Primary Active Module действует Mandatory Next Sequence Amendment от 2026-07-16.
+
+Настоящий Initial Application Record только фиксирует факт её применимости.
+
+Он:
+
+- не изменяет sequence;
+- не авторизует следующий этап;
+- не утверждает выполнение Supporting Contracts 1–10;
+- не авторизует Diagnosability/Security Assessment;
+- не авторизует Security Architecture;
+- не авторизует Phase-1;
+- не авторизует Section 22 artifacts;
+- не авторизует corpus preparation.
+
+#### B.7 Current Governance Status
+
+```text
+Roadmap Amendment Revision 5:
+OWNER-APPROVED
+
+Project Owner Acceptance:
+COMPLETED — 2026-07-17
+
+Open findings:
+NONE
+
+Repository persistence:
+PERSISTED
+
+Project Context v2.4 drafting:
+NOT AUTHORIZED
+
+Supporting Contracts 1–10 drafting:
+NOT AUTHORIZED
+
+Contract 10 Identity Alignment:
+NOT AUTHORIZED
+
+Module Applicability Profile drafting:
+NOT AUTHORIZED
+
+Implementation Preparation:
+NOT AUTHORIZED
+
+Implementation:
+NOT AUTHORIZED
+
+Formal Evaluation:
+NOT AUTHORIZED
+
+Provider activity with governed data:
+PROHIBITED BY HARD SECURITY STOP
+```
+
+#### B.8 Initial Application Record Update Rule
+
+Будущие изменения:
+
+- Primary Active Module;
+- lifecycle state;
+- status конкретного bounded module;
+- Module Closure;
+- selection следующего module;
+- exception authorizations;
+
+должны фиксироваться через:
+
+- отдельные Project Owner Decisions;
+- Project Context;
+- применимые governance records.
+
+Они не требуют нового Roadmap Amendment, если постоянные правила Section A не изменяются.
+
+### Section C — Amendment-Level Non-Authorization
+
+Настоящий accepted Amendment не создаёт downstream authorization.
+
+Он не авторизует:
+
+- Project Context v2.4;
+- Supporting Contracts 1–10 drafting;
+- Contract 10 Identity Alignment;
+- Module Applicability Profile drafting;
+- Cross-Cutting Dependency;
+- Exception Workstream;
+- Temporary Multi-Module Exception;
+- provider activity;
+- governed-data exposure;
+- corpus;
+- fixtures;
+- annotation;
+- ADR;
+- Implementation Package;
+- implementation;
+- deployment.
+
+### Section D — Effective Date and Acceptance/Persistence Separation
+
+#### D.1 Effective Date
+
+```text
+Amendment status:
+OWNER-APPROVED ROADMAP AMENDMENT
+
+Acceptance date:
+2026-07-17
+
+Effective date:
+2026-07-17
+
+Roadmap normative effect:
+ACTIVE
+```
+
+#### D.2 Acceptance-Date Synchronization
+
+Metadata-only acceptance synchronization has been resolved as follows:
+
+```text
+Amendment status:
+OWNER-APPROVED ROADMAP AMENDMENT
+
+Effective date:
+2026-07-17
+
+Initial Application Record date:
+2026-07-17
+
+Project Owner Acceptance:
+COMPLETED
+
+Open findings:
+NONE
+```
+
+This synchronization does not alter the normative content.
+
+#### D.3 Repository Persistence
+
+Repository persistence is authorized only by the direct Project Owner instruction contained in the execution prompt for this amendment.
+
+```text
+Repository persistence:
+PERSISTED
+```
+
+The commit recording this persistence is identified in the repository's own commit history (`git log`) rather than restated here, since a commit cannot record its own hash in advance.
+
+Do not infer authorization for any other artifact or downstream activity.
