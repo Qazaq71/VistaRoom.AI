@@ -3,7 +3,7 @@
 ```text
 Document type: Proposed Owner Governance Scope Decision (not an ADR,
     not an Implementation Package) — standalone successor candidate
-Status: Draft — Verification Passed; Awaiting Project Owner Acceptance. Not Accepted.
+Status: Accepted — Project Owner, 2026-07-18
 Revision: 5 (proposed successor revision; does not modify, replace or
     supersede Revision 3 unless and until separately accepted by the
     Project Owner)
@@ -22,15 +22,16 @@ Relationship to Revision 3: Revision 3 remains the sole authoritative
 Prepared by: Claude (Chief Software Architect / Specification Partner)
 Prepared for: Project Owner (Nurlan)
 Preparation date: 2026-07-18
-Accepted by: Not yet accepted
-Acceptance date: Not applicable
+Accepted by: Project Owner Nurlan
+Acceptance date: 2026-07-18
+Commit at acceptance: 9578c3f73dd72ae122fe523909bce721fc1ede93
+Supersedes: Revision 3
+Revision 3: Historical baseline
 Accepted architecture baseline referenced (unchanged, not reopened):
     Perception Mechanism Selection and Evaluation Architecture,
     Revision 3 (Accepted, 2026-07-14)
 Repository: Qazaq71/VistaRoom.AI, branch main
-Repository persistence: Completed for verification access only in
-    commit bc860f54d797ee8cdb2b2201f61676b3c295528a. This persistence
-    does not constitute Project Owner acceptance.
+Repository persistence: Completed
 Implementation: Not authorized by this document
 ```
 
@@ -1043,13 +1044,15 @@ This self-check does not declare this document Accepted. It records only that th
 
 ```text
 Document status:
-Draft — Verification Passed; Awaiting Project Owner Acceptance.
+Accepted — Project Owner, 2026-07-18.
 
-Not Accepted.
-Repository persistence authorized for verification access only;
-this does not constitute acceptance.
+Accepted by: Project Owner Nurlan.
+Acceptance date: 2026-07-18.
+Commit at acceptance: 9578c3f73dd72ae122fe523909bce721fc1ede93.
 
-Revision 3 remains authoritative until this Revision 5 is accepted.
+Revision 5 supersedes Revision 3, effective on the acceptance date
+above. Revision 3 remains on disk, unmodified, as the historical
+baseline.
 Revision 4 was a draft and is superseded by this Revision 5 draft.
 
 Revision:
@@ -1057,15 +1060,12 @@ Revision:
 Revision 4 draft).
 
 Repository persistence:
-Completed for verification access only. Commit:
-bc860f54d797ee8cdb2b2201f61676b3c295528a. Does not constitute
-Project Owner acceptance.
+Completed.
 
 Toilet room:
-Accepted as the fifth bounded room type — PENDING Project Owner
-acceptance of this Revision 5. Not yet accepted. Operational
-evaluation activation additionally pending a separate future Rev13
-alignment decision even after Revision 5 itself is accepted.
+Accepted as the fifth bounded room type. Operational evaluation
+activation additionally pending a separate future Rev13 alignment
+decision.
 
 Rev13, Contracts 1-10 Preparation and Dependency Plan (both the
 accepted Revision 4 and the existing unaccepted Revision 5 draft),
