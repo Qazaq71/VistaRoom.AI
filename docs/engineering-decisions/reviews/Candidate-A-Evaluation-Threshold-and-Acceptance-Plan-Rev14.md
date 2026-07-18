@@ -1279,6 +1279,11 @@ recorded in Sections 3, 6, 14-17, 20.
 Schema, corpus, provider, and implementation authorization:
 Not granted by this document.
 
-Repository changes performed:
+Repository changes performed during initial drafting:
 NO.
+
+Repository persistence performed subsequently:
+YES — for review access only, in commit
+bd76df3f2da01cdcd572bd72bc53c60b49773a90.
+This persistence does not constitute Project Owner acceptance.
 ```
