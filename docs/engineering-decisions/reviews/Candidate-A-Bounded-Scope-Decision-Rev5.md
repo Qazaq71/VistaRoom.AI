@@ -3,7 +3,7 @@
 ```text
 Document type: Proposed Owner Governance Scope Decision (not an ADR,
     not an Implementation Package) — standalone successor candidate
-Status: Draft — Awaiting Project Owner Verification. Not Accepted.
+Status: Draft — Verification Passed; Awaiting Project Owner Acceptance. Not Accepted.
 Revision: 5 (proposed successor revision; does not modify, replace or
     supersede Revision 3 unless and until separately accepted by the
     Project Owner)
@@ -28,7 +28,9 @@ Accepted architecture baseline referenced (unchanged, not reopened):
     Perception Mechanism Selection and Evaluation Architecture,
     Revision 3 (Accepted, 2026-07-14)
 Repository: Qazaq71/VistaRoom.AI, branch main
-Repository persistence: Not performed; not authorized by this document
+Repository persistence: Completed for verification access only in
+    commit bc860f54d797ee8cdb2b2201f61676b3c295528a. This persistence
+    does not constitute Project Owner acceptance.
 Implementation: Not authorized by this document
 ```
 
@@ -868,7 +870,12 @@ This Revision 5 does not authorize, and repeats/extends the equivalent Revision 
 ```text
 - Modification, deletion, or repository change of Revision 3 or
   Revision 4.
-- Repository persistence of this Revision 5.
+- Repository persistence already completed: verification-access
+  persistence of this draft only (commit
+  bc860f54d797ee8cdb2b2201f61676b3c295528a). Not authorized: any
+  further persistence representing acceptance, finalization,
+  supersession synchronization, downstream authorization, or edits to
+  other governance documents.
 - Staging, commit, or push of any file as a result of this document.
 - ADR creation or ADR_INDEX/README modification.
 - Any edit to Evaluation Threshold and Acceptance Plan Revision 13.
@@ -1036,7 +1043,7 @@ This self-check does not declare this document Accepted. It records only that th
 
 ```text
 Document status:
-Draft — Awaiting Project Owner Verification.
+Draft — Verification Passed; Awaiting Project Owner Acceptance.
 
 Not Accepted.
 Repository persistence authorized for verification access only;
@@ -1050,7 +1057,9 @@ Revision:
 Revision 4 draft).
 
 Repository persistence:
-Not performed. Not authorized by this document.
+Completed for verification access only. Commit:
+bc860f54d797ee8cdb2b2201f61676b3c295528a. Does not constitute
+Project Owner acceptance.
 
 Toilet room:
 Accepted as the fifth bounded room type — PENDING Project Owner
