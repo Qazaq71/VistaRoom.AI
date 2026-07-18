@@ -3,7 +3,14 @@
 ```text
 Document type: Proposed Owner Governance Decision (not an ADR; not an
     Implementation Package) — standalone successor candidate
-Status: Draft — Awaiting Project Owner Verification. Not Accepted.
+Status: Accepted — Project Owner, 2026-07-18
+Accepted by: Project Owner Nurlan
+Acceptance date: 2026-07-18
+Commit at acceptance: 4163d939f9bbafde26e188bd324fb666aceec637
+Supersedes: Revision 13
+Revision 13: Historical baseline
+Project Owner acceptance: Completed
+Downstream authorization: Not granted
 Revision: 15 (proposed successor to Revision 13; correction-only
     successor to Revision 14; does not modify, replace or supersede
     Revision 13 unless and until separately accepted by the Project
@@ -37,10 +44,7 @@ Prepared by: Claude (Chief Software Architect / Specification Partner)
 Prepared for: Project Owner (Nurlan)
 Preparation date: 2026-07-18
 Repository: Qazaq71/VistaRoom.AI, branch main
-Repository persistence: Authorized and completed for verification
-    access only. This persistence does not constitute Project Owner
-    acceptance. Revision 13 remains authoritative until separate
-    acceptance of this Revision 15.
+Repository persistence: Completed
 Implementation: Not authorized by this document
 Corpus creation or annotation: Not authorized by this document
 Contract 1-10 drafting: Not authorized by this document
@@ -1370,17 +1374,21 @@ This self-check does not declare this document Accepted. It records only that th
 
 ```text
 Document status:
-Draft — Awaiting Project Owner Verification.
-Not Accepted.
-Repository persistence of this Revision 15: Authorized and completed
-for verification access only. This persistence does not constitute
-Project Owner acceptance. Revision 13 remains authoritative until
-separate acceptance of this Revision 15 (Section 21).
+Accepted — Project Owner, 2026-07-18.
+
+Accepted by: Project Owner Nurlan.
+Acceptance date: 2026-07-18.
+Commit at acceptance: 4163d939f9bbafde26e188bd324fb666aceec637.
+Project Owner acceptance: Completed.
+Downstream authorization: Not granted.
+
+Revision 15 supersedes Revision 13, effective on the acceptance date
+above. Revision 13 remains on disk, unmodified, as the historical
+baseline (Section 21).
 
 Current authoritative baseline:
-Candidate-A-Evaluation-Threshold-and-Acceptance-Plan-Rev13.md — Accepted.
-Revision 13 remains authoritative until separate Project Owner acceptance
-of this Revision 15.
+Candidate-A-Evaluation-Threshold-and-Acceptance-Plan-Rev15.md — Accepted.
+Revision 13: Historical baseline.
 
 Revision 14 status:
 Reviewed draft. Superseded as the active successor proposal by this
