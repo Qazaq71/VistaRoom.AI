@@ -551,15 +551,26 @@ bounded module inside it.
 ### 7.2 Current bounded operation
 
 ```text
-one governed input image/photo
-one residential room per operation
-one operation-level result
-complete selected residential room scope across supported operations
+one governed capture set of 1–6 ImageAsset objects, materially
+    consistent, per RoomCase
+exactly one active RoomCase per operation
+
+Current profile:
+    Operation.RoomCase = exactly 1
+
+Future architectural extensibility (not activated now):
+    Operation.RoomCase[1..N]
+
+one consolidated operation-level PerceptionResult
+complete selected residential room scope — 34 active user-facing
+    categories, including kitchen_living_room as a named Composite
+    Space Profile — across supported operations
 ```
 
-The single-room operation boundary does not permit a five-room-only product
-scope. Each selected residential room category must be supported by the same
-governed operation model before the module may be declared complete.
+The single-room operation boundary does not permit a phased or partial
+room-category rollout. Each of the 34 selected residential room categories
+must be supported by the same governed operation model, using the same
+1–6 image capture-set model, before the module may be declared complete.
 
 ### 7.3 Current module responsibility
 
@@ -841,14 +852,51 @@ PLANNED — NOT OPENED
 
 Track E owns future capabilities beyond the current bounded operation:
 
-- multiple images of one room;
-- multi-view evidence fusion;
+- persistent, cross-session multi-view evidence accumulation for one
+  room (distinct from the current Track A temporary, same-operation,
+  non-persistent multi-image fusion within a single 1–6 image capture
+  set, which is part of the current bounded operation, §7.2);
+- multiple physical rooms within one operation (RoomCase[1..N]
+  activation);
 - long-term room/project memory;
 - cross-room consistency;
 - whole-home graph;
 - spatial continuity across sessions;
 - possible 3D reconstruction successors;
 - video-derived spatial evidence where separately assessed.
+
+#### Track E Compatibility Foundation — required now, without activation
+
+While the Track E capabilities above remain PLANNED — NOT OPENED, the
+current architecture must already reflect stable compatibility with them,
+so that their future opening does not force replacement of Contract 1,
+Contract 2, StructuredScene or PerceptionResult:
+
+- reserved Property and Project identity boundaries above the current
+  Operation scope;
+- reserved future RoomView identity and an optional future binding
+  boundary from RoomCase to RoomView;
+- reserved future RoomStateVersion identity, supporting versioned room
+  state over time;
+- cross-session evidence/provenance compatibility, consistent with the
+  Minimal Controlled Learning Compatibility Foundation (§16.2);
+- reserved inter-room relation and project-memory reference points;
+- reserved 2.5D/3D extension points (camera-pose, depth, scale,
+  coordinate-system and floor-plan-alignment references), additive to
+  StructuredScene without requiring schema replacement.
+
+None of the above activates Track E, authorizes persistent storage, or
+authorizes cross-session data use. It only ensures the current
+architecture does not need to be rebuilt when Track E is later opened by
+separate Project Owner authorization.
+
+Hard governance stop:
+
+```text
+The Spatial Perception Implementation Package must not be authorized
+until the Track E Compatibility Foundation is traced into the relevant
+contracts, schemas, MAP obligations and acceptance criteria.
+```
 
 ### 11.2 Foundation-impact qualification
 
@@ -1033,9 +1081,13 @@ Every relevant future contract must support, as applicable:
 - evidence/provenance;
 - confidence and validation outcomes;
 - reason/error codes;
-- failure localization;
+- failure localization, including localization to the specific input
+  asset within a multi-asset operation, distinct from operation-level
+  failure;
 - reproducibility hooks;
 - distinction among data, model, rule and integration failure;
+- explicit separation of operational processing diagnostics from
+  semantic evidence, with governed cross-references between them;
 - user-facing explanation boundaries where appropriate.
 
 Full AI Brain Diagnosability Architecture remains a separate governance cycle
@@ -1050,7 +1102,10 @@ Every relevant future contract must support, as applicable:
 - data classification;
 - integrity references;
 - retention/deletion awareness;
-- privacy boundaries;
+- privacy boundaries, remaining valid across the current single-operation
+  scope and the reserved future Property/Project/RoomView identity
+  hierarchy (§11.1), without requiring foundation replacement when that
+  hierarchy is later activated;
 - safe failure;
 - audit/security event hooks;
 - external-provider boundaries.
@@ -1518,7 +1573,7 @@ authorized assessment.
 
 Current high-impact candidates include, without claiming exclusivity:
 
-- multi-image and whole-home representation;
+- persistent cross-session multi-image and whole-home representation;
 - 3D reconstruction;
 - project/asset versioning;
 - design-ready material model;

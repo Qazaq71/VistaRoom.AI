@@ -24,10 +24,10 @@ Accepted artifact:
 VistaRoom-AI-Full-Platform-Vision-Architecture-Rev5.md
 
 Accepted artifact line count:
-1715
+1770
 
 Accepted artifact SHA-256:
-fbd5ec47f9033c24e0677b586515b439bf94165286fa227895b115e1fc68e467
+428e9570902e48ae91f9f61b83cded67e27b446d0e2124e39b3df31655028929
 
 Accepted baseline type:
 FULL-PLATFORM VISION ARCHITECTURE
@@ -54,10 +54,10 @@ This acceptance applies only to the exact immutable artifact identified by:
 
 ```text
 Line count:
-1715
+1770
 
 SHA-256:
-fbd5ec47f9033c24e0677b586515b439bf94165286fa227895b115e1fc68e467
+428e9570902e48ae91f9f61b83cded67e27b446d0e2124e39b3df31655028929
 ```
 
 The accepted artifact is one complete, self-contained and mechanically
@@ -78,11 +78,11 @@ Revision 5 file:
 VistaRoom-AI-Full-Platform-Vision-Architecture-Rev5.md
 
 Revision 5 lines:
-1715 — MATCH
+1770 — MATCH (post-correction, see §18)
 
 Revision 5 SHA-256:
-fbd5ec47f9033c24e0677b586515b439bf94165286fa227895b115e1fc68e467
-— MATCH
+428e9570902e48ae91f9f61b83cded67e27b446d0e2124e39b3df31655028929
+— MATCH (post-correction, see §18)
 
 Full-document read:
 CONFIRMED
@@ -776,10 +776,10 @@ as the current authoritative Full-Platform Vision Architecture baseline
 for VistaRoom AI.
 
 Accepted artifact line count:
-1715
+1770
 
 Accepted artifact SHA-256:
-fbd5ec47f9033c24e0677b586515b439bf94165286fa227895b115e1fc68e467
+428e9570902e48ae91f9f61b83cded67e27b446d0e2124e39b3df31655028929
 
 Acceptance date:
 2026-07-21
@@ -800,4 +800,35 @@ boundaries remain in force.
 
 No Root Impact Assessment, downstream architecture, implementation,
 synchronization or repository action is authorized by this decision.
+```
+
+---
+
+## 18. Phase 1 root-transition correction record
+
+```text
+Document revision:
+REMAINS REVISION 5 — NO REVISION 6 CREATED
+
+Correction type:
+TARGETED OWNER-APPROVED IN-PLACE PHASE 1 ROOT-TRANSITION CORRECTION
+
+New authoritative artifact line count:
+1770
+
+New authoritative artifact SHA-256:
+428e9570902e48ae91f9f61b83cded67e27b446d0e2124e39b3df31655028929
+
+Prior content:
+PRESERVED THROUGH GIT HISTORY
+
+Broader root-transition package synchronization:
+IN PROGRESS — NOT YET COMPLETE
+
+This correction does not authorize:
+- implementation;
+- corpus preparation;
+- provider or model evaluation;
+- Track E activation;
+- push.
 ```
