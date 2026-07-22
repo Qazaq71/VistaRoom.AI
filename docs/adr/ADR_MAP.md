@@ -83,6 +83,30 @@ This is deliberately narrower than the full Area chain above — R1
 explicitly rejected building a full bridge across all 20 PCS/ACS
 documents as redesign; only the two nodes exercised by Gate 1 are mapped.
 
+### Perception Boundary (ADR-014, ADR-015)
+
+Not a placeholder — [ADR-014](ADR-014-Perception-Boundary.md) established
+the historical single-image Perception Boundary predecessor.
+[ADR-015](ADR-015-Multi-Image-Perception-Boundary.md) is an accepted,
+narrowly bounded extension of it, not a full replacement:
+
+```
+ADR-014                          ADR-015
+────────────────────────────     ──────────────────────────────
+Historical single-image      →   Accepted bounded same-operation
+Perception Boundary              1–6 ImageAsset extension
+(predecessor)                    (partially supersedes ONLY
+                                  ADR-014 Section 5's multi-view
+                                  exclusion; all other ADR-014
+                                  decisions, boundaries and
+                                  exclusions remain Accepted and
+                                  unchanged)
+```
+
+ADR-015 does not activate Track E, persistent multi-view evidence
+accumulation, cross-session memory, multi-room execution, video,
+panorama, or 3D reconstruction — all remain out of scope (ADR-015 §5).
+
 ## Architecture Milestone Map
 
 Coarser-grained than the [Architecture Map](#architecture-map) above (ADR

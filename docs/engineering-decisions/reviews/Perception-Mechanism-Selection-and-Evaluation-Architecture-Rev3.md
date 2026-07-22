@@ -19,6 +19,29 @@ Repository: Qazaq71/VistaRoom.AI, branch main
 Repository persistence: Authorized by Project Owner for this accepted
     document. Not committed or pushed by this action.
 Implementation: Not authorized by this document.
+
+In-place correction applied, in the Claude Project sandbox only (this file's body, unchanged except where noted): Part C, Part M, and
+Part N have been extended, in place, under the same filename and
+Revision 3 identity, to add explicit multi-image (1–6 ImageAsset)
+support consistent with the binding 34-category/1–6-image root-
+transition (Bounded Scope Rev5, in-place corrected, commit
+565a3a03294086f319ccec5ff2e77afb5af8a9e1). This correction does not
+create Revision 4. Mechanism Class B (already selected, Part AC
+Decision 2) is not reopened; Class A/C/D comparative content
+elsewhere in this document is retained unchanged as historical
+comparative analysis. Git history preserves the pre-correction text.
+
+This Phase 3 correction status: OWNER-ACCEPTED. Accepted by: Project
+Owner (Nurlan). Phase 3 acceptance date: 2026-07-22. Repository
+persistence: Authorized for direct persistence to main. Revision 4
+was not created. Push is not authorized by this acceptance action.
+The "Accepted" status and 2026-07-14 acceptance date above describe
+the pre-existing Revision 3 baseline only; this Phase 3 correction
+is accepted separately per the metadata immediately above.
+
+Base SHA-256 (pre-correction, Accepted 2026-07-14):
+658401949dfda49b7e59e6fa57855071a2a83a97396b16bc2d3476583acadf9a
+(1382 lines)
 ```
 
 ## Non-authorization statement
@@ -117,19 +140,69 @@ Revision 3 полностью заменяет Revision 2 как текущий 
 
 Получает изображение (+ опциональный контекст/SpaceTypeId) и производит семантическую информацию о сцене. Это единственная функция, требующая image access.
 
+**Multi-image extension (Bounded Scope Rev5 Section 2B, Section 8A/8B — 1–6 ImageAsset per RoomCase, Class B binding):** в рамках текущего bounded operation C.1 вызывается один раз на каждый `ImageAsset` (от 1 до 6), производя одно per-image observation/evidence. Сам контракт C.1 (один образ → одна семантическая интерпретация) не меняется независимо от числа вызовов; topology вызовов (последовательно, параллельно, batched) остаётся provider-neutral и не фиксируется этим документом.
+
+### C.1.5 MultiImageFusion (новая функция, обязательна при N > 1)
+
+Присутствует между C.1 (все N вызовов) и C.2. Не заменяет и не дублирует ни C.1, ни C.2.
+
+```text
+Вход:  N per-image observations/evidence (1<=N<=6), каждое со своим
+       imageAssetId (Part M, PerceptionEvidenceArtifact).
+Выход: один FusedRoomCandidate.
+
+Обязанности:
+- SameRoomAssessment — подтверждение, что все ImageAsset относятся к
+  одному физическому помещению;
+- CrossViewEntityCorrespondence — связывание наблюдений одного и того
+  же объекта/элемента across views в единый claim, без дублирования;
+- Contradiction Analysis — обнаружение и сохранение (не сокрытие)
+  противоречий между изображениями;
+- duplicate suppression и near-duplicate down-weighting (Bounded Scope
+  Rev5 Section 8A.1) — дубликаты никогда не увеличивают итоговую
+  confidence искусственно;
+- temporal/material consistency checking — обнаружение before/after
+  пар и существенной перестановки мебели между кадрами;
+- claim-to-image traceability — каждый итоговый claim сохраняет
+  ссылки на конкретные ImageAsset, из которых он выведен.
+```
+
+**FusionConsistencyStage (governed boundary):** MultiImageFusion производит один из следующих исходов, определённых в Bounded Scope Rev5 Section 8C:
+
+```text
+- продолжение к FusedRoomCandidate (путь к C.2);
+- RejectedResult (mixed-room set, before/after пара, существенное
+  изменение состояния помещения между кадрами, нарушение
+  capture-set invariants);
+- InsufficientEvidenceResult (same-room identity не подтверждена, или
+  совокупный evidence недостаточен);
+- управляемая передача технической ошибки в FailureResult, отдельно
+  от семантического отклонения.
+```
+
+Semantic rejection и technical failure никогда не объединяются в один неразличимый исход (Bounded Scope Rev5 Section 8B.1).
+
+При N=1 (единственное изображение) MultiImageFusion присутствует формально, но SameRoomAssessment и CrossViewEntityCorrespondence тривиальны (нечего сопоставлять); pipeline остаётся полностью обратно совместимым с исторической one-image моделью — N=1 является частным случаем 1–6, не отдельным путём выполнения.
+
 ### C.2 Candidate conformance / normalization
 
 Преобразует, ограничивает или отклоняет untrusted intermediate candidate до формирования ADR-013-compatible scene. Не требует image access — работает над уже произведённой structural-репрезентацией.
+
+**Multi-image extension:** при N>1 вход C.2 — это `FusedRoomCandidate` (результат C.1.5), а не единичный per-image candidate. C.2 сохраняет multi-source provenance внутри каждого claim (не сплющивает ссылки на несколько ImageAsset в одну), сохраняет contradiction records, переданные из C.1.5, и нормализует Composite Space Profile evidence (Bounded Scope Rev5 Section 6.3), где применимо, не теряя evidence ни одного из двух компонентов.
 
 ### C.3 Final boundary validation
 
 Проверяет уже сформированный `StructuredSceneV0`. Не исправляет semantic content, не выполняет image interpretation, не доказывает semantic truth. Принимает или отклоняет результат. Это существующий Step 5 (Boundary Validator) — без изменений, применим ко всем классам одинаково.
 
+**Multi-image extension:** набор проверок Boundary Validator (ADR-014 §4.7, 13 кодов нарушений) расширяется дополнительными inвариантами: source-image reference validity (все imageAssetId в claims существуют), RoomCase/capture-set cardinality (1–6), same-room invariant, contradiction preservation (contradiction records не были тихо отброшены), Composite Space Profile invariants, claim-to-image lineage. Топология самого C.3 (существующий Step 5) не меняется — расширяется только набор проверяемых инвариантов.
+
 ### Единый comparative pipeline
 
 ```text
-Input
-→ mechanism-specific interpretation (C.1)
+Input (1–6 ImageAsset per RoomCase, Bounded Scope Rev5 Section 8A)
+→ mechanism-specific interpretation (C.1, один раз на каждый ImageAsset)
+→ [N>1: MultiImageFusion / FusionConsistencyStage (C.1.5) →
+    FusedRoomCandidate] ИЛИ [N=1: тривиальный проход через C.1.5]
 → declared intermediate candidate ИЛИ direct scene output
     (зависит от класса — Part F/G/H/I)
 → optional candidate conformance (C.2 — присутствует у Class B,
@@ -202,12 +275,19 @@ Gate 1: Closed, 2026-07-09. Gate 2 (C8): Closed within representation-
 **Photo-to-scene boundary согласно единому pipeline (Part C):**
 
 ```text
-Room photo (+ опциональный контекст + опциональный SpaceTypeId
-    reference input, не re-derived)
-→ C.1 perception interpretation (не реализовано — предмет документа)
-→ [Class B: untrusted candidate → C.2 existing Step 2] ИЛИ
-   [Class A: direct ADR-013-conformant output, C.2 отсутствует]
-→ C.3 Boundary Validator (Step 5, существующий, без изменений)
+1–6 governed ImageAsset objects per RoomCase (+ опциональный контекст
+    + опциональный SpaceTypeId reference input, не re-derived;
+    Bounded Scope Rev5 Section 8A)
+→ C.1 perception interpretation, один раз на каждый ImageAsset (не
+    реализовано — предмет документа)
+→ MultiImageFusion / FusionConsistencyStage (C.1.5, Part C) —
+    тривиальна при N=1
+→ [Class B (binding): FusedRoomCandidate → C.2 existing Step 2] ИЛИ
+   [Class A: direct ADR-013-conformant output, C.2 отсутствует —
+   historical comparative alternative, не активный путь, Part AC
+   Decision 2]
+→ C.3 Boundary Validator (Step 5, существующий, расширенный набор
+   инвариантов — Part C)
 → Evaluation Harness (Step 6, существующий, Layer 2)
 ```
 
@@ -575,7 +655,11 @@ Image grounding: проверяемая связь произведённого 
 scene graph, не являющийся Project Memory.
 
 Связывает:
-- source image identifier;
+- source image identifier(s) — одно или несколько, при claim-level
+  evidence, полученном из нескольких ImageAsset одного RoomCase
+  (Bounded Scope Rev5 Section 8A, Section 8D); при single-image claim
+  (N=1 или evidence виден только в одном кадре) — одно значение, как
+  и прежде;
 - preprocessed image identifier, если применимо (Part P.1);
 - candidate or scene element identifier (stable identity, ADR-013
   Identity attribute — не новое поле в самой StructuredSceneV0);
@@ -626,6 +710,24 @@ attribute) and ADR-014 §4.5 item 6 (grounding to nodes/relations/
 attributes), without modification of those ADRs.
 ```
 
+### M.6 Разделение evidence и diagnostics (Bounded Scope Rev5 Section 8D)
+
+Multi-image extension вводит два дополнительных, отдельных от `PerceptionEvidenceArtifact` артефакта — оба operational/technical, не semantic:
+
+```text
+PerceptionOperationDiagnostics: как обрабатывалась операция технически
+    в целом (operation-level trace, stage/status на уровне RoomCase).
+
+ImageAssetProcessingDiagnostic: как обработан один конкретный
+    ImageAsset — processing status, failure stage, failure code,
+    retryability, provider trace, preprocessing trace, evidence
+    availability, excludedFromFusionReason.
+```
+
+`PerceptionEvidenceArtifact` остаётся ответом на вопрос «почему система сделала semantic claim»; оба diagnostics-артефакта отвечают на вопрос «как это было технически обработано». Diagnostics не подменяют evidence; evidence не используется как технический лог. Governed cross-references между ними допускаются (например, claim в `PerceptionEvidenceArtifact` может ссылаться на `imageAssetId`, для которого существует `ImageAssetProcessingDiagnostic`, без смешения содержимого двух артефактов).
+
+Оба diagnostics-артефакта размещаются как provider-neutral, не изменяющие ADR-013 StructuredSceneV0 — тот же архитектурный принцип, что уже применён к `PerceptionEvidenceArtifact` (M.2).
+
 ---
 
 ## Part N — PerceptionResult Outcome Contract
@@ -641,6 +743,8 @@ PerceptionResult =
     | FailureResult
     | RejectedResult
 ```
+
+**Multi-image extension (Bounded Scope Rev5 Section 2B, Section 8C):** до вызова C.1 поддерживается `UnsupportedInput` — классификация вне семейства `PerceptionResult` (не SceneResult/InsufficientEvidenceResult/FailureResult/RejectedResult), применяемая к нарушениям входа на уровне набора изображений (0 или >6 ImageAsset, неподдерживаемый формат до любой семантической интерпретации). Она не заменяет и не расширяет ни один из четырёх исходов ниже — это отдельная, предшествующая им категория.
 
 ### N.1 SceneResult
 
@@ -665,6 +769,8 @@ recommended next action
 
 Это НЕ provider error и НЕ partial scene. Возникает, когда фото технически прочитано, но механизм не получил достаточного свидетельства для содержательного scene output.
 
+**Multi-image extension:** также возникает на уровне MultiImageFusion/FusionConsistencyStage (Part C, C.1.5), когда same-room identity нескольких ImageAsset не может быть достоверно подтверждена, или совокупный evidence набора недостаточен — тот же семантический смысл («технически прочитано, но недостаточно для содержательного результата»), примененный на уровне RoomCase, а не одного изображения.
+
 ### N.3 FailureResult
 
 ```text
@@ -684,7 +790,9 @@ contract violations
 diagnostics
 ```
 
-Возникает после C.2 (conformance, если применимо) или C.3 (final boundary validation) — не является ответственностью provider adapter (Part L.1).
+Возникает после C.2 (conformance, если применимо), C.3 (final boundary validation), или после MultiImageFusion/FusionConsistencyStage (Part C, C.1.5) — не является ответственностью provider adapter (Part L.1).
+
+**Multi-image extension — mandatory cases at FusionConsistencyStage (Bounded Scope Rev5 Section 8C.1):** ImageAsset объекты относятся к разным физическим помещениям; обнаружена before/after пара; произошло существенное изменение состояния помещения между кадрами; capture set нарушает mandatory consistency rules (Bounded Scope Rev5 Section 8A.1).
 
 ### N.5 Искусственный Room node не создаётся (§3.7 поручения)
 
