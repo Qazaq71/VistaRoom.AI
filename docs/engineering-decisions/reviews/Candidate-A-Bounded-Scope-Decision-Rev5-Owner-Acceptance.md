@@ -134,3 +134,36 @@ This Owner Acceptance record does not authorize Contracts 1-10
 drafting, corpus work, provider/model work, schema or implementation
 work, or commercial rollout, as detailed in Section 6 above.
 ```
+
+## 8. Phase 2 — Targeted In-Place Correction Record
+
+```text
+Document identity: remains Revision 5 (Candidate A Bounded Scope
+Decision). This correction does not create Revision 6 or Revision 7.
+
+Correction type: Owner-approved targeted in-place Phase 2 correction.
+
+Candidate-A-Bounded-Scope-Decision-Rev5.md:
+Previous SHA-256: 4b7297b2ee96c7251828cc6af26ce58b751ce71e09514d21d7effeb1cc3f691a
+New SHA-256:      bc4236150ed012d68096eb630760f44380a8e154a0c5d18f06147dd52ed1d122
+Previous line count: 1079
+New line count:      2080
+
+The previous content of Candidate-A-Bounded-Scope-Decision-Rev5.md
+remains preserved through Git history and is not deleted or lost by
+this correction. No Rev6 or Rev7 document was created.
+
+This Phase 2 Bounded Scope correction is now persisted to the
+repository. Broader root-transition synchronization across other
+documents remains in progress and is not completed by this record.
+
+This correction record does not, by itself, authorize:
+- implementation;
+- corpus preparation;
+- provider/model evaluation;
+- real-user-photo use;
+- Track E activation;
+- multi-room execution;
+- persistent memory;
+- push to any remote.
+```
