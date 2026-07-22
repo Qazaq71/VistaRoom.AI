@@ -107,6 +107,14 @@ ADR-015 does not activate Track E, persistent multi-view evidence
 accumulation, cross-session memory, multi-room execution, video,
 panorama, or 3D reconstruction — all remain out of scope (ADR-015 §5).
 
+**Known mapping drift (Phase 3, 2026-07-22):** ADR-010 through ADR-014
+remain absent from this legacy architecture map as a pre-existing
+known mapping drift, predating and not introduced by this section. The
+ADR-015 entry above is a bounded Phase 3 registration only, and must
+not be interpreted as remediation or closure of the broader ADR-010
+through ADR-014 mapping gap. The Candidate A / Perception mapping
+therefore remains incomplete in this legacy map.
+
 ## Architecture Milestone Map
 
 Coarser-grained than the [Architecture Map](#architecture-map) above (ADR

@@ -153,6 +153,13 @@ Evolution Rules](#architecture-evolution-rules).
 | [ADR-009](ADR-009-Production-Integration-Contract-for-ADR-006.md) | Production Integration Contract for ADR-006 Generation Intelligence | *TBD — pending owner sign-off* | *DRAFT — pending owner sign-off:* Production integration contract resolving the five open questions from ADR-008 §6 (mode/operation fallback dispatch, sync/async reconciliation, mask invariant mechanism, qualityTier/size formalization, place of `mode === 'clear'`) — does not change ADR-006's Public Contract | 1.0 | Accepted | *TBD — pending owner sign-off* | Project Owner | 2026-07-09 | ADR-000 (root), ADR-006, ADR-008 | ADR-006, ADR-008, ED-004, ADR-003 (orthogonal, no overlap — see Related Documents) | *DRAFT — pending owner sign-off:* Generation Engine, Provider Layer, ACS-001 Generation Intelligence, Implementation Package (future) | *DRAFT — pending owner sign-off:* Generation, Integration, Production, Mode, Dispatch, Bridge, Gate1 |
 | [ADR-015](ADR-015-Multi-Image-Perception-Boundary.md) | Multi-Image Perception Boundary | *TBD — pending owner sign-off* | Bounded, same-operation 1–6 `ImageAsset` capture set for producing one consolidated `StructuredScene v0` via one `PerceptionResult` — partially supersedes ADR-014 Section 5 only with respect to the historical multi-view exclusion; all other ADR-014 decisions, boundaries and exclusions remain Accepted and unchanged | 1.0 | Accepted | *TBD — pending owner sign-off* | Project Owner | 2026-07-22 | ADR-000 (root), ADR-014 (partially superseded, Section 5 multi-view exclusion only) | ADR-014 (predecessor), ADR-012 (Accepted), ADR-013 (Accepted, revalidated by this ADR — content change not required), ADR-011, ADR-010 | Perception Mechanism Selection and Evaluation Architecture Rev3 (in-place corrected, same Phase 3 package), Candidate A Bounded Scope Decision Rev5, Full-Platform Vision Architecture Rev5 | Perception, MultiImage, Boundary, ADR-014, Phase3 |
 
+**Known registry drift (Phase 3, 2026-07-22):** ADR-010 through ADR-014
+remain unregistered in this legacy ADR index (both the ADR Timeline
+above and this Registry) as a pre-existing known registry drift,
+predating and not introduced by Phase 3. Phase 3 registers ADR-015
+only. This Phase 3 persistence action does not remediate, close, or
+expand the historical ADR-010 through ADR-014 registry gap.
+
 **Consistency correction (DS-7.1.3c, carried forward):** ADR-003's
 `Status` is `Proposed`, not `Active` — its own file says so, and its
 Decision explicitly defers implementation to DS-6+. `Active` is reserved
