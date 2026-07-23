@@ -1296,3 +1296,221 @@ a6e0982c00107b74ed203b1dc2b4645585339bda
 ```
 
 This repository-persistence event does not authorize any other artifact, module, implementation, provider activity, governed-data exposure or downstream governance transition.
+
+---
+---
+
+## PHASE 7 STATE SYNCHRONIZATION RECORD (2026-07-23, Draft)
+
+```text
+Record status: Draft — Awaiting one full independent consolidated
+    review and Project Owner Acceptance
+Record type: Time-bounded state-synchronization record, analogous in
+    nature to Section B of the Module-Completion-First Amendment
+    (Revision 5, 2026-07-17) — a current-state snapshot, not a new
+    permanent sequencing rule
+Trigger: Phase 7 — one-time synchronization of Project Context and
+    Living Strategic Roadmap, authorized by the Project Owner,
+    2026-07-23
+Roadmap version effect: NONE — Living Strategic Roadmap remains v1.4;
+    this record does not create v1.5 and is not itself a new Owner-
+    Approved Roadmap Amendment
+```
+
+This record does not edit, reopen, reorder, or weaken:
+
+```text
+Mission; Strategic Ambition; Levels 0-4; Guiding Principles; Decision
+Governance; Living Roadmap Governance; PARALLEL ENGINEERING TRACKS;
+Tracks A-H (historical text);
+Owner-Approved Roadmap Amendment (2026-07-16) — Mandatory Next
+Sequence, Hard Security Stop, Diagnosability/Security Integration
+Boundary;
+Owner-Approved Roadmap Amendment — Module-Completion-First (Revision 5,
+2026-07-17) — Sections A through D, including the permanent sequencing
+rule (Section A) and the 2026-07-17 Initial Application Record
+(Section B), which remains historically accurate for that date and is
+not retroactively altered.
+```
+
+Per Section B.8 of the Module-Completion-First Amendment ("Future state changes... must be recorded through Project Owner Decisions and Project Context. They do not require a new Roadmap Amendment, if the permanent sequencing rule itself does not change"), this record exists because the current authoritative state has materially changed since the 2026-07-17 Initial Application Record, and a dated, non-destructive record of that change is added here, in place, to the same Living Strategic Roadmap v1.4 identity, for Roadmap-level traceability, with the in-place corrected Project Context v2.4 identity as the primary, more detailed synchronization target. This record is not a new Roadmap document and does not create a v1.5 or any other new version.
+
+### Current Primary Active Module (unchanged)
+
+```text
+Bounded Room Understanding / Spatial Perception
+Strategic Roadmap placement: Track A — Spatial Perception
+```
+
+### Current State Since the 2026-07-17 Initial Application Record
+
+```text
+Supporting Contract 1 — Master Vocabulary, Revision 19:
+OWNER-ACCEPTED, CANDIDATE-LOCKED (C1-REV19-CL-001), REPOSITORY-PERSISTED
+
+Supporting Contract 2 — Relation Annotation and Applicability, Revision 10:
+OWNER-ACCEPTED, CANDIDATE-LOCKED (C2-REV10-CL-001), REPOSITORY-PERSISTED
+
+Candidate A Bounded Scope Decision, Revision 5:
+in-place corrected to Residential-34 / Operation / RoomCase[1] /
+ImageAsset[1..6]; REPOSITORY-PERSISTED
+
+Candidate A Evaluation Threshold and Acceptance Plan, Revision 16:
+OWNER-ACCEPTED, AUTHORITATIVE, REPOSITORY-PERSISTED
+
+Candidate A Test Data Handling Decision, Revision 10:
+OWNER-ACCEPTED, AUTHORITATIVE, REPOSITORY-PERSISTED
+
+Candidate A Module Applicability Profile, Revision 19:
+OWNER-ACCEPTED, AUTHORITATIVE, REPOSITORY-PERSISTED
+
+Contract 1 Transfer and Layer 2 Activation Preparation Directive,
+Corrected Revision 3:
+OWNER-ACCEPTED, AUTHORITATIVE, REPOSITORY-PERSISTED
+(independent verification: 0 blocker, 0 major, 0 minor, 0 improvement;
+0 regression findings)
+
+Phase 6 (Candidate A root architecture successor package):
+CLOSED
+
+Phase 7 (this synchronization):
+IN PROGRESS — drafting and local validation only
+```
+
+### Residential-34 (state confirmation, not a new decision)
+
+```text
+Active category model: Residential-34 (34 active_candidate categories)
+kitchen_living_room: within the 34, not a 35th category
+bedroom: independent identity
+children_room, guest_bedroom, primary_bedroom: distinct specialization
+    identities, inheriting bedroom's applicability in full
+active_locked: not reached by any category
+```
+
+### Operation / RoomCase / ImageAsset[1..6] (state confirmation, not a new decision)
+
+```text
+Operation
+└── RoomCase[exactly 1]
+    ├── ImageAsset[1..6]
+    └── one consolidated PerceptionResult
+```
+
+Same-RoomCase multi-image perception (same-room validation, cross-view matching, deduplication, contradiction preservation, evidence fusion) is within the active bounded scope. Mixed-room input is a negative validation case. Persistent cross-session multi-view, whole-home reasoning, project memory, video, floor plans, panoramas, and 2.5D/3D reconstruction remain outside current runtime scope.
+
+### Current Mandatory Internal Sequence (state confirmation)
+
+Unchanged in substance from Section B.6 of the Module-Completion-First Amendment: the Mandatory Next Sequence established by the Owner-Approved Roadmap Amendment (2026-07-16) continues to apply to the current Primary Active Module. This record confirms:
+
+```text
+Contracts 1 and 2 (of the Mandatory Next Sequence's own predicate,
+"Supporting Contracts 1-10 accepted"): COMPLETE.
+Contracts 3-10: NOT COMPLETE, NOT AUTHORIZED.
+The Mandatory Next Sequence's own predicate ("Supporting Contracts
+1-10 accepted") is therefore NOT YET SATISFIED as a whole; the
+Combined Diagnosability & Security Compatibility Assessment and every
+step after it in the 2026-07-16 Amendment remain NOT AUTHORIZED.
+```
+
+This record does not alter the 2026-07-16 Amendment's sequence, does not authorize any of its steps, and does not treat partial completion of Contracts 1-10 as satisfying its "Supporting Contracts 1-10 accepted" predicate.
+
+### Cross-Cutting Compatibility Foundation (state confirmation)
+
+```text
+Diagnosability compatibility, Security compatibility, Controlled
+Learning compatibility: minimum foundation preserved (Bounded Scope
+Decision Rev5 §§8F-8H) — versioning, provenance/evidence,
+reproducibility, future-feedback linkage, consent/data-use eligibility
+hooks, immutable history, no-regression evaluation, rollback
+compatibility.
+
+Full Diagnosability Architecture, full Security Architecture, full
+Controlled Learning Architecture: NOT STARTED, NOT AUTHORIZED.
+
+User feedback: does not, and may not, directly modify production
+behavior.
+```
+
+### Current Roadmap Status of Tracks B-H (unchanged)
+
+```text
+Tracks B-H: PLANNED. No bounded Major Module selected from any of
+them. No automatic architecture, implementation, or evaluation
+authorization.
+```
+
+### Non-Authorization
+
+This record does not authorize:
+
+```text
+Project Owner acceptance of this record or of the in-place corrected Project Context v2.4 identity
+one final consolidated review of the complete root architecture package
+Contract 3 drafting
+Contracts 3-10 drafting
+Contract 11 drafting
+Combined Diagnosability & Security Compatibility Assessment
+AI Brain Diagnosability Architecture
+Security Architecture Baseline
+Phase-1 Scope Decision / Execution Profile
+Section 22 data-governance artifacts
+Tier 1 Corpus Preparation
+corpus creation, synthetic corpus generation, staged corpus capture
+real-user-data use
+provider/model evaluation, provider/model selection
+Implementation Package preparation, implementation
+bounded proof execution
+deployment, production activation
+Layer 2 effective activation
+active_locked transition, for any category
+Tracks B-H work
+repository persistence of this record or of the in-place corrected Project Context v2.4 identity
+commit, push
+```
+
+### Repository Persistence
+
+```text
+Repository persistence of this record: NOT PERFORMED, NOT AUTHORIZED
+BY THIS DRAFT.
+```
+
+### Required Project Owner Decisions (for this record)
+
+1. Принять или отклонить этот PHASE 7 STATE SYNCHRONIZATION RECORD как append-only дополнение к существующей Living Strategic Roadmap v1.4 identity.
+2. Подтвердить, что version bump не произошёл — Roadmap остаётся v1.4, и это не новый Roadmap Amendment.
+3. Подтвердить, что Section A (permanent rules) и Section B (2026-07-17 Initial Application Record) Module-Completion-First Amendment, а также весь Amendment от 2026-07-16, не изменены и не переоткрыты.
+4. Подтвердить корректность state-confirmation содержания (Contract 1 Rev19, Contract 2 Rev10, Bounded Scope Rev5 in-place correction, ETAP Rev16, Test Data Handling Rev10, MAP Rev19, Transfer Directive Corrected Revision 3, Phase 6 CLOSED, Residential-34, Operation/RoomCase/ImageAsset[1..6]) без переоткрытия содержания перечисленных accepted documents.
+5. Подтвердить, что предикат "Supporting Contracts 1-10 accepted" Amendment от 2026-07-16 остаётся неудовлетворённым (2 из 10 завершены), и что ни один последующий шаг этого Amendment не считается достигнутым.
+6. Подтвердить, что repository persistence этого record'а остаётся отдельно неавторизованной.
+
+### Drafting Report (for this record)
+
+Этот раздел подготовлен как in-place append-only дополнение к существующей Living Strategic Roadmap v1.4 (одна и та же repository identity, `docs/roadmap/Living-Strategic-Roadmap-v1.4.md`), в рамках Phase 7 authorization (2026-07-23), скорректированный по прямому указанию Project Owner (2026-07-23) не создавать отдельный Roadmap-документ или новую версию. Раздел добавляет только state-snapshot синхронизацию (текущий статус Contract 1/2, ETAP/Test Data Handling/MAP, Transfer Directive, Phase 6, Residential-34, RoomCase/ImageAsset модель, cross-cutting compatibility foundation) и явно подтверждает, что предикат Amendment от 2026-07-16 остаётся неудовлетворённым. Ни permanent sequencing rule (Section A), ни исторический 2026-07-17 snapshot (Section B), ни сам Amendment от 2026-07-16 не редактируются. Никакая новая версия Roadmap, никакой новый Amendment и никакой отдельный Roadmap-документ не создаются.
+
+**Repository:** файлы не создавались/не изменялись в репозитории, commit/push не выполнялись, repository persistence не авторизована.
+
+### Final Status (for this record)
+
+```text
+Living Strategic Roadmap v1.4, Phase 7 state-synchronization record:
+DRAFT — AWAITING ONE FULL INDEPENDENT CONSOLIDATED REVIEW
+AND PROJECT OWNER ACCEPTANCE
+
+Version bump:
+NONE
+
+Current authoritative identity:
+the previously accepted 1298-line Living Strategic Roadmap v1.4
+(SHA-256 17115ae776401818946c1ba7e448252d7f00224da51754fa6739cc955d3d3b38)
+remains authoritative until this corrected v1.4 identity (with the
+appended record) is separately accepted
+
+Blocking findings:
+Not yet assessed (independent review not performed)
+
+Repository persistence:
+NOT PERFORMED
+NOT AUTHORIZED
+```
