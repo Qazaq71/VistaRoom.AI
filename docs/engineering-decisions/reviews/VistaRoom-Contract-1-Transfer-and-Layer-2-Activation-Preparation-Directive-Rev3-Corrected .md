@@ -21,8 +21,11 @@ Corrected Revision 3
 Preparation date:
 2026-07-20
 
+In-place correction date:
+2026-07-23
+
 Status:
-DRAFT FOR PROJECT OWNER REVIEW
+CORRECTED DRAFT — AWAITING INDEPENDENT VERIFICATION AND PROJECT OWNER ACCEPTANCE
 
 Supersedes for review:
 Corrected Revision 2
@@ -49,19 +52,101 @@ Production:
 NOT AUTHORIZED
 ```
 
+### Historical persisted identity (original Corrected Revision 3, before this in-place correction)
+
+```text
+Line count:
+2411
+
+SHA-256:
+a5ebb6caa9b5d901d4988a548b88940d6dbffc6faa92bf7e27465b1e7a69be7f
+
+Repository persistence:
+persisted in commit 725342773bdc452df8e3f72471b37de2d9e5c81b
+
+Project Owner acceptance of this historical identity:
+NOT RECORDED
+
+Authoritative status of this historical identity:
+NOT AUTHORITATIVE
+```
+
+### Current corrected working-copy identity (this in-place correction, closing findings F-1 through F-5)
+
+```text
+State:
+IN-PLACE CORRECTED WORKING COPY
+
+Independent verification of corrected bytes:
+NOT YET COMPLETED
+
+Project Owner acceptance:
+NOT YET RECORDED
+
+Repository persistence of corrected bytes:
+NOT YET PERFORMED
+
+Commit:
+NOT PERFORMED
+
+Push:
+NOT PERFORMED
+
+Layer 2 effective activation:
+NOT AUTHORIZED
+NOT YET EFFECTIVE
+
+active_locked transition:
+NOT AUTHORIZED
+
+Phase 7:
+NOT STARTED
+```
+
+The working tree containing this corrected file is a clone of the persisted repository; that alone does not make the corrected bytes in this file repository-persisted, Owner-accepted, or authoritative.
+
 ## 2. Purpose and truth boundary
 
 This directive prepares one compatible root transition. It specifies:
 
 - the correct ontology topology;
 - required Layer 1, cross-layer and Layer 2 registries;
-- the complete Owner-selected Layer 2 candidate inventory;
+- the complete Owner-selected Layer 2 candidate inventory, currently the Residential-34 set (Section 9) for the `residential` Platform Domain, together with every other selected Platform Domain (Sections 10-18);
 - exact activation-wave assignment for every selected Layer 2 identity;
 - exact Facility Context ↔ Canonical Space Type applicability;
 - exact Space Type ↔ Functional Zone and Space Use relations;
 - runtime, migration, Contract 2 and downstream synchronization requirements.
 
 This directive is not the Contract 1 successor and does not claim that the complete source-verified Layer 1 inventory has already been populated.
+
+The current accepted operation architecture is:
+
+```text
+Operation
+└── RoomCase[exactly 1]
+    ├── ImageAsset[1..6]
+    └── one consolidated PerceptionResult
+```
+
+One operation addresses exactly one physical or staged room (one `RoomCase`), captured across 1 to 6 `ImageAsset` records that each retain independent atomic identity and provenance. All valid images in a `RoomCase` depict one room in a materially unchanged state; a mixed-room input is a negative validation case, not a valid `RoomCase`. One operation yields one consolidated `PerceptionResult`. This directive does not open, redefine, or reopen this architecture, which is governed by the Bounded Scope Decision (Section 6); it states the model only so that Sections 9 and 22-25 can be read consistently with it.
+
+This directive draws three distinct statuses, and does not conflate them:
+
+```text
+Layer 2 candidate inventory:
+the set of identities Owner-selected as Layer 2 candidates and recorded
+active_candidate in the Layer 2 Activation Registry (Section 22).
+
+activation preparation:
+the wave assignment, applicability and registry work this directive
+performs to prepare, but not effect, activation.
+
+effective activation:
+a later, separately authorized state under which a candidate identity
+becomes runtime-effective. Not claimed or authorized by this directive.
+```
+
+This directive does not declare effective Layer 2 activation and does not declare any identity `active_locked`. A claim that this directive supplies the "complete Owner-selected Layer 2 candidate inventory" for a Platform Domain is valid only when every one of that domain's required categories is physically present, with a complete registry row, in every registry section that domain participates in (for `residential`: Sections 9, 22 and 23).
 
 
 # 3. Normative topology
@@ -201,15 +286,13 @@ It must not claim Layer 1 completion until every row is physically present and s
 
 | Authoritative input | Current lock/status | Required hash | Execution rule |
 |---|---|---|---|
-| Supporting Contract 1 Revision 12 | C1-REV12-CL-001 | exact SHA-256 required | resolve directly from authoritative repository before drafting; hard stop if unavailable |
-| Supporting Contract 2 Revision 2 | C2-REV2-CL-001 | exact SHA-256 required | resolve directly from authoritative repository before drafting; hard stop if unavailable |
-| Candidate-A-Root-Architecture-Correction-Specification | no lock assumed | exact revision and SHA-256 required | resolve exact authoritative file; mark superseded scope provisions explicitly |
-| Candidate-A-Bounded-Scope-Decision-Rev5 | accepted baseline | exact SHA-256 required | resolve directly; prepare full supersession |
-| Candidate-A-Evaluation-Threshold-and-Acceptance-Plan-Rev15 | accepted baseline | exact SHA-256 required | resolve directly; no five-room counts may be reused silently |
-| Candidate-A-Contracts-1-10-Preparation-and-Dependency-Plan-Rev11 | accepted baseline | exact SHA-256 required | resolve directly; prepare successor |
-| Module Applicability Profile Rev18 | accepted baseline | exact SHA-256 required | resolve directly; prepare successor |
-| Project Context v2.4 | authoritative project context | exact SHA-256 required | resolve directly; prepare synchronization |
-| Living Strategic Roadmap v1.4 | accepted strategic baseline | exact SHA-256 required | resolve directly; prepare synchronization |
+| Supporting Contract 1 Revision 19 | C1-REV19-CL-001 | d899a13eb46ef099af8fe2d02d616349abac8c95515119eac1c27cc6bce27329 | resolve directly from authoritative repository before drafting; hard stop if unavailable |
+| Supporting Contract 2 Revision 10 | C2-REV10-CL-001 | 758bf9b99873f977600365e131b7dc1c166fcf71fe9ac8262294a1ca4e549177 | resolve directly from authoritative repository before drafting; hard stop if unavailable |
+| Candidate-A-Bounded-Scope-Decision-Rev5 | accepted baseline; in-place corrected Residential-34 / RoomCase identity | resolve directly from authoritative repository | resolve directly; this directive's Sections 2 and 9 must remain consistent with its accepted Residential-34 / RoomCase / ImageAsset architecture |
+| Candidate-A-Evaluation-Threshold-and-Acceptance-Plan-Rev16 | accepted baseline | 2adea2f97decd734717a2d6a277b96fa75296bfdc6a6f9669ec9b729c69367d2 | resolve directly; no five-room, 20-category or single-image counts may be reused silently |
+| Candidate-A-Test-Data-Handling-Decision-Rev10 | accepted baseline | 472fe038ed20fac83d1e63e9c32e2eef13201fa8fd16b39612debf25a69abb64 | resolve directly; governs the current downstream synchronization sequence (Section 29) |
+| Candidate-A-Module-Applicability-Profile-Rev19 | accepted baseline | 032e684f2ab331502695c6a0d04faec92ed2d3394830722bb4f559472d39ca17 | resolve directly; governs the mandatory Diagnosability/Security compatibility sequence gate position (Section 29) |
+| Candidate-A-Contracts-1-10-Preparation-and-Dependency-Plan-Rev11 | accepted baseline | resolve directly from authoritative repository | resolve directly; prepare successor |
 
 Drafting hard stop:
 
@@ -250,6 +333,24 @@ not_authorized
 productionAuthorizationStatus:
 not_authorized
 ```
+
+Every Layer 2 Candidate identity carries exactly one of two mutually exclusive candidate states:
+
+```text
+active_candidate:
+Owner-selected, wave-assigned, registry-complete; the current state of
+every row in Section 22.
+
+active_locked:
+a later, separately authorized state, reached only through an explicit
+Owner Decision after independent verification and acceptance. Not
+reached by this directive, and not reached merely by repository
+persistence of this directive's bytes.
+```
+
+Repository persistence of a corrected document does not, by itself, imply Project Owner acceptance, does not imply `active_locked`, and does not imply runtime-effective status. Each of these is a separate, explicitly authorized event; none is inferred from another.
+
+The `RoomCase[1]` / `ImageAsset[1..6]` architecture (Section 2) applies uniformly to every `active_candidate` and (when reached) `active_locked` identity in this status model: an `effectiveActivationStatus` or `evaluationMethodologyStatus` transition governs the same-RoomCase, multi-image perception operation described in Section 2, not a single-image-only operation.
 
 ## 7.1 Profile version policy
 
@@ -300,6 +401,8 @@ This requirement applies to every Canonical Space Type, not only ambiguous examp
 
 # 9. Layer 2 Owner-selected candidate — `residential`
 
+This section defines the complete Residential-34 inventory (34 unique canonical residential identities), the current Owner-selected Layer 2 candidate set for the `residential` Platform Domain, sourced exclusively from Contract 1 Revision 19 (Candidate Lock `C1-REV19-CL-001`) Annexes R, S and S1. `kitchen_living_room` is a single canonical composite-space identity within the 34, not a 35th category. `children_room`, `guest_bedroom` and `primary_bedroom` are Annex S1 Space Subtypes of `space.residential.bedroom`, each with its own stable identity, never collapsed into `bedroom`.
+
 ## Facility Context Registry references
 
 ```text
@@ -317,12 +420,24 @@ facility.residential.townhouse
 ```text
 space.residential.living_room
 space.residential.bedroom
+space.residential.kitchen_living_room
+```
+
+`space.residential.kitchen_living_room` is a distinct, sibling canonical identity to `living_room` and `kitchen` — a single, continuous, non-partitioned room exhibiting both rooms' defining positive evidence at once. It is never a parent or child of either component and never collapses into either. Its own runtime/output identity is `space.residential.kitchen_living_room`, never the auxiliary Composite Space Profile metadata identifier `composite.residential.kitchen_living_room` (Annex AG).
+
+`space.residential.bedroom` carries three Annex S1 Space Subtypes, each a distinct downstream-exported identity distinguished from and never collapsed into `bedroom`:
+
+```text
+subtype.residential.children_room
+subtype.residential.guest_bedroom
+subtype.residential.primary_bedroom
 ```
 
 ### `family.residential.food_preparation`
 
 ```text
 space.residential.kitchen
+space.residential.pantry
 ```
 
 ### `family.residential.sanitary`
@@ -355,6 +470,8 @@ space.residential.walk_in_closet
 ```text
 space.residential.balcony
 space.residential.terrace
+space.residential.veranda
+space.residential.winter_garden
 ```
 
 ### `family.residential.roof_level`
@@ -376,6 +493,35 @@ space.residential.stair_hall
 ```text
 space.residential.garage
 ```
+
+### `family.residential.dining`
+
+```text
+space.residential.dining_room
+```
+
+### `family.residential.work_study`
+
+```text
+space.residential.home_office
+space.residential.library
+```
+
+### `family.residential.utility`
+
+```text
+space.residential.laundry_room
+space.residential.utility_room
+space.residential.mechanical_room
+```
+
+### `family.residential.below_grade`
+
+```text
+space.residential.basement
+```
+
+`family.residential.dining`, `family.residential.work_study`, `family.residential.utility` and `family.residential.below_grade` are the 4 new Space Families added by Contract 1 Revision 19 (Annex R). They are not additional user-facing room categories in their own right and carry the same `owner_selected_not_yet_effective` Layer 2 status as every other existing residential supporting family.
 
 ## Supporting Component references
 
@@ -1194,6 +1340,25 @@ productionAuthorizationStatus: not_authorized
 | L2-ACT-0032 | space.residential.stair_hall | canonical_space_type | residential | family.residential.vertical_circulation | none | classification_target<br>output_label | visual_inference<br>hybrid | L2-W2 |
 | L2-ACT-0033 | family.residential.vehicle_storage | space_family | residential | family.residential.vehicle_storage | none | grouping_identity | not_inferred | L2-W2 |
 | L2-ACT-0034 | space.residential.garage | canonical_space_type | residential | family.residential.vehicle_storage | none | classification_target<br>output_label | visual_inference<br>hybrid | L2-W2 |
+| L2-ACT-0286 | family.residential.dining | space_family | residential | family.residential.dining | none | grouping_identity | not_inferred | L2-W2 |
+| L2-ACT-0287 | space.residential.dining_room | canonical_space_type | residential | family.residential.dining | none | classification_target<br>output_label | visual_inference<br>hybrid | L2-W2 |
+| L2-ACT-0288 | family.residential.work_study | space_family | residential | family.residential.work_study | none | grouping_identity | not_inferred | L2-W2 |
+| L2-ACT-0289 | space.residential.home_office | canonical_space_type | residential | family.residential.work_study | none | classification_target<br>output_label | visual_inference<br>hybrid | L2-W2 |
+| L2-ACT-0290 | space.residential.library | canonical_space_type | residential | family.residential.work_study | none | classification_target<br>output_label | visual_inference<br>hybrid | L2-W2 |
+| L2-ACT-0291 | space.residential.pantry | canonical_space_type | residential | family.residential.food_preparation | none | classification_target<br>output_label | visual_inference<br>hybrid | L2-W2 |
+| L2-ACT-0292 | family.residential.utility | space_family | residential | family.residential.utility | none | grouping_identity | not_inferred | L2-W2 |
+| L2-ACT-0293 | space.residential.laundry_room | canonical_space_type | residential | family.residential.utility | none | classification_target<br>output_label | visual_inference<br>hybrid | L2-W2 |
+| L2-ACT-0294 | space.residential.utility_room | canonical_space_type | residential | family.residential.utility | none | classification_target<br>output_label | visual_inference<br>hybrid | L2-W2 |
+| L2-ACT-0295 | space.residential.mechanical_room | canonical_space_type | residential | family.residential.utility | none | classification_target<br>output_label | visual_inference<br>hybrid | L2-W2 |
+| L2-ACT-0296 | family.residential.below_grade | space_family | residential | family.residential.below_grade | none | grouping_identity | not_inferred | L2-W2 |
+| L2-ACT-0297 | space.residential.basement | canonical_space_type | residential | family.residential.below_grade | none | classification_target<br>output_label | visual_inference<br>hybrid | L2-W2 |
+| L2-ACT-0298 | space.residential.veranda | canonical_space_type | residential | family.residential.attached_outdoor | none | classification_target<br>output_label | visual_inference<br>hybrid | L2-W2 |
+| L2-ACT-0299 | space.residential.winter_garden | canonical_space_type | residential | family.residential.attached_outdoor | none | classification_target<br>output_label | visual_inference<br>hybrid | L2-W2 |
+| L2-ACT-0300 | subtype.residential.children_room | space_subtype | residential | family.residential.primary_living | none | classification_target<br>output_label | visual_inference<br>hybrid | L2-W2 |
+| L2-ACT-0301 | subtype.residential.guest_bedroom | space_subtype | residential | family.residential.primary_living | none | classification_target<br>output_label | visual_inference<br>hybrid | L2-W2 |
+| L2-ACT-0302 | subtype.residential.primary_bedroom | space_subtype | residential | family.residential.primary_living | none | classification_target<br>output_label | visual_inference<br>hybrid | L2-W2 |
+| L2-ACT-0303 | composite.residential.kitchen_living_room | composite_space_profile | residential | not_applicable | none | classification_target<br>output_label | visual_inference<br>hybrid | L2-W2 |
+| L2-ACT-0304 | space.residential.kitchen_living_room | canonical_space_type | residential | family.residential.primary_living | none | classification_target<br>output_label | visual_inference<br>hybrid | L2-W2 |
 | L2-ACT-0035 | component.stair.flight | component | residential | family.residential.vertical_circulation | none | supporting_component | visual_inference<br>hybrid | L2-W2 |
 | L2-ACT-0036 | component.stair.landing | component | residential | family.residential.vertical_circulation | none | supporting_component | visual_inference<br>hybrid | L2-W2 |
 | L2-ACT-0037 | component.stair.steps | component | residential | family.residential.vertical_circulation | none | supporting_component | visual_inference<br>hybrid | L2-W2 |
@@ -1446,17 +1611,19 @@ productionAuthorizationStatus: not_authorized
 | L2-ACT-0284 | zone.culture_entertainment.reception | functional_zone | culture_entertainment | not_applicable | none | secondary_output | visual_inference<br>hybrid | L2-W8 |
 | L2-ACT-0285 | zone.culture_entertainment.waiting | functional_zone | culture_entertainment | not_applicable | none | secondary_output | visual_inference<br>hybrid | L2-W8 |
 
-Counts exclude every identity marked Layer 1-only:
+Counts exclude every identity marked Layer 1-only. Rows `L2-ACT-0286`–`L2-ACT-0304` are the 19 residential identities added by Contract 1 Revision 19 (Candidate Lock `C1-REV19-CL-001`): 4 new Space Families (`family.residential.dining`, `family.residential.work_study`, `family.residential.utility`, `family.residential.below_grade`), 11 new Canonical Space Types, 3 new Space Subtypes (`children_room`, `guest_bedroom`, `primary_bedroom`, all specializations of `space.residential.bedroom`), and 1 Composite Space Profile metadata record (`composite.residential.kitchen_living_room`, describing the composite canonical type `space.residential.kitchen_living_room`). The non-sequential ID range continues the existing numbering without renumbering any prior row, consistent with how Contract 1 Revision 19's own Annex AA appended these identities:
 
 ```text
 Platform Domains: 10
 Facility Contexts: 45
-Space Families: 46
-Canonical Space Types: 132
+Space Families: 50
+Canonical Space Types: 143
+Space Subtypes: 3
+Composite Space Profiles: 1
 Functional Zones: 37
 Space Uses: 21
 Supporting Components: 4
-Total selected Layer 2 identities: 285
+Total selected Layer 2 identities: 304
 ```
 
 
@@ -1498,6 +1665,17 @@ not selected for this Facility Context in the current Layer 2 profile.
 | facility.residential.apartment | space.residential.staircase_space | conditional | requires facility program, layout or supplied metadata supporting this space | classification_target | visual_inference|hybrid |
 | facility.residential.apartment | space.residential.stair_hall | conditional | requires facility program, layout or supplied metadata supporting this space | classification_target | visual_inference|hybrid |
 | facility.residential.apartment | space.residential.garage | not_applicable | not selected for this Facility Context in the current Layer 2 applicability profile | classification_target | visual_inference|hybrid |
+| facility.residential.apartment | space.residential.dining_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.apartment | space.residential.home_office | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.apartment | space.residential.library | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.apartment | space.residential.pantry | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.apartment | space.residential.laundry_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.apartment | space.residential.utility_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.apartment | space.residential.mechanical_room | not_applicable | not selected for this Facility Context in the current Layer 2 applicability profile | classification_target | visual_inference|hybrid |
+| facility.residential.apartment | space.residential.basement | not_applicable | not selected for this Facility Context in the current Layer 2 applicability profile | classification_target | visual_inference|hybrid |
+| facility.residential.apartment | space.residential.veranda | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.apartment | space.residential.winter_garden | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.apartment | space.residential.kitchen_living_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
 | facility.residential.private_house | space.residential.living_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
 | facility.residential.private_house | space.residential.bedroom | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
 | facility.residential.private_house | space.residential.kitchen | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
@@ -1518,6 +1696,17 @@ not selected for this Facility Context in the current Layer 2 profile.
 | facility.residential.private_house | space.residential.staircase_space | conditional | requires facility program, layout or supplied metadata supporting this space | classification_target | visual_inference|hybrid |
 | facility.residential.private_house | space.residential.stair_hall | conditional | requires facility program, layout or supplied metadata supporting this space | classification_target | visual_inference|hybrid |
 | facility.residential.private_house | space.residential.garage | conditional | requires facility program, layout or supplied metadata supporting this space | classification_target | visual_inference|hybrid |
+| facility.residential.private_house | space.residential.dining_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.private_house | space.residential.home_office | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.private_house | space.residential.library | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.private_house | space.residential.pantry | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.private_house | space.residential.laundry_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.private_house | space.residential.utility_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.private_house | space.residential.mechanical_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.private_house | space.residential.basement | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.private_house | space.residential.veranda | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.private_house | space.residential.winter_garden | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.private_house | space.residential.kitchen_living_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
 | facility.residential.cottage_house | space.residential.living_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
 | facility.residential.cottage_house | space.residential.bedroom | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
 | facility.residential.cottage_house | space.residential.kitchen | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
@@ -1538,6 +1727,17 @@ not selected for this Facility Context in the current Layer 2 profile.
 | facility.residential.cottage_house | space.residential.staircase_space | conditional | requires facility program, layout or supplied metadata supporting this space | classification_target | visual_inference|hybrid |
 | facility.residential.cottage_house | space.residential.stair_hall | conditional | requires facility program, layout or supplied metadata supporting this space | classification_target | visual_inference|hybrid |
 | facility.residential.cottage_house | space.residential.garage | conditional | requires facility program, layout or supplied metadata supporting this space | classification_target | visual_inference|hybrid |
+| facility.residential.cottage_house | space.residential.dining_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.cottage_house | space.residential.home_office | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.cottage_house | space.residential.library | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.cottage_house | space.residential.pantry | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.cottage_house | space.residential.laundry_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.cottage_house | space.residential.utility_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.cottage_house | space.residential.mechanical_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.cottage_house | space.residential.basement | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.cottage_house | space.residential.veranda | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.cottage_house | space.residential.winter_garden | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.cottage_house | space.residential.kitchen_living_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
 | facility.residential.country_house | space.residential.living_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
 | facility.residential.country_house | space.residential.bedroom | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
 | facility.residential.country_house | space.residential.kitchen | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
@@ -1558,6 +1758,17 @@ not selected for this Facility Context in the current Layer 2 profile.
 | facility.residential.country_house | space.residential.staircase_space | conditional | requires facility program, layout or supplied metadata supporting this space | classification_target | visual_inference|hybrid |
 | facility.residential.country_house | space.residential.stair_hall | conditional | requires facility program, layout or supplied metadata supporting this space | classification_target | visual_inference|hybrid |
 | facility.residential.country_house | space.residential.garage | conditional | requires facility program, layout or supplied metadata supporting this space | classification_target | visual_inference|hybrid |
+| facility.residential.country_house | space.residential.dining_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.country_house | space.residential.home_office | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.country_house | space.residential.library | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.country_house | space.residential.pantry | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.country_house | space.residential.laundry_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.country_house | space.residential.utility_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.country_house | space.residential.mechanical_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.country_house | space.residential.basement | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.country_house | space.residential.veranda | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.country_house | space.residential.winter_garden | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.country_house | space.residential.kitchen_living_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
 | facility.residential.townhouse | space.residential.living_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
 | facility.residential.townhouse | space.residential.bedroom | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
 | facility.residential.townhouse | space.residential.kitchen | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
@@ -1578,6 +1789,17 @@ not selected for this Facility Context in the current Layer 2 profile.
 | facility.residential.townhouse | space.residential.staircase_space | conditional | requires facility program, layout or supplied metadata supporting this space | classification_target | visual_inference|hybrid |
 | facility.residential.townhouse | space.residential.stair_hall | conditional | requires facility program, layout or supplied metadata supporting this space | classification_target | visual_inference|hybrid |
 | facility.residential.townhouse | space.residential.garage | conditional | requires facility program, layout or supplied metadata supporting this space | classification_target | visual_inference|hybrid |
+| facility.residential.townhouse | space.residential.dining_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.townhouse | space.residential.home_office | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.townhouse | space.residential.library | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.townhouse | space.residential.pantry | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.townhouse | space.residential.laundry_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.townhouse | space.residential.utility_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.townhouse | space.residential.mechanical_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.townhouse | space.residential.basement | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.townhouse | space.residential.veranda | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.townhouse | space.residential.winter_garden | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
+| facility.residential.townhouse | space.residential.kitchen_living_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
 | facility.workplace.office_suite | space.workplace.reception_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
 | facility.workplace.office_suite | space.workplace.waiting_room | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
 | facility.workplace.office_suite | space.workplace.open_plan_office | core | normal supported facility profile; physical presence remains instance-dependent | classification_target | visual_inference|hybrid |
@@ -2238,53 +2460,129 @@ An unmapped identity is an implementation gap, not a semantic failure.
 
 ## 28.1 Contract 1
 
+This transition is COMPLETED, independently of this directive, through the accepted Contract 1 Revision 19 track:
+
 ```text
-1. Draft complete Contract 1 successor.
-2. Perform one full consolidated review of its exact hash.
-3. Close the complete findings set in a corrected successor revision.
-4. Issue a new Contract 1 candidate lock.
-5. Preserve C1-REV12-CL-001 as historical and supersede it prospectively.
+1. Contract 1 successor drafted: Supporting Contract 1 Master Vocabulary Rev19.
+2. One full consolidated review performed; independent Phase 6 review result:
+   0 blocker, 0 major, 0 minor, 0 improvement.
+3. New Contract 1 candidate lock issued: C1-REV19-CL-001.
+4. C1-REV12-CL-001 preserved as historical; superseded by C1-REV19-CL-001.
+5. Owner-accepted and repository-persisted (commit 725342773bdc452df8e3f72471b37de2d9e5c81b).
 ```
 
 ## 28.2 Contract 2
 
-Contract 2 relation semantics remain unchanged, but its exact locked artifact must not be silently edited.
-
-Required transition:
+Contract 2 relation semantics remain unchanged; its exact locked artifact was not silently edited. This transition is COMPLETED, independently of this directive, through the accepted Contract 2 Revision 10 track:
 
 ```text
-1. Prepare a Contract 2 successor or formally governed metadata-sync revision.
-2. Update the upstream Contract 1 revision, exact SHA-256 and candidate-lock reference.
-3. Preserve all Contract 2 semantic Annexes unchanged unless a separately
-   identified semantic requirement is approved.
-4. Compute the exact new Contract 2 file SHA-256.
-5. Perform one full consolidated review of that exact artifact.
-6. Issue a new Contract 2 candidate lock.
-7. Preserve C2-REV2-CL-001 as historical and supersede it prospectively.
-8. Include both new candidate locks in the atomic root-transition acceptance set.
+1. Contract 2 successor prepared: Supporting Contract 2 Relation Annotation and
+   Applicability Rev10.
+2. Upstream Contract 1 revision, exact SHA-256 and candidate-lock reference updated
+   to reference Contract 1 Rev19 / C1-REV19-CL-001.
+3. All Contract 2 semantic Annexes preserved unchanged.
+4. Exact new Contract 2 file SHA-256 computed:
+   758bf9b99873f977600365e131b7dc1c166fcf71fe9ac8262294a1ca4e549177.
+5. One full consolidated review performed on that exact artifact.
+6. New Contract 2 candidate lock issued: C2-REV10-CL-001.
+7. C2-REV2-CL-001 preserved as historical; superseded by C2-REV10-CL-001.
+8. Both candidate locks included in the atomic acceptance set recorded by the Owner
+   Acceptance and Repository Persistence Record (2026-07-23).
 ```
+
+## 28.3 Diagnosability, Security and Controlled Learning compatibility foundation
+
+This directive does not open, and does not claim completion of, the platform-wide Diagnosability Architecture, Security Architecture, or Controlled Learning framework (each remains a separately authorized, future governance cycle — see Section 32). Consistent with the accepted Bounded Scope Decision Rev5 (Sections 8F-8H), this directive requires that the current architecture already preserve compatibility with each, so that later work is not blocked by an undocumented gap.
+
+### Diagnosability compatibility (minimum foundation)
+
+```text
+traceability
+evidence provenance
+failure classification
+reproducibility
+version identity
+diagnostic observability hooks
+immutable history
+no-regression verification
+rollback compatibility
+```
+
+### Security compatibility (minimum foundation)
+
+```text
+data-use eligibility
+consent hooks
+provenance integrity
+provider-boundary controls
+retention/deletion compatibility
+authorization boundaries
+tamper-evident history
+```
+
+No specific provider implementation and no use of real-user data is authorized by this directive.
+
+### Controlled Learning compatibility (minimum foundation)
+
+```text
+model/rule/contract versioning
+provenance and evidence
+reproducibility
+future-feedback linkage
+consent/data-use eligibility hooks
+immutable history
+no-regression evaluation
+rollback compatibility
+```
+
+This directive does not authorize, and this section must not be read to permit:
+
+```text
+user-feedback collection
+analytics
+training
+automatic model/rule updates
+production behavior modification
+rollout
+real-user-data use
+```
+
+User feedback does not, and may not, directly modify production behavior.
+
+### Gate placement
+
+The mandatory Diagnosability and Security compatibility sequence (Module Applicability Profile Rev19, items XSEC-01, XSEC-04, XSEC-05, XSEC-06) is a required gate positioned after atomic Contracts 1-10 acceptance and before the Phase-1 Scope Decision / Execution Profile and before Tier 1 Corpus Preparation Authorization, per Module Applicability Profile Rev19 and Test Data Handling Decision Rev10 (Section 29, item 13). It is not authorized, opened, or completed by this directive.
 
 
 # 29. Downstream synchronization sequence
 
+Status per Test Data Handling Decision Rev10 (Decision 18 and its confirmed current-sequence statement) and the Owner Acceptance and Repository Persistence Record (2026-07-23):
+
 ```text
-1. Source freeze and exact verification
-2. Contract 1 successor
-3. Contract 1 consolidated review and successor lock
-4. Contract 2 successor/metadata-sync revision
-5. Contract 2 consolidated review and successor lock
-6. Bounded Scope Decision Rev5 full supersession
-7. Evaluation Threshold and Acceptance Plan Rev15 successor
-8. Contracts 1–10 Preparation and Dependency Plan Rev11 successor
-9. Module Applicability Profile Rev18 successor
-10. Project Context v2.4 synchronization
-11. Living Strategic Roadmap v1.4 synchronization
-12. Atomic Owner acceptance of the compatible transition set
-13. Layer 2 becomes effective only after the acceptance conditions are satisfied
-14. Contract 3 drafting only after root closure
+1. Source freeze and exact verification: COMPLETED (Section 6)
+2. Contract 1 Revision 19: COMPLETED — accepted, candidate-locked (C1-REV19-CL-001), repository-persisted
+3. Contract 2 Revision 10: COMPLETED — accepted, candidate-locked (C2-REV10-CL-001), repository-persisted
+4. Bounded Scope Decision Rev5 in-place correction: COMPLETED
+5. Evaluation Threshold and Acceptance Plan Rev16: COMPLETED — accepted, repository-persisted
+6. Test Data Handling Decision Rev10: COMPLETED — accepted, repository-persisted
+7. Module Applicability Profile Rev19: COMPLETED — accepted, repository-persisted
+8. Contracts 1–10 Preparation and Dependency Plan Rev11 successor: PENDING
+9. Phase 7 — one-time Project Context and Living Strategic Roadmap synchronization: NOT AUTHORIZED (requires separate explicit Project Owner authorization)
+10. One final consolidated review of the complete root architecture package: PENDING (after Phase 7)
+11. Separately authorized Contracts 3–10 drafting cycle: NOT AUTHORIZED
+12. Atomic Contracts 1–10 acceptance: NOT AUTHORIZED
+13. Mandatory Diagnosability and Security compatibility sequence (Module Applicability Profile Rev19, XSEC-01/04/05/06): NOT AUTHORIZED — required after atomic Contracts 1–10 acceptance and before the Phase-1 Scope Decision or Execution Profile
+14. Phase-1 Scope Decision / Execution Profile acceptance: NOT AUTHORIZED
+15. Required pre-corpus data-governance artifacts (Test Data Handling Rev10 Section 22, items 1-7 and 9-10) final acceptance/version-locking: NOT AUTHORIZED
+16. Tier 1 Corpus Preparation Authorization: NOT AUTHORIZED
+17. Corpus preparation, annotation, versioning and sealing: NOT AUTHORIZED
+18. Separately authorized provider/model evaluation sequence: NOT AUTHORIZED
+19. Provider/model selection and privacy/retention decision: NOT AUTHORIZED
+20. Separately authorized Implementation Package and implementation: NOT AUTHORIZED
+21. Bounded proof execution, only after its own explicit authorization: NOT AUTHORIZED
 ```
 
-No former five-room corpus or evaluation counts may be reused without a successor Threshold Plan.
+This directive does not request a duplicate Evaluation Threshold and Acceptance Plan Rev15 successor, a duplicate Module Applicability Profile Rev18 successor, or a new Bounded Scope supersession beyond its already-completed in-place correction: Rev16, Rev19 and the in-place-corrected Bounded Scope Decision Rev5 are the current accepted successors and this directive treats them as such. No former five-room, 20-category, or single-image-only counts may be reused silently; any successor Threshold Plan work must use the current Residential-34 / RoomCase[1] / ImageAsset[1..6] counts (Sections 2 and 9).
 
 
 # 30. Blocking validation rules
@@ -2367,12 +2665,29 @@ real user photos
 Contract 3 drafting before root closure
 Diagnosability Architecture
 Security Architecture
+Phase 7 execution by this directive alone
+Contracts 4-10 drafting
+Contract 11 drafting
+corpus creation
+synthetic corpus generation
+staged corpus capture
+real-user-data use
+provider/model selection
+Implementation Package preparation
+bounded proof execution
+deployment
+production activation
+active_locked transition
+Tracks B-H work
+automatic production changes from feedback
 ```
 
+No other section of this directive overrides, narrows, or indirectly authorizes any item in this list.
 
-# 33. Closure of Revision 2 control-review findings
 
-| Finding | Revision 3 closure |
+# 33. Closure of Corrected Revision 2 control-review findings
+
+| Finding | Corrected Revision 3 closure |
 |---|---|
 | B-01 Layer 2 registry mixed into Layer 1 | Section 4 separates Layer 1, cross-layer and Layer 2 registries. |
 | B-02 invalid applicability matrix | Section 23 supplies exact stable-ID relations for every Facility Context × selected same-domain Space Type pair. |
@@ -2394,8 +2709,19 @@ Security Architecture
 # 34. Final preparation state
 
 ```text
-Corrected Revision 3:
-READY FOR INDEPENDENT CONTROL REVIEW
+Historical persisted Corrected Revision 3:
+2411 lines
+SHA-256 a5ebb6caa9b5d901d4988a548b88940d6dbffc6faa92bf7e27465b1e7a69be7f
+repository-persisted in commit 725342773bdc452df8e3f72471b37de2d9e5c81b
+NOT Owner-accepted
+NOT authoritative
+
+Current in-place corrected working copy:
+CORRECTED DRAFT — AWAITING INDEPENDENT VERIFICATION
+AND PROJECT OWNER ACCEPTANCE
+
+Independent verification of corrected bytes:
+NOT YET COMPLETED
 
 Project Owner approval:
 NOT YET RECORDED
@@ -2404,8 +2730,146 @@ Transfer to Claude Project:
 NOT YET AUTHORIZED
 
 Layer 2 effective activation:
+NOT AUTHORIZED
 NOT YET EFFECTIVE
 
-Repository persistence:
+active_locked transition:
 NOT AUTHORIZED
+
+Repository persistence of corrected bytes:
+NOT AUTHORIZED
+NOT YET PERFORMED
+
+Commit:
+NOT PERFORMED
+
+Push:
+NOT PERFORMED
+
+Phase 7:
+NOT STARTED
 ```
+
+
+# 35. Change accounting for this in-place correction
+
+This section is complete and exclusive for the in-place correction of control-review findings F-1 through F-5 performed on 2026-07-23. It supersedes no other document and is not itself a new revision (Section 5, Section 16 editing constraints).
+
+```text
+F-1 — Residential-34 and current architecture synchronization:
+- Section 1 header: added historical vs. current identity blocks
+- Section 2: complete Residential-34 statement, RoomCase[1]/ImageAsset[1..6]
+  architecture, Layer 2 candidate/activation-preparation/effective-activation
+  distinction
+- Section 6: source-freeze baseline replaced with Contract 1 Rev19,
+  Contract 2 Rev10, Bounded Scope Rev5 (in-place corrected), ETAP Rev16,
+  Test Data Handling Rev10, MAP Rev19, Preparation Plan Rev11
+- Section 7: active_candidate / active_locked distinction, non-inference
+  rule (persistence does not imply acceptance/lock/effective status),
+  RoomCase/ImageAsset awareness
+- Section 9: residential inventory expanded from 20 to the complete
+  Residential-34 set; kitchen_living_room and bedroom subtypes
+  (children_room, guest_bedroom, primary_bedroom) added under
+  family.residential.primary_living; pantry added under
+  family.residential.food_preparation; veranda and winter_garden added
+  under family.residential.attached_outdoor; 4 new families added
+  (family.residential.dining, family.residential.work_study,
+  family.residential.utility, family.residential.below_grade) carrying
+  dining_room, home_office, library, laundry_room, utility_room,
+  mechanical_room and basement; the 20 pre-existing rows were checked
+  against Contract 1 Rev19 and required no substantive change
+- Section 22: 19 new Layer 2 Activation Registry rows added
+  (L2-ACT-0286 - L2-ACT-0304, IDs and row content taken directly from
+  Contract 1 Revision 19 Annex AA without renumbering any existing row);
+  closing counts updated (Space Families 46->50, Canonical Space Types
+  132->143, new Space Subtypes 3, new Composite Space Profiles 1, Total
+  285->304)
+- Section 23: 55 new Facility Context <-> Canonical Space Type
+  applicability rows added (11 new canonical residential space types x
+  5 facility contexts, less 2 rows structurally absent per Annex S
+  `applicableFacilityContexts`); superseding a 2026-07-23 applicability
+  evidence audit finding that the prior version of this in-place
+  correction had assigned `core`/`conditional` by family analogy and
+  undisclosed editorial judgment rather than exact source citation.
+  Every one of the 55 rows is now an exact, verified transcription of
+  Contract 1 Revision 19 Annex V (Global Facility-to-Space Applicability
+  Registry), not Annex S: Annex V independently carries its own
+  `applicability` column (`core`/`conditional`/`not_applicable`) per
+  `facilityContextId`/`canonicalSpaceTypeId` pair — contrary to the
+  superseded claim that "Contract 1 and Contract 2 do not define a
+  core/conditional trichotomy for any category at all" — and its 53 new
+  residential rows (Annex V introductory text, Revision 19 delta) are
+  all `core` for every facility context listed in the corresponding
+  Annex S `applicableFacilityContexts` cell. Concretely: `dining_room`,
+  `home_office`, `library`, `pantry`, `laundry_room`, `utility_room`,
+  `veranda`, `winter_garden` and `kitchen_living_room` are `core` for
+  all 5 residential facility contexts (apartment, cottage_house,
+  country_house, private_house, townhouse); `mechanical_room` and
+  `basement` are `core` for cottage_house/country_house/private_house/
+  townhouse and `not_applicable` for apartment, because Annex S's
+  `applicableFacilityContexts` cell for both identities excludes
+  `facility.residential.apartment` and Annex V correspondingly carries
+  no apartment row for either. No row in this set is `conditional`.
+  `applicableFacilityContexts`/`parentSpaceFamilyId` (Annex S) remain
+  the source for facility-context membership and family grouping only,
+  not for applicability tier, which Annex V alone governs. The three
+  bedroom specializations (`children_room`, `guest_bedroom`,
+  `primary_bedroom`) intentionally receive no Section 23 rows of their
+  own: Contract 1 Revision 19 Annex S1 §S1.1 ("Applicability closure")
+  states an explicit, exception-free rule that each Space Subtype
+  "inherits, in full and without exception, every Facility Context
+  ... applicability already recorded for its parent canonical identity,
+  space.residential.bedroom", with the parent's Annex V rows governing
+  and no subtype-specific override permitted; `space.residential.bedroom`
+  is `core` for all 5 residential facility contexts in Annex V, so all
+  three subtypes are `core` by this deterministic rule wherever
+  `bedroom` is `core`
+- Sections 24 and 25: checked; neither section contains any residential
+  row before or after this correction (Functional Zone and Space Use
+  applicability do not apply to any of the 34 residential categories per
+  Contract 1 Rev19 Annex S, which lists `none` for both columns on every
+  residential row); no change required
+- Obsolete five-room / 20-category / single-image-only model: removed as
+  a current operative basis; only Section 33's historical closure-finding
+  table and the historical-identity blocks in Section 1 and Section 34
+  refer to superseded history
+
+F-2 — Section 29 sequence synchronization:
+- Section 29 rewritten to mark Bounded Scope Rev5 in-place correction,
+  Contract 1 Rev19, Contract 2 Rev10, ETAP Rev16, Test Data Handling
+  Rev10 and MAP Rev19 as COMPLETED; no duplicate Rev15/Rev18/new Bounded
+  Scope successor is requested; Phase 7 through bounded proof execution
+  are marked PENDING or NOT AUTHORIZED in the order stated by Test Data
+  Handling Decision Rev10's confirmed current-sequence statement
+
+F-3 — Diagnosability, Security and Controlled Learning compatibility:
+- New Section 28.3 added, sourced from Bounded Scope Decision Rev5
+  Sections 8F-8H; gate placement for the mandatory Diagnosability/Security
+  sequence stated with reference to Module Applicability Profile Rev19
+  (XSEC-01/04/05/06) and cross-referenced from Section 29 item 13
+
+F-4 — Section 32 non-authorization expansion:
+- Section 32 list expanded with the additional explicit prohibitions
+  required by this correction (Phase 7 execution by this directive
+  alone, Contracts 4-10 and Contract 11 drafting, corpus creation in all
+  forms, real-user-data use, provider/model selection, Implementation
+  Package preparation, bounded proof execution, deployment, production
+  activation, active_locked transition, Tracks B-H work, automatic
+  production changes from feedback); a closing sentence states that no
+  other section overrides this list
+
+F-5 — Corrected Revision naming consistency:
+- Section 33 heading and table header corrected to "Corrected Revision 2"
+  / "Corrected Revision 3"; verified no other stray "Revision 2"/
+  "Revision 3" reference exists elsewhere in the document
+
+Status synchronization (Section 14):
+- Section 1 header and Section 34 both now separately state the
+  historical persisted Corrected Revision 3 identity (2411 lines,
+  SHA-256 a5ebb6ca..., commit 7253427..., not Owner-accepted, not
+  authoritative) and the current in-place corrected working-copy status
+  (uncommitted, not repository-persisted, not Owner-accepted, Layer 2
+  activation and active_locked not authorized, Phase 7 not started)
+```
+
+All other sections not listed above (3, 4, 5, 8, 10-21, 24-28.2, 30, 31) were reviewed and required no change to close F-1 through F-5.
