@@ -413,3 +413,121 @@ ACCEPTANCE AND PERSISTENCE RECORDED
 Phase 7:
 NOT STARTED
 ```
+
+---
+
+## 13. Later State Transition — Corrected Contract 1 Transfer Directive
+
+### 13.1 Historical persisted draft
+
+```text
+Historical persisted identity:
+Corrected Revision 3 draft
+
+Line count:
+2411
+
+SHA-256:
+a5ebb6caa9b5d901d4988a548b88940d6dbffc6faa92bf7e27465b1e7a69be7f
+
+Historical persistence commit:
+725342773bdc452df8e3f72471b37de2d9e5c81b
+
+Historical content status:
+REPOSITORY-PERSISTED AS DRAFT
+NOT OWNER-ACCEPTED
+NOT AUTHORITATIVE
+```
+
+This historical identity remains preserved in Git history. It is not
+deleted, rewritten, or retroactively reclassified as Owner-accepted.
+
+### 13.2 Correction and independent verification
+
+```text
+Corrected current identity:
+Corrected Revision 3
+
+Line count:
+2875
+
+SHA-256:
+eb304d88cdc8d62e38ba53337e850bcaeb501d05deff1698cf21a0d98af16e0e
+
+Independent verification:
+PASS
+
+F-1:
+CLOSED
+
+F-2:
+CLOSED
+
+F-3:
+CLOSED
+
+F-4:
+CLOSED
+
+F-5:
+CLOSED
+
+Regression findings:
+0
+```
+
+### 13.3 Project Owner acceptance
+
+```text
+Project Owner Decision date:
+2026-07-23
+
+Project Owner status:
+OWNER-ACCEPTED
+AUTHORITATIVE
+```
+
+This acceptance applies only to the exact identity of 2875 lines and
+SHA-256 `eb304d88cdc8d62e38ba53337e850bcaeb501d05deff1698cf21a0d98af16e0e`.
+
+### 13.4 Corrected persistence event
+
+```text
+Corrected directive persistence commit:
+787ef43d17aecc46b113542bff11ce9b9b1233b6
+
+Current directive status:
+OWNER-ACCEPTED
+AUTHORITATIVE
+REPOSITORY-PERSISTED
+```
+
+The later corrected identity supersedes the historical 2411-line draft
+as the current authoritative directive identity. The historical draft
+remains available in repository history and is not retroactively
+reclassified as Owner-accepted.
+
+### 13.5 Non-authorization boundary
+
+This section does not authorize:
+
+```text
+Layer 2 effective activation
+active_locked transition
+Phase 7
+Contract 3
+Contracts 3-10
+Contract 11
+corpus work
+real-user-data use
+provider/model work
+Implementation Package
+implementation
+bounded proof execution
+deployment
+production activation
+Tracks B-H
+```
+
+Phase 7:
+NOT STARTED
