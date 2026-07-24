@@ -362,7 +362,7 @@ Remain Planned; not selected and not opened.
 | Candidate A Evaluation Threshold and Acceptance Plan | `docs/engineering-decisions/reviews/Candidate-A-Evaluation-Threshold-and-Acceptance-Plan-Rev16.md` | Rev16 | Accepted, 2026-07-23 | Persisted |
 | Candidate A Test Data Handling Decision | `docs/engineering-decisions/reviews/Candidate-A-Test-Data-Handling-Decision-Rev10.md` | Rev10 | Accepted, 2026-07-23 (F-01, F-02 closed on independent verification) | Persisted |
 | Candidate A Module Applicability Profile | `docs/engineering-decisions/reviews/Candidate-A-Module-Applicability-Profile-Rev19.md` | Rev19 | Accepted, 2026-07-23 | Persisted |
-| Contract 1 Transfer and Layer 2 Activation Preparation Directive | `docs/engineering-decisions/reviews/VistaRoom-Contract-1-Transfer-and-Layer-2-Activation-Preparation-Directive-Rev3-Corrected .md` | Corrected Revision 3 | Accepted, 2026-07-23 (independent verification: 0 blocker/major/minor/improvement, 0 regressions) | Persisted; commit `787ef43d17aecc46b113542bff11ce9b9b1233b6` |
+| Contract 1 Transfer and Layer 2 Activation Preparation Directive | `docs/engineering-decisions/reviews/VistaRoom-Contract-1-Transfer-and-Layer-2-Activation-Preparation-Directive-Rev3-Corrected.md` | Corrected Revision 3 | Accepted, 2026-07-23 (independent verification: 0 blocker/major/minor/improvement, 0 regressions) | Persisted; commit `787ef43d17aecc46b113542bff11ce9b9b1233b6` |
 | Candidate A Contracts 1–10 Preparation and Dependency Plan | `docs/engineering-decisions/reviews/Candidate-A-Contracts-1-10-Preparation-and-Dependency-Plan-Rev11.md` | Rev11 | Accepted, 2026-07-18 | Persisted; own room-count language not yet synchronized to Residential-34 (known drift, §18) |
 | Owner Acceptance and Repository Persistence Record (Contracts 1-2, Phase 6, corrected Transfer Directive) | `docs/engineering-decisions/reviews/VistaRoom-Contracts-1-2-and-Phase-6-Owner-Acceptance-and-Repository-Persistence-Record.md` | — | Authoritative governance record | Persisted |
 
@@ -894,7 +894,7 @@ docs/engineering-decisions/reviews/Candidate-Lock-C2-REV10-CL-001.md
 docs/engineering-decisions/reviews/Candidate-A-Evaluation-Threshold-and-Acceptance-Plan-Rev16.md
 docs/engineering-decisions/reviews/Candidate-A-Test-Data-Handling-Decision-Rev10.md
 docs/engineering-decisions/reviews/Candidate-A-Module-Applicability-Profile-Rev19.md
-docs/engineering-decisions/reviews/VistaRoom-Contract-1-Transfer-and-Layer-2-Activation-Preparation-Directive-Rev3-Corrected .md
+docs/engineering-decisions/reviews/VistaRoom-Contract-1-Transfer-and-Layer-2-Activation-Preparation-Directive-Rev3-Corrected.md
 docs/engineering-decisions/reviews/VistaRoom-Contracts-1-2-and-Phase-6-Owner-Acceptance-and-Repository-Persistence-Record.md
 docs/engineering-decisions/reviews/Candidate-A-Contracts-1-10-Preparation-and-Dependency-Plan-Rev11.md
 docs/engineering-decisions/reviews/Module-Completion-and-Sequencing-Policy-Rev4.md
