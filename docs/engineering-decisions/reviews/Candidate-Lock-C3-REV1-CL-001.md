@@ -1,4 +1,4 @@
-# Candidate Lock Issuance Record — Corrected
+# Candidate Lock Issuance Record
 
 ```text
 Project:
@@ -11,10 +11,8 @@ Candidate Lock status:
 ISSUED
 
 Candidate Lock record status:
-CORRECTED
-MINOR-CL3-5 CORRECTION APPLIED
-PENDING LIMITED CLOSURE VERIFICATION
-NOT YET REPOSITORY-PERSISTED
+REPOSITORY-PERSISTED
+CLOSURE-COMPLETE
 
 Candidate Lock record canonical repository path:
 docs/engineering-decisions/reviews/Candidate-Lock-C3-REV1-CL-001.md
@@ -22,7 +20,9 @@ docs/engineering-decisions/reviews/Candidate-Lock-C3-REV1-CL-001.md
 Superseded Candidate Lock:
 NONE
 
-Superseded unpersisted record drafts:
+Historical superseded unpersisted record drafts (never repository-
+persisted; never separate Candidate Locks; no independent authoritative
+status):
 
 Draft 1:
 Candidate-Lock-C3-REV1-CL-001.md
@@ -202,7 +202,65 @@ Regression:
 NONE
 ```
 
-## 3. Direct normative upstream contract dependencies
+## 3. Limited Closure Verification (MINOR-CL3-5)
+
+```text
+Finding:
+MINOR-CL3-5
+
+Prior verdict on the immediately preceding draft:
+FAIL — BOUNDED CONTENT CHANGE REQUIRED (0 blocker / 0 major / 1 minor /
+0 improvement)
+
+Verified subject:
+docs/engineering-decisions/reviews/Candidate-Lock-C3-REV1-CL-001.md
+
+Verified subject identity:
+401 lines
+11342 bytes
+SHA-256:
+9f03835073b9e40680dfb079c2d112ef308a1235f19b6a049886c4d5f4e356ec
+
+Verified persistence commit:
+96de25971c221cb8b6236fa8719e064eefe257e1
+
+Verification verdict:
+PASS — MINOR-CL3-5 CLOSED, NO REGRESSION
+
+Severity totals:
+BLOCKER 0
+MAJOR 0
+MINOR 0
+IMPROVEMENT 0
+
+Closure date:
+2026-07-26
+
+Closure effect:
+Candidate Lock C3-REV1-CL-001 record is closure-complete.
+
+Regression:
+NONE
+
+External limited closure evidence:
+VistaRoom-AI-Candidate-Lock-C3-REV1-CL-001-MINOR-CL3-5-Limited-Closure-
+Verification-Report.md
+349 lines
+12397 bytes
+SHA-256:
+afaaf3bb6337eb187c88825894dba2c5d490cba07b3ee4ef3faf488dce618381
+
+Repository persistence of standalone report:
+NOT PERFORMED BY PROJECT OWNER DECISION
+
+Reason:
+the verified result is consolidated into this existing authoritative
+Candidate Lock record under the document-minimization rule. The
+standalone report remains external evidence only and is not a second
+authoritative repository document.
+```
+
+## 4. Direct normative upstream contract dependencies
 
 ```text
 Contract 1 Revision 19:
@@ -222,7 +280,7 @@ Contract 2 SHA-256:
 758bf9b99873f977600365e131b7dc1c166fcf71fe9ac8262294a1ca4e549177
 ```
 
-## 4. Other governing and imported baselines
+## 5. Other governing and imported baselines
 
 This Candidate Lock also preserves the governing and imported baselines
 that the locked Contract 3 identifies in its own authority,
@@ -249,7 +307,7 @@ not restate, revise or supersede their definitions. It records only that
 a materially relevant change to an imported governing baseline may
 require dependency revalidation of this Candidate Lock.
 
-## 5. Downstream impact
+## 6. Downstream impact
 
 ```text
 Direct downstream contract:
@@ -264,7 +322,7 @@ Contract 10 — Conformance Field Inventory and Validation
 Contract 4 is not a downstream consumer of Contract 3 and is not opened
 by this lock.
 
-## 6. Binding notes
+## 7. Binding notes
 
 1. `C3-REV1-CL-001` applies only to Supporting Contract 3 Revision 1 —
    Correction Cycle 7 at the exact SHA-256
@@ -315,7 +373,9 @@ by this lock.
    `Supporting Contracts 1–10 accepted`.
 
 9. This lock does not constitute or imply:
-   - repository persistence of this Candidate Lock record;
+   - repository persistence of any future changed, amended, successor or
+     replacement identity of this Candidate Lock record without a
+     separate repository-persistence action;
    - Layer 2 activation or `active_locked` transition;
    - corpus or fixture creation;
    - provider/model evaluation;
@@ -352,7 +412,7 @@ by this lock.
     Lock. `C3-REV1-CL-001` remains the first and only issued Candidate
     Lock for Contract 3 Revision 1.
 
-## 7. Repository persistence state
+## 8. Repository persistence state
 
 ```text
 Repository persistence of the locked Contract 3 artifact:
@@ -361,18 +421,37 @@ PERFORMED
 Locked Contract 3 artifact commit:
 25dde61afba7fc6f88bc5fc397648beebd5ca310
 
-Repository persistence of this corrected Candidate Lock record:
-NOT AUTHORIZED
-NOT PERFORMED
+Initial Candidate Lock record persistence:
+PERFORMED
 
-Commit for this corrected Candidate Lock record:
-NOT PERFORMED
+Initial persistence commit:
+96de25971c221cb8b6236fa8719e064eefe257e1
 
-Push for this corrected Candidate Lock record:
-NOT PERFORMED
+Initial persisted identity:
+401 lines
+11342 bytes
+SHA-256:
+9f03835073b9e40680dfb079c2d112ef308a1235f19b6a049886c4d5f4e356ec
+
+Post-push repository state:
+HEAD = origin/main =
+96de25971c221cb8b6236fa8719e064eefe257e1
+
+Ahead/behind:
+0 / 0
+
+Duplicate Candidate Lock records:
+NONE
+
+This in-place correction:
+consolidates the MINOR-CL3-5 limited closure result into this existing
+canonical record, per explicit Project Owner document-minimization
+decision. The commit that persists this exact in-place-corrected
+identity is recorded externally by Git history after that persistence
+occurs; this document does not invent that future commit hash.
 ```
 
-## 8. Resulting governance state
+## 9. Resulting governance state
 
 ```text
 Supporting Contract 1 Revision 19:
@@ -388,14 +467,48 @@ REPOSITORY-PERSISTED
 Supporting Contract 3 Revision 1 — Correction Cycle 7:
 OWNER-ACCEPTED
 CANDIDATE-LOCKED — C3-REV1-CL-001
-CONTRACT ARTIFACT REPOSITORY-PERSISTED
-CANDIDATE LOCK RECORD NOT YET REPOSITORY-PERSISTED
+REPOSITORY-PERSISTED
+CLOSURE-COMPLETE
 
-Supporting Contracts 4–10:
+Candidate Lock C3-REV1-CL-001 record:
+REPOSITORY-PERSISTED
+CLOSURE-COMPLETE
+
+Supporting Contract 4:
+PREPARATION AUTHORIZED BY SEPARATE PROJECT OWNER INSTRUCTION
+DRAFTING NOT YET COMPLETED
+NOT OWNER-ACCEPTED
+NOT CANDIDATE-LOCKED
+NOT REPOSITORY-PERSISTED
+
+Supporting Contracts 5–10:
 NOT AUTHORIZED
 NOT OPENED
 
 Strategic predicate:
 Supporting Contracts 1–10 accepted
 = NOT SATISFIED
+```
+
+This Candidate Lock does not authorize, and Contract 4's separate
+authorization above does not derive from this lock:
+
+```text
+Contract 4 drafting by itself (Contract 4's own preparation
+   authorization is a separate, later Owner instruction, not an effect
+   of this Candidate Lock);
+Contracts 5-10;
+Layer 2 activation;
+corpus or fixture creation;
+provider/model evaluation;
+implementation;
+deployment;
+Combined Diagnosability and Security Compatibility Assessment;
+full Diagnosability Architecture;
+full Security Architecture;
+full Controlled Learning Architecture;
+learning-active behavior;
+real-user-data use;
+whole-home or cross-room architecture;
+Tracks B-H activation.
 ```
