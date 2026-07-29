@@ -1,165 +1,227 @@
-# VistaRoom AI — Project Context v2.4 (Phase 7 In-Place Synchronization Correction)
+# VistaRoom AI — Project Context v2.4 (In-Place Reconciliation — Supporting Contract 8 Closure)
 
 ```text
 Version: 2.4
-Status: CORRECTED DRAFT — AWAITING LIMITED INDEPENDENT CLOSURE
-    VERIFICATION OF PC-1 AND PC-2 AND PROJECT OWNER ACCEPTANCE
-Correction type: IN-PLACE PHASE 7 STATE SYNCHRONIZATION
+Status: IN-PLACE CORRECTED DRAFT — CURRENT PROJECT-STATE RECONCILIATION
+    COMPLETED; CORRECTION CYCLE 1 (MAJOR-01, MAJOR-02) APPLIED, EXTERNAL
+    CLOSURE VERIFICATION FAILED WITH 1 REMAINING MAJOR FINDING (MAJOR-01
+    NOT CLOSED); CORRECTION CYCLE 2 (MAJOR-01) APPLIED; AWAITING VALID
+    EXTERNAL TARGETED CORRECTION CLOSURE VERIFICATION, PROJECT OWNER
+    ACCEPTANCE, AND SEPARATE REPOSITORY PERSISTENCE AUTHORIZATION
+Correction type: IN-PLACE PROJECT-STATE RECONCILIATION THROUGH SUPPORTING
+    CONTRACT 8 CLOSURE
 Version bump: NONE
-Accepted source revision: Draft Revision 3
-Acceptance date (of the existing accepted identity below): 2026-07-17
-Existing accepted byte identity: 654 lines, SHA-256
-    a6c2ae24658c625b267331db603015d4d25ba33b3bec524251f9744efc2184f1
-    (Accepted, Project Owner, 2026-07-17) — remains the current
-    authoritative Project Context identity until this corrected
-    identity is separately, explicitly accepted by the Project Owner.
-Targeted factual correction previously applied to the existing accepted
-    identity (preserved as history, not reopened): exact Contracts
-    1–10 Plan Rev4 persistence commit inserted (confirmed:
-    fc1c1aaef6afecc831d8227408dc6e6cef994935); resolved
-    verification-prerequisite sentence removed from §10.2
 Document Type: Project Baseline
 Owner: Platform Architecture
-Prepared by: Claude (Chief Software Architect / Specification Partner)
+Prepared by: Claude (Governance Reconciliation Executor / Project-State
+    Auditor / Documentation Integrity Engineer)
 Prepared for: Project Owner (Nurlan)
-Preparation date: 2026-07-23
-Trigger: Phase 7 — one-time synchronization of Project Context and
-    Living Strategic Roadmap, authorized by the Project Owner, 2026-07-23,
-    following closure of Phase 6 (Candidate A root architecture package)
-    and repository persistence of the corrected Contract 1 Transfer and
-    Layer 2 Activation Preparation Directive. Corrected per explicit
-    Project Owner instruction, 2026-07-23, to an in-place synchronization
-    of the existing Project Context v2.4 identity rather than a new
-    v2.5 successor document. Further corrected, 2026-07-23, to close
-    independent review findings PC-1 (self-identity placeholders) and
-    PC-2 (compressed historical sections; restored verbatim below).
-Proposed corrected byte identity: exact final line count is stated in
-    the Change Summary identity block and in Final Status below,
-    computed after all PC-1/PC-2 corrections were applied. The exact
-    SHA-256 of this exact final byte content cannot be stated inside
-    the file itself (embedding a file's own hash inside the file
-    changes the file's bytes, which changes the hash — a recursive
-    condition with no fixed point) and is therefore not stated here;
-    it is recorded externally, in the correction report accompanying
-    this drafting cycle. No promise that the SHA-256 appears inside
-    this file is made anywhere in this document.
-Strategic Baseline: Living Strategic Roadmap v1.4 — Accepted, including
-    Owner-Approved Amendment (2026-07-16), Owner-Approved Amendment
-    "Module-Completion-First" Revision 5 (2026-07-17), and this Phase 7
-    synchronization's companion in-place state-synchronization addition
-    to the same Roadmap v1.4 identity (2026-07-23, frozen at 1516
-    lines, SHA-256 ff2b93d7b8d4dc11eb871d3ff72c5522f4aa664744b9c3e59ce5c9cfd68727b0,
-    independently reviewed with 0 findings, not re-edited by this task)
-Repository Baseline Reference: HEAD 36a8b229883d9473a84ad5b3181806458bfbe3dc
-Repository persistence of this corrected identity: NOT PERFORMED —
-    NOT AUTHORIZED
-A full independent consolidated review of the prior exact pair
-    (800-line Project Context / 1516-line Roadmap identities) has
-    already occurred and returned two findings, PC-1 and PC-2, both
-    addressed by this correction below. Drafting to close PC-1/PC-2 is
-    complete; this exact identity now awaits one limited independent
-    closure verification of PC-1 and PC-2 (not a further full
-    consolidated review) before Project Owner Acceptance.
+Preparation date: 2026-07-29
+Trigger: In-place reconciliation of Project Context v2.4, to synchronize
+    the document with the confirmed repository state following closure
+    of Supporting Contract 8 (Unseen-Claim Evaluation Artifact, Revision
+    1) and issuance of Candidate Lock C8-REV1-CL-001 (persisted 2026-07-28,
+    commit 97537cf85f956847d764ec91d0e3b00977fdc08d). The Phase 7
+    correction cycle described below (§ Prior identity note) is preserved
+    as history; this reconciliation is a distinct, later in-place
+    correction of the same v2.4 document, addressing project-state facts
+    (Contracts 3–8 closure) that postdate Phase 7's drafting.
+Prior identity note: the repository-persisted v2.4 identity immediately
+    preceding this reconciliation was the "Phase 7 In-Place Synchronization
+    Correction" draft, last committed 2026-07-24 (commit
+    94398e947264c24b5db2ecb19fb8d29325a5faa1, "docs: correct Transfer
+    Directive filename"; earlier commits
+    e81965c58f09dd339cacee29c6633fd8ed1376c7 and
+    52fac89e5ac2f0f9438090f19444ff51c6719f1d). That identity's own Final
+    Status section stated "repository persistence: NOT PERFORMED, NOT
+    AUTHORIZED" for itself; this was stale — independent verification via
+    `git log` confirms that identity was in fact already committed to
+    `main` before this reconciliation began. This reconciliation corrects
+    that stale self-referential statement and does not reopen the Phase 7
+    content decisions themselves (§10.2 historical rows, §12.3, PC-1/PC-2
+    closure), which remain historical and are not renegotiated here.
+Repository Baseline Reference: HEAD
+    97537cf85f956847d764ec91d0e3b00977fdc08d ("governance(track-a):
+    persist Contract 8 and Candidate Lock C8-REV1-CL-001"). Independently
+    verified this session: `git rev-parse --show-toplevel`, `git branch
+    --show-current` (main), `git rev-parse HEAD`, `git status --porcelain`
+    (clean), `git rev-list --left-right --count HEAD...origin/main` (0/0).
+Repository persistence of this corrected identity: NOT PERFORMED — NOT
+    AUTHORIZED. This edit exists only in the working tree, pending
+    external independent review, separate Project Owner Acceptance, and a
+    separate repository-persistence authorization. It does not replace
+    the committed 2026-07-24 identity as the authoritative Project
+    Context content until separately accepted.
 ```
 
-This document is the existing accepted Project Context v2.4 (654 lines, SHA-256 `a6c2ae24...4f1`), corrected in place under Phase 7 authorization. The document version remains 2.4. This is not a new document and does not create a successor-version relationship. The existing accepted 654-line byte identity is not edited, deleted, or reopened by this draft — it remains authoritative in Git history and as the current authoritative Project Context until this corrected identity is separately accepted.
+This document is an in-place correction of the Project Context v2.4 identity most recently committed to `main` (2026-07-24, commit `94398e94...`). The document version remains 2.4; this is not a new document and does not create a successor-version relationship. The 2026-07-24 committed identity is not deleted or retroactively invalidated by this draft — it remains in Git history and remains the current repository-persisted Project Context content until this corrected identity is separately reviewed, accepted, and authorized for persistence.
 
-Project Context v2.4 принят Project Owner 2026-07-17 и является authoritative current project-state baseline VistaRoom AI. Он заменяет Project Context v2.3, который сохраняется как historical baseline. Настоящая corrected identity не заменяет этот статус — предыдущая accepted 654-строчная identity остаётся authoritative до отдельного явного Acceptance этой corrected identity.
+Начиная с этой reconciliation, `Project Context v2.4.md` формально закрепляется как **sole active canonical Project Context** и **single living version** проекта, с in-place updates only (см. новый раздел "Project Context Version Governance" ниже). Project Context.md, v2.2 и v2.3 зафиксированы как Historical/Superseded/Inactive и не могут использоваться как current или fallback baseline.
 
 ---
 
-## Change Summary — Project Context v2.4 — Phase 7 In-Place Synchronization Correction
+## Change Summary — Project Context v2.4 — In-Place Reconciliation (Supporting Contract 8 Closure)
 
 ```text
-Existing accepted v2.4 byte identity:
-654 lines, SHA-256 a6c2ae24658c625b267331db603015d4d25ba33b3bec524251f9744efc2184f1
-(Accepted, Project Owner, 2026-07-17) — remains authoritative until
-the corrected identity below is separately accepted.
+Prior repository-persisted v2.4 identity:
+committed 2026-07-24, commit 94398e947264c24b5db2ecb19fb8d29325a5faa1
+("docs: correct Transfer Directive filename") — the Phase 7 In-Place
+Synchronization Correction identity. Remains in Git history, unmodified,
+and is not retroactively described as invalid or superseded by a new
+version number.
 
-Proposed corrected v2.4 byte identity:
-line count stated in Final Status below (SHA-256 recorded externally
-in the correction report only, per §13's non-recursive-hash rule — not
-embedded in this file).
+This corrected v2.4 byte identity:
+exact line count, byte count and SHA-256 stated in Final Status below,
+computed after all reconciliation edits were applied (binary-safe,
+per §14 methodology).
 
 Document version:
 UNCHANGED — remains 2.4 in both identities.
-
-Historical preservation:
-The existing 654-line byte identity remains preserved in Git history,
-unmodified, and is not retroactively described as unaccepted, invalid,
-or superseded by a new version number.
 ```
 
-This Change Summary uses precise, auditable distinctions rather than a blanket "unchanged" label, per the correction of finding PC-2:
+Changes made in this reconciliation pass, relative to the 2026-07-24 committed identity:
 
 ```text
 Changed (updated to current state):
 
-- §1 Project Status: Phase 6 (Candidate A root architecture successor
-  package) recorded CLOSED and Owner-accepted; Contract 1 Rev19 /
-  Contract 2 Rev10 recorded completed, candidate-locked,
-  repository-persisted; Transfer Directive Corrected Revision 3
-  recorded Owner-accepted, repository-persisted; Phase 7 recorded as
-  current authorized work.
-- §10.2 Candidate A Architecture Baseline table: updated from the
-  historical Rev3/Rev13/Rev9/Rev4 baseline to the current authoritative
-  Rev19/Rev10/Rev16/Rev10/Rev19/Corrected-Rev3 baseline.
-- §16 Not Authorized: extended to the current, wider boundary.
-- §17 Current Repository State: updated to HEAD 36a8b229883d9473a84ad5b3181806458bfbe3dc.
-- §22/§23: updated to the current post-Phase-6 objective and sequence.
-- §24: correction-framing sentence added; original policy statement preserved.
-- §25 References: updated to cite current authoritative documents.
+- Header/metadata block: reframed from the Phase 7 PC-1/PC-2 correction
+  cycle (closed) to this Supporting Contract 8 closure reconciliation;
+  corrected the prior identity's stale self-referential "repository
+  persistence: NOT PERFORMED" statement (it was, in fact, already
+  committed — see Prior identity note above).
+- §1 Project Status: Supporting Contracts 3–8 recorded Owner-accepted,
+  candidate-locked, repository-persisted; Contracts 9–11 recorded
+  NOT AUTHORIZED / NOT OPENED; "Next engineering stage (Supporting
+  Contracts 3-10 drafting) — Not started" corrected (Contracts 3-8 are
+  in fact drafted, accepted, and closed; Contracts 9-11 remain not
+  authorized).
+- §10.2 Candidate A Architecture Baseline table: extended with rows for
+  Supporting Contracts 3, 4, 5, 6, 7, 8 and their Candidate Locks.
+- §16 Not Authorized: "Contract 3 drafting" / "Contracts 3–10 drafting"
+  entries corrected — Contracts 3-8 are closed; only Contracts 9-11
+  remain not authorized.
+- §17 Current Repository State: updated to HEAD
+  97537cf85f956847d764ec91d0e3b00977fdc08d.
+- §22 Current Objective — reconciled from the predecessor objective
+  into explicit Historical and Current states; updated the active
+  authorization boundary from the obsolete "Contracts 3–10 drafting
+  not authorized" statement to the current "Supporting Contracts 9–10
+  drafting not authorized" state after closure of Supporting Contracts
+  3–8. The predecessor statement is retained only as historical
+  evidence. (Corrected in Correction Cycle 1, closing external review
+  finding MAJOR-01; this item was previously miscategorized below as
+  "Verbatim preserved, unchanged.")
+- §23 Next Governance Sequence: step 3/4 updated to reflect Contracts
+  3-8 closure and Contracts 9-11 as the current not-authorized boundary.
+- §26 Version History: new entry appended for this reconciliation.
 
-New (added, not present in the accepted identity):
-- New §10.3 Residential-34 confirmation.
-- New §10.4 Operation / RoomCase / ImageAsset[1..6] architecture.
-- New §10.5 Cross-cutting compatibility foundation.
-- New dated entry in §18 for the Contracts 1-10 Preparation Plan Rev11
-  drift item, added after (not replacing) the three original drift items.
-- New v2.4-correction entry in §26 Version History, added after (not
-  replacing) the existing v2.3/v2.4 entries.
-- New `Required Project Owner Decisions` (rewritten for this
-  correction cycle; see below), `Drafting Report`, and `Final Status`
-  sections, replacing the prior identically-named sections' content
-  (both of which already existed in the accepted identity and are
-  cycle-specific by nature).
-
-Verbatim preserved, with only an explicitly identified current-state
-addition appended after the original text (not interleaved, not
-paraphrased):
-- §9 Post–Gate 2 Comparative Architecture Assessment — Resolution:
-  original text preserved in full; no addition needed (already
-  historical and complete).
-- §11 Module Completion and Sequencing Policy: original text, including
-  both commit hashes, preserved in full; one clause appended noting
-  Module Applicability Profile Rev19's acceptance.
-- §12 Roadmap Amendments: original §12.1/§12.2 structure and full text,
-  including all three commit hashes, preserved in full; a new
-  "§12.3 Phase 7 State Synchronization (2026-07-23)" subsection
-  appended after the original two.
-- §14 Strategic Tracks A–H: original text, including the "Policy Rev4
-  §§15, 17–18" cross-reference and "С 2026-07-17" framing, preserved
-  in full; no addition needed.
-- §18 Documentation State and Known Drift: original three drift items
-  preserved in full, including their quoted stale-metadata text; a
-  fourth, clearly separated, dated new item appended.
+New (added, not present in the prior committed identity):
+- New "Project Context Version Governance" section, establishing
+  Project Context v2.4 as the sole active canonical Project Context /
+  single living version, in-place-updates-only, per explicit Project
+  Owner decision (§1.1-1.3 of the governing instruction for this task).
+- New `Required Project Owner Decisions`, `Drafting Report`, and
+  `Final Status` sections for this reconciliation cycle, replacing the
+  prior cycle-specific content of those identically-named sections.
+- New §10.6 "Canonical Platform Boundaries — Controlled Learning,
+  Bilingual Foundation, Exclusions": added explicit canonical
+  platform-boundary declarations for Controlled Learning
+  (LEARNING-READY / NOT LEARNING-ACTIVE), the English canonical
+  internal language and full Russian derived locale with
+  language-neutral stable IDs and mandatory English fallback, the
+  final exclusion of Pantone, and the final exclusion of collaborative
+  multi-user preference compromise. (Added in Correction Cycle 1,
+  closing external review finding MAJOR-02.)
 
 Verbatim preserved, unchanged:
-- §2 Current Product Maturity, §3 Strategic Direction, §4.1-4.2, §5-8
-  (Gate 1/Gate 2 closure, Representation/Perception boundary — with one
-  narrow addition noted directly in §7 as a bracketed current-state
-  note, not a rewrite), §13 Current Platform Capabilities, §15
-  Lightweight Project & Asset Direction, §19 Architecture and
-  Documentation Principles, §20 Documentation Ecosystem, §21 Developer
-  Studio — production behavior has not changed since the accepted
-  identity.
+- §2-§9, §11-§15, §18-§21, §24-§25 (Historical Phase 6/Phase 7 content,
+  Gate 1/Gate 2 closure, Residential-34, Operation/RoomCase/ImageAsset
+  architecture, cross-cutting compatibility foundation, Module
+  Completion and Sequencing Policy, Roadmap Amendments, known
+  documentation drift, architecture/documentation principles,
+  documentation ecosystem, Developer Studio, Baseline Policy,
+  References) — not reopened by this reconciliation except where
+  explicitly listed above. §22 (Current Objective) is excluded from
+  this verbatim range — it was in fact changed by this reconciliation;
+  see the §22 changed-item above.
 ```
 
-This correction set is the complete and exclusive basis for every difference between the existing accepted v2.4 byte identity and this corrected v2.4 draft. The existing accepted 654-line byte identity is not edited, moved, or deleted by this document.
+Correction Cycle 1 (2026-07-29, applied after external independent review of the identity above returned FINAL VERDICT: FAIL, 0 blocker, 2 MAJOR, 0 minor, 0 improvement findings) closes MAJOR-01 (this Change Summary's §22 accounting, corrected above) and MAJOR-02 (the new §10.6 canonical platform-boundary declarations, added above). No other finding was raised by that review, and no other content is reopened by this correction cycle.
+
+Correction Cycle 2 (2026-07-29, applied after external targeted correction closure verification of the Correction Cycle 1 identity above returned FINAL VERDICT: FAIL, 0 blocker, 1 MAJOR (MAJOR-01 not closed), 0 minor, 0 improvement findings; MAJOR-02 CLOSED) closes the remaining MAJOR-01 finding: `Required Project Owner Decisions`, item 10 — corrected the preserved section range from §18-§22 to §18-§21 and explicitly separated §22 as a changed reconciliation section, consistent with this Change Summary's existing §22 accounting above. No other finding was raised by that review, and no other content is reopened by this correction cycle.
+
+This Change Summary is the complete and exclusive basis for every difference between the 2026-07-24 committed v2.4 byte identity and this corrected v2.4 draft. The 2026-07-24 committed identity is not edited, moved, or deleted by this document.
 
 ---
 
+## Project Context Version Governance
 
+```text
+Canonical document:
+docs/project/Project Context v2.4.md
+
+Version model:
+SINGLE LIVING VERSION
+
+Update model:
+IN-PLACE UPDATES ONLY
+
+Current authority:
+Project Context v2.4 is the sole active canonical Project Context line.
+
+New version files:
+PROHIBITED — no Project Context v2.5, v3.0, or any successor version
+file may be created. All future changes are made in place, in this
+exact document, at this exact filename and repository path.
+```
+
+Predecessor version-line status (Project Owner decision):
+
+```text
+docs/project/Project Context.md:
+HISTORICAL
+INACTIVE
+
+docs/project/Project Context v2.2.md:
+SUPERSEDED
+INACTIVE
+
+docs/project/Project Context v2.3.md:
+SUPERSEDED
+INACTIVE
+```
+
+These three files are not edited by this or any future reconciliation under this policy. They are not a current baseline, not a fallback baseline, and cannot be cited as a source of current project state. They are preserved only as historical repository evidence.
+
+Rules:
+
+```text
+1. Future changes are made only in place, in the text of
+   `Project Context v2.4.md`.
+2. Filename, version number, and canonical repository path do not
+   change.
+3. v2.5, v3.0, and any subsequent version files are not created.
+4. Previous versions cannot be used as a current or fallback baseline.
+5. Git history preserves the change history of `v2.4` across all
+   in-place corrections.
+6. A substantive text change creates a new exact byte identity of the
+   same `v2.4` document — not a new version.
+7. A new exact identity requires a governance cycle proportional to
+   the scale of the change (independent review, Project Owner
+   Acceptance, and separate repository-persistence authorization, as
+   applicable).
+8. Version-line authority and exact-byte acceptance state are distinct
+   and must be stated separately: v2.4 is the sole active version line
+   at all times; a specific edited byte identity of v2.4 is Owner-
+   accepted only when explicitly accepted.
+9. The presence of a draft byte identity at the canonical path does
+   not, by itself, constitute Project Owner Acceptance of that
+   identity.
+10. Only explicit Project Owner Acceptance makes a specific exact
+    identity the accepted one.
+```
+
+Applied to this document's current state: this reconciliation is an in-place edit of `Project Context v2.4.md`, made under this policy. Version authority (this is the sole active Project Context) is unconditional and immediate. Exact-byte authority (this specific edited content being the "accepted" content) is not yet established — see Final Status below.
 
 ---
 
@@ -195,18 +257,55 @@ Contract 1 Transfer and Layer 2 Activation Preparation Directive,
 
 Phase 6 (Candidate A root architecture successor package) — CLOSED.
 Phase 7 (one-time Project Context / Living Strategic Roadmap
-    synchronization) — AUTHORIZED, 2026-07-23; drafting and local
-    validation only; this document is that drafting work product.
+    synchronization) — CLOSED (drafting cycle complete; superseded in
+    place by this later reconciliation — see header Prior identity note
+    and §26).
+
+Supporting Contract 3 — Relation Type × Active Category Applicability
+    Matrix, Revision 1 (Correction Cycle 7) — Owner-accepted,
+    candidate-locked (C3-REV1-CL-001), repository-persisted.
+Supporting Contract 4 — Best-Effort Evidence, Provenance and
+    Determinability Annotation Contract, Revision 1 (Consolidated
+    Correction Cycle 7) — Owner-accepted, candidate-locked
+    (C4-REV1-CL-001), repository-persisted.
+Supporting Contract 5 — Confidence Generation and Normalization
+    Contract, Revision 1 (Correction Cycle 3) — Owner-accepted,
+    candidate-locked (C5-REV1-CL-001), repository-persisted.
+Supporting Contract 6 — Unknown/Determinability Annotation and Pairing
+    Contract, Revision 1 (Correction Cycle 1) — Owner-accepted,
+    candidate-locked (C6-REV1-CL-001), repository-persisted.
+Supporting Contract 7 — Semantic Case, Scenario, Sufficiency and
+    Completeness Annotation Contract, Revision 1 (Correction Cycle 1) —
+    Owner-accepted, candidate-locked (C7-REV1-CL-001), repository-
+    persisted.
+Supporting Contract 8 — Unseen-Claim Evaluation Artifact, Revision 1 —
+    Owner-accepted, technically review-closed, candidate-locked
+    (C8-REV1-CL-001), repository-persisted.
+
+Supporting Contract 9 — NOT AUTHORIZED, NOT OPENED.
+Supporting Contract 10 — NOT AUTHORIZED, NOT OPENED.
+Supporting Contract 11 — NOT AUTHORIZED, NOT OPENED.
+Supporting Contracts 1-10 accepted (atomic set) — FALSE (Contracts 1-8
+    individually complete; Contracts 9-10 not opened).
 
 Current Primary Active Module — Bounded Room Understanding / Spatial
     Perception.
 Current Primary Active Module lifecycle state — ARCHITECTURE CYCLE
     IN PROGRESS.
-Next engineering stage (Supporting Contracts 3-10 drafting) — Not
-    started, not authorized.
+Next engineering stage (Supporting Contract 9 drafting) — Not started,
+    not authorized.
 Next-stage implementation — Not authorized.
 Layer 2 effective activation — Not authorized.
 active_locked transition — Not authorized, for any category.
+
+Combined Diagnosability & Security Compatibility Assessment,
+    AI Brain Diagnosability Architecture, Security Architecture
+    Baseline, Phase-1 Scope Decision / Execution Profile, Section 22
+    downstream artifacts, Tier 1 Corpus Preparation Authorization —
+    NOT AUTHORIZED, NOT OPENED (blocked pending Contracts 9-10
+    acceptance, per Owner-Approved Roadmap Amendment 2026-07-16, §12.1).
+
+Tracks B-H — PLANNED, NOT OPENED, NOT AUTHORIZED.
 ```
 
 ---
@@ -365,6 +464,18 @@ Remain Planned; not selected and not opened.
 | Contract 1 Transfer and Layer 2 Activation Preparation Directive | `docs/engineering-decisions/reviews/VistaRoom-Contract-1-Transfer-and-Layer-2-Activation-Preparation-Directive-Rev3-Corrected.md` | Corrected Revision 3 | Accepted, 2026-07-23 (independent verification: 0 blocker/major/minor/improvement, 0 regressions) | Persisted; commit `787ef43d17aecc46b113542bff11ce9b9b1233b6` |
 | Candidate A Contracts 1–10 Preparation and Dependency Plan | `docs/engineering-decisions/reviews/Candidate-A-Contracts-1-10-Preparation-and-Dependency-Plan-Rev11.md` | Rev11 | Accepted, 2026-07-18 | Persisted; own room-count language not yet synchronized to Residential-34 (known drift, §18) |
 | Owner Acceptance and Repository Persistence Record (Contracts 1-2, Phase 6, corrected Transfer Directive) | `docs/engineering-decisions/reviews/VistaRoom-Contracts-1-2-and-Phase-6-Owner-Acceptance-and-Repository-Persistence-Record.md` | — | Authoritative governance record | Persisted |
+| Supporting Contract 3 — Relation Type × Active Category Applicability Matrix | `docs/engineering-decisions/reviews/Candidate-A-Supporting-Contract-3-Relation-Type-Active-Category-Applicability-Matrix-Rev1.md` | Rev1 (Correction Cycle 7) | Owner-accepted, candidate-locked `C3-REV1-CL-001`, 2026-07-26 | Persisted; commit `25dde61afba7fc6f88bc5fc397648beebd5ca310` |
+| Candidate Lock C3-REV1-CL-001 | `docs/engineering-decisions/reviews/Candidate-Lock-C3-REV1-CL-001.md` | — | Issued | Persisted; commit `96de25971c221cb8b6236fa8719e064eefe257e1` |
+| Supporting Contract 4 — Best-Effort Evidence, Provenance and Determinability Annotation Contract | `docs/engineering-decisions/reviews/Candidate-A-Supporting-Contract-4-Best-Effort-Evidence-Provenance-and-Determinability-Annotation-Rev1.md` | Rev1 (Consolidated Correction Cycle 7) | Owner-accepted, candidate-locked `C4-REV1-CL-001`, 2026-07-27 | Persisted; commit `a9d9395a37fcb045b4f76ec31f3da235dcdfb27a` |
+| Candidate Lock C4-REV1-CL-001 | `docs/engineering-decisions/reviews/Candidate-Lock-C4-REV1-CL-001.md` | — | Issued (the artifact preserves its pre-persistence issuance snapshot, stating "NOT REPOSITORY-PERSISTED"; subsequent repository persistence is established by Git commit history and does not require or permit mutation of the locked artifact) | Persisted; commit `a9d9395a37fcb045b4f76ec31f3da235dcdfb27a` |
+| Supporting Contract 5 — Confidence Generation and Normalization Contract | `docs/engineering-decisions/reviews/Supporting-Contract-5-Confidence-Normalization-Rev1-CC3.md` | Rev1 (Correction Cycle 3) | Owner-accepted, candidate-locked `C5-REV1-CL-001`, 2026-07-27 | Persisted; commit `b0246c04660c38c42927e584abc1bb218fac7cdf` |
+| Candidate Lock C5-REV1-CL-001 | `docs/engineering-decisions/reviews/Candidate-Lock-C5-REV1-CL-001.md` | — | Issued | Persisted; commit `b0246c04660c38c42927e584abc1bb218fac7cdf` |
+| Supporting Contract 6 — Unknown/Determinability Annotation and Pairing Contract | `docs/engineering-decisions/reviews/Supporting-Contract-6-Determinability-Pairing-Rev1-Correction-Cycle-1.md` | Rev1 (Correction Cycle 1) | Owner-accepted ("Утверждаю Supporting Contract 6 Rev1 CC1"), candidate-locked `C6-REV1-CL-001`, 2026-07-27 | Persisted; commit `2489c79bd947861b78c827eec8f3b2e82b0f1608` |
+| Candidate Lock C6-REV1-CL-001 | `docs/engineering-decisions/reviews/Candidate-Lock-C6-REV1-CL-001.md` | — | Issued | Persisted; commit `2489c79bd947861b78c827eec8f3b2e82b0f1608` |
+| Supporting Contract 7 — Semantic Case, Scenario, Sufficiency and Completeness Annotation Contract | `docs/engineering-decisions/reviews/Supporting-Contract-7-Semantic-Case-Scenario-Sufficiency-Completeness-Rev1-Correction-Cycle-1.md` | Rev1 (Correction Cycle 1) | Owner-accepted, candidate-locked `C7-REV1-CL-001`, 2026-07-28 | Persisted; commit `82fa094aaa09ada2bac28b55bea674981760a474` |
+| Candidate Lock C7-REV1-CL-001 | `docs/engineering-decisions/reviews/Candidate-Lock-C7-REV1-CL-001.md` | — | Issued | Persisted; commit `82fa094aaa09ada2bac28b55bea674981760a474` |
+| Supporting Contract 8 — Unseen-Claim Evaluation Artifact | `docs/engineering-decisions/reviews/Supporting-Contract-8-Unseen-Claim-Evaluation-Artifact-Rev1.md` | Rev1 | Owner-accepted, technically review-closed, candidate-locked `C8-REV1-CL-001`, 2026-07-28 | Persisted; commit `97537cf85f956847d764ec91d0e3b00977fdc08d`; independently verified this session: 1827 lines / 327005 bytes / SHA-256 `95fa71f4eb5701254580e8c97f64ac23c4d92778a277c103ec5499ced43c89d7` |
+| Candidate Lock C8-REV1-CL-001 | `docs/engineering-decisions/reviews/Candidate-Lock-C8-REV1-CL-001.md` | — | Issued | Persisted; commit `97537cf85f956847d764ec91d0e3b00977fdc08d`; independently verified this session: 294 lines / 8853 bytes / SHA-256 `c38a77173a7595c36500f1e451265b7a34110ddea21d510c376cf062b958fb35` |
 
 Историческая ревизия Rev13/Rev9/Rev4 (Evaluation Threshold Plan, Test Data Handling Decision, Contracts 1-10 Plan) и Rev3 Bounded Scope Decision до in-place correction (accepted 2026-07-14/15/16, commits `635dd169fa57c2c1cc02b0021d2930ade0a6cdb1`, `b2f2d5b3b8c40d0081324333887e1f26eafa5170`, `fc1c1aaef6afecc831d8227408dc6e6cef994935`, `b9825395a49eb153354805d5c317d091228bcf0e` соответственно, и историческая Rev3 Perception Mechanism, commit `328d5fbf9a6a1a02f187db7d3456bcf193a62392`) — остаются historical, superseded, не переоткрываются; их commit-хеши сохранены здесь для полной provenance traceability.
 
@@ -387,9 +498,9 @@ Bounded Scope: Operation → RoomCase[exactly 1] → ImageAsset[1..6] →
     Tier 1 room types (living room, bedroom, kitchen, bathroom).]
 Corpus-before-provider sequence; absolute prohibition on disclosing
     held-out ground truth to any evaluated provider.
-Contracts 1 and 2 (of 1-10): drafted, reviewed, accepted,
-    candidate-locked, repository-persisted. Contracts 3-10: not
-    drafted, not authorized. Contract 10 identity-alignment
+Contracts 1-8 (of 1-10): drafted, reviewed, accepted, candidate-locked,
+    repository-persisted (§10.2 table above). Contracts 9-10: not
+    drafted, not authorized, not opened. Contract 10 identity-alignment
     prerequisite (sourceImageId / inputArtifactId / sourceAssetId /
     imageAssetId / roomCaseId) partially resolved by Test Data Handling
     Decision Rev10 Section 3.3.0 (identity-level model fixed); exact
@@ -397,7 +508,7 @@ Contracts 1 and 2 (of 1-10): drafted, reviewed, accepted,
     responsibility.
 ```
 
-Каждый из перечисленных документов сохраняет собственный полный non-authorization boundary (Contracts 3-10/11 drafting, corpus/fixture creation, provider contact/invocation, Implementation Package, implementation, active_locked transition, Layer 2 effective activation — everywhere explicitly not authorized).
+Каждый из перечисленных документов сохраняет собственный полный non-authorization boundary (Contracts 9-11 drafting, corpus/fixture creation, provider contact/invocation, Implementation Package, implementation, active_locked transition, Layer 2 effective activation — everywhere explicitly not authorized).
 
 ### 10.3 Residential-34 (new in this correction)
 
@@ -450,6 +561,58 @@ compatibility.
 ```
 
 Это не авторизует: user-feedback collection, analytics, training, automatic model/rule updates, automatic production-behavior changes, rollout, real-user-data use. User feedback не может напрямую изменять production behavior. Полная Diagnosability Architecture, полная Security Architecture и полная Controlled Learning Architecture остаются отдельными, ещё не начатыми governance-циклами (§23, шаг 5).
+
+### 10.6 Canonical Platform Boundaries — Controlled Learning, Bilingual Foundation, Exclusions (Correction Cycle 1, new)
+
+Синхронизировано с Correction Cycle 1 (2026-07-29), закрывающим finding MAJOR-02 внешнего независимого review этой identity (FINAL VERDICT: FAIL, 2 MAJOR findings; pre-correction identity 1179 lines / 74460 bytes / SHA-256 `17627991845ad1b198d3fe00a3303cee58d8cec64202a1105b8323dd82ac1954`). Эти declarations фиксируют уже обязательные Project Owner / platform boundaries; они не являются новыми предложениями, не переопределяют §10.5, и не проектируют реализацию, схемы или pipeline.
+
+```text
+Controlled Learning State:
+LEARNING-READY
+NOT LEARNING-ACTIVE
+
+Permitted minimum compatibility foundation (see also §10.5):
+model versioning; rule-set versioning; contract versioning;
+provider-configuration versioning; provenance hooks; evidence hooks.
+
+Explicitly prohibited:
+feedback collection for learning; learning analytics; model training on
+production-user data; use of real-user data; autonomous production
+behavior changes; automatic prompt mutation; automatic rule mutation;
+automatic model/provider mutation; automatic promotion of learned
+behavior into production.
+
+Subjective personal taste and Personalization Only signals must never
+be treated as evidence for global model learning.
+```
+
+```text
+Bilingual Foundation:
+Canonical internal language: English
+Full derived locale: Russian
+Stable IDs: Language-neutral
+Missing translation behavior: Mandatory English fallback
+
+A single global language switch covers: UI; dialogue; expert
+explanations; decision explanations; specifications; color names.
+
+Missing Russian translation must not break the interface. The system
+must fall back to canonical English content.
+```
+
+```text
+Pantone palettes and Pantone-dependent platform behavior:
+EXCLUDED — final Project Owner Decision. Not deferred, not planned,
+not optional. Provider-neutral color architecture may exist but must
+not depend on Pantone.
+
+Collaborative multi-user preference compromise:
+EXCLUDED. Excludes searching for, negotiating, or computing a
+compromise between the preferences of multiple users. Distinct from,
+and not to be conflated with, ordinary single-user personalization.
+```
+
+Настоящая секция не авторизует и не проектирует: feedback schemas; learning pipelines; analytics architecture; training architecture; model update mechanisms; production promotion workflows; translation schemas; localization database architecture; UI implementation; locale file structures; translation workflow; multi-user collaboration architecture.
 
 ---
 
@@ -577,11 +740,11 @@ cross-room consistency; full multi-room graph; 3D reconstruction;
 mass editing.
 
 Tracks B–H implementation (any).
-Contract 3 drafting.
-Contracts 3–10 drafting. [Historical predecessor item, superseded
-    2026-07-22: "Supporting Contracts 1–10 drafting" — Contracts 1 and
-    2 are now complete, accepted, candidate-locked, repository-
-    persisted; Contracts 3–10 remain the current not-authorized item.]
+Contracts 9–10 drafting. [Historical predecessor item, superseded
+    2026-07-28: "Contract 3 drafting" / "Contracts 3–10 drafting" —
+    Contracts 1 through 8 are now complete, accepted, candidate-locked,
+    repository-persisted (§10.2); Contracts 9–10 remain the current
+    not-authorized item.]
 Contract 11 drafting.
 A new Candidate Lock ID for Contract 1 or Contract 2.
 Module Applicability Profile drafting (Candidate A). [Historical item,
@@ -619,28 +782,37 @@ Marketplace integration. Shopping cart.
 
 ```text
 Branch: main
-origin/main HEAD: 36a8b229883d9473a84ad5b3181806458bfbe3dc
-Last commit message: docs(governance): record accepted corrected
-    transfer directive state
+HEAD: 97537cf85f956847d764ec91d0e3b00977fdc08d
+Last commit message: governance(track-a): persist Contract 8 and
+    Candidate Lock C8-REV1-CL-001
+Ahead/behind origin/main: 0/0 (git rev-list --left-right --count
+    HEAD...origin/main)
+Working tree: CLEAN (git status --porcelain=v1 --untracked-files=all)
 Historical HEAD at existing accepted v2.4 identity's preparation
     (2026-07-17): 33b1142faf42b322fb4453e5830bca535e98996a
     ("docs: normalize roadmap persistence governance wording")
+Historical HEAD at Phase 7 identity's last commit (2026-07-24):
+    94398e947264c24b5db2ecb19fb8d29325a5faa1 ("docs: correct Transfer
+    Directive filename")
 ```
 
-Источники подтверждения разделены, с обновлением методологии относительно существующей accepted identity:
+Источники подтверждения:
 
 ```text
-origin/main HEAD, commit history and repository content:
-independently verified by Claude Project through live git fetch
-against the authoritative Qazaq71/VistaRoom.AI remote.
+Branch, HEAD, working-tree cleanliness, and ahead/behind origin/main:
+independently verified this session in Claude Code's own working
+clone via `git rev-parse --show-toplevel`, `git branch --show-current`,
+`git rev-parse HEAD`, `git log -1 --format="%H%n%s"`, `git status
+--porcelain=v1 --untracked-files=all`, and `git rev-list --left-right
+--count HEAD...origin/main`.
 
-Local main synchronization and clean working tree:
-independently verified by Claude Project this session via git status
---short and git rev-parse, in the working clone used for this
-synchronization.
+Commit history and repository content for Supporting Contracts 3-8 and
+their Candidate Locks (§10.2):
+independently verified this session via `git log --follow
+--diff-filter=A` against each canonical file path, and via direct
+byte-level read (SHA-256, line count, byte count) of Supporting
+Contract 8 and Candidate Lock C8-REV1-CL-001.
 ```
-
-Это отличается от существующей accepted v2.4 identity, где локальная синхронизация была "reported by Claude Code, not self-verified." В рамках Phase 6 review и Phase 7 подготовки Claude Project самостоятельно выполнял `git fetch`/`git rev-parse`/`git status --short` в собственной working copy репозитория.
 
 GitHub Raw/API не рассматриваются как источник проверки локального working tree.
 
@@ -750,21 +922,30 @@ Contract Tests and Evaluation
 ## 22. Current Objective
 
 ```text
-Synchronize the project-state baseline in place within Project
-Context v2.4 (same version, corrected byte identity), reflecting
-completed Phase 6 (Candidate A root architecture successor package)
-and the accepted, repository-persisted Contract 1 Transfer and Layer 2
-Activation Preparation Directive.
+Historical (Phase 7, 2026-07-23): Synchronize the project-state
+baseline in place within Project Context v2.4 (same version, corrected
+byte identity), reflecting completed Phase 6 (Candidate A root
+architecture successor package) and the accepted, repository-persisted
+Contract 1 Transfer and Layer 2 Activation Preparation Directive.
+
+Current (this reconciliation, 2026-07-29): Synchronize the
+project-state baseline in place within the same Project Context v2.4
+document, reflecting the drafted, Owner-accepted, candidate-locked,
+repository-persisted closure of Supporting Contracts 3-8 (§1, §10.2)
+that occurred after the Phase 7 identity above was committed.
 ```
 
-Assessment/selection уже выполнены (§9) — Candidate A выбран. Настоящий Context не выбирает и не переоткрывает это решение, равно как и Phase 6 content (§10.2) или Transfer Directive content — все они уже отдельно приняты.
+Assessment/selection уже выполнены (§9) — Candidate A выбран. Настоящий Context не выбирает и не переоткрывает это решение, равно как и Phase 6 content (§10.2), Transfer Directive content, или содержание принятых Supporting Contracts 1-8 — все они уже отдельно приняты.
 
 ```text
-This Project Context does not authorize Contracts 3-10 drafting,
-Contract 11 drafting, Layer 2 effective activation, active_locked
-transition, the Diagnosability/Security compatibility sequence, Phase-1
-Scope Decision, corpus preparation, provider/model work, or
-implementation.
+This Project Context does not authorize Supporting Contracts 9-10
+drafting, Contract 11 drafting, Layer 2 effective activation,
+active_locked transition, the Diagnosability/Security compatibility
+sequence, Phase-1 Scope Decision, corpus preparation, provider/model
+work, or implementation. [Historical predecessor wording, superseded
+2026-07-29: "Contracts 3-10 drafting" — Contracts 3-8 are now complete,
+accepted, candidate-locked, repository-persisted (§1, §10.2); Contracts
+9-10 remain the current not-authorized item.]
 ```
 
 ---
@@ -772,17 +953,18 @@ implementation.
 ## 23. Next Governance Sequence
 
 ```text
-1. Phase 7 — one-time synchronization of Project Context (this
-   document) and Living Strategic Roadmap — IN PROGRESS (drafting
-   complete; full independent consolidated review completed with two
-   findings, PC-1 and PC-2, both closed by this correction; awaiting
-   one limited independent closure verification of PC-1 and PC-2, then
-   separate Project Owner Acceptance).
+1. Phase 7 — one-time synchronization of Project Context and Living
+   Strategic Roadmap — CLOSED (drafting complete; committed 2026-07-24,
+   commit 94398e947264c24b5db2ecb19fb8d29325a5faa1; superseded in place
+   by this later reconciliation, which is itself a separate, later
+   correction cycle of the same v2.4 document — see header and §26).
 2. One final consolidated review of the complete root architecture
-   package — NOT STARTED; follows Phase 7 acceptance.
-3. Separately authorized Contracts 3–10 drafting cycle — NOT AUTHORIZED.
-4. Atomic Contracts 1–10 acceptance — NOT AUTHORIZED (Contracts 1-2
-   individually complete; the atomic set requires Contracts 3-10 first).
+   package — NOT STARTED.
+3. Supporting Contracts 3–8 drafting, review and acceptance — COMPLETE
+   (§1, §10.2); Contracts 9–10 drafting cycle — NOT AUTHORIZED.
+4. Atomic Contracts 1–10 acceptance — NOT AUTHORIZED (Contracts 1-8
+   individually complete, candidate-locked, repository-persisted; the
+   atomic set requires Contracts 9-10 first).
 5. Mandatory Diagnosability and Security compatibility sequence
    (Combined Diagnosability & Security Compatibility Assessment →
    Assessment Criteria checkpoint → one retrospective compatibility
@@ -951,23 +1133,50 @@ Project Context v2.4, Phase 7 in-place synchronization correction —
     self-identity placeholders. Does not select a next engineering
     track beyond already-accepted Candidate A baseline; does not
     authorize Contracts 3–10 drafting, Layer 2 effective activation,
-    active_locked transition, or implementation.
+    active_locked transition, or implementation. Committed 2026-07-24,
+    commit 94398e947264c24b5db2ecb19fb8d29325a5faa1.
+Project Context v2.4, in-place reconciliation — Supporting Contract 8
+    closure — Draft, prepared 2026-07-29. Version remains 2.4; this
+    reconciliation changes the exact byte identity only; no v2.5 or any
+    other new version was created. Synchronizes §1, §10.2, §16, §17,
+    §23 to reflect the drafted, Owner-accepted, candidate-locked,
+    repository-persisted closure of Supporting Contracts 3, 4, 5, 6, 7,
+    and 8 (Candidate Locks C3-REV1-CL-001 through C8-REV1-CL-001),
+    which occurred after the Phase 7 identity above was committed and
+    were not yet reflected in this document. Registers Supporting
+    Contracts 9, 10, and 11 as NOT AUTHORIZED, NOT OPENED. Corrects the
+    Phase 7 identity's stale self-referential "repository persistence:
+    NOT PERFORMED" statement (independently confirmed committed via
+    `git log`). Adds a new normative "Project Context Version
+    Governance" section establishing this document as the sole active
+    canonical Project Context / single living version, in-place-
+    updates-only, per explicit Project Owner decision, and formally
+    classifying Project Context.md as Historical/Inactive and Project
+    Context v2.2.md / v2.3.md as Superseded/Inactive. Does not select a
+    next engineering track; does not authorize Supporting Contracts 9
+    or 10 drafting, the Combined Diagnosability & Security
+    Compatibility Assessment, AI Brain Diagnosability Architecture,
+    Security Architecture Baseline, Phase-1 Scope Decision / Execution
+    Profile, Section 22 downstream artifacts, Tier 1 Corpus Preparation
+    Authorization, Layer 2 effective activation, active_locked
+    transition, or implementation. Repository persistence of this
+    exact identity: NOT PERFORMED, NOT AUTHORIZED (see Final Status).
 ```
 
 ---
 
 # Required Project Owner Decisions
 
-1. Принять или отклонить эту точную corrected Project Context v2.4 identity (byte identity в §Final Status).
+1. Принять или отклонить эту точную in-place corrected Project Context v2.4 identity (byte identity в §Final Status).
 2. Подтвердить, что version bump не произошёл — документ остаётся Project Context v2.4.
-3. Подтвердить, что после Acceptance corrected v2.4 identity заменяет предыдущую v2.4 byte identity как current authoritative content — и только после Acceptance.
-4. Подтвердить, что предыдущая accepted v2.4 byte identity (654 строки, SHA-256 `a6c2ae24...4f1`) остаётся historical в Git, не удалена и не признана retroactively unaccepted.
-5. Подтвердить корректность §10.2 (обновлённая Candidate A Architecture Baseline table, включая Rev19/Rev10/Rev16/Rev10/Rev19 и Transfer Directive Corrected Revision 3), §10.3 (Residential-34), §10.4 (Operation/RoomCase/ImageAsset[1..6]) и §10.5 (cross-cutting compatibility foundation) как точного отражения принятого состояния, без переоткрытия содержания перечисленных accepted documents.
-6. Подтвердить обновлённый §16 (Not Authorized) и §23 (Next Governance Sequence) как точных, без пропущенных или переставленных gate.
-7. Подтвердить регистрацию нового known-drift элемента (§18: Contracts 1-10 Preparation Plan Rev11's own five-room text), добавленного после трёх исторических пунктов, без авторизации его remediation.
-8. Подтвердить, что Module Applicability Profile Rev19's acceptance разрешает open sequencing decision, зафиксированный в предыдущей v2.4 identity §23.
-9. Подтвердить восстановление всех 11 исторических commit-хешей и полной структуры §§9/11/12/14/18 в их оригинальном виде (закрытие independent-review finding PC-2), с current-state дополнениями, ясно обособленными от оригинального текста.
-10. Подтвердить, что все self-identity placeholders удалены и заменены фактическими значениями (закрытие independent-review finding PC-1).
+3. Подтвердить, что после Acceptance эта corrected v2.4 identity заменяет предыдущую repository-persisted v2.4 identity (committed 2026-07-24, commit `94398e94...`) как current authoritative content — и только после Acceptance.
+4. Подтвердить, что предыдущая repository-persisted v2.4 identity (2026-07-24, commit `94398e947264c24b5db2ecb19fb8d29325a5faa1`) остаётся historical в Git, не удалена и не признана retroactively invalid.
+5. Подтвердить корректность §1 и §10.2 (новые строки для Supporting Contracts 3-8 и Candidate Locks C3-REV1-CL-001 — C8-REV1-CL-001) как точного отражения принятого и repository-persisted состояния, без переоткрытия содержания перечисленных accepted documents.
+6. Подтвердить обновлённый §16 (Not Authorized) и §23 (Next Governance Sequence): Contracts 3-8 закрыты; Contracts 9-11 остаются NOT AUTHORIZED, NOT OPENED.
+7. Подтвердить обновлённый §17 (Current Repository State): HEAD `97537cf85f956847d764ec91d0e3b00977fdc08d`.
+8. Подтвердить новый раздел "Project Context Version Governance": Project Context v2.4 — sole active canonical version, single living version, in-place updates only; Project Context.md — Historical/Inactive; v2.2/v2.3 — Superseded/Inactive; никакие v2.5/v3.0 не создаются.
+9. Подтвердить исправление stale self-referential statement предыдущей (2026-07-24) identity ("repository persistence: NOT PERFORMED") — независимо подтверждено через `git log`, что эта identity была уже закоммичена.
+10. Подтвердить, что данное reconciliation не переоткрывает содержание Phase 6/Phase 7 (§9-§15, §18-§21, §24-§25); §22 отдельно подтверждается как изменённый reconciliation-раздел согласно Change Summary; данное reconciliation не авторизует Contracts 9-10 drafting, Diagnosability/Security sequence, Phase-1 Scope Decision, Section 22 artifacts, Tier 1 Corpus Preparation, Layer 2 activation, active_locked transition, или implementation.
 11. Подтвердить, что repository persistence этой corrected identity остаётся отдельно неавторизованной и требует последующей явной инструкции.
 
 Repository persistence находится вне настоящего Acceptance decision и может быть авторизована только отдельной последующей явной инструкцией Project Owner.
@@ -976,13 +1185,15 @@ Repository persistence находится вне настоящего Acceptance
 
 # Drafting Report
 
-Этот документ подготовлен как in-place corrected byte identity существующего Project Context v2.4 (не как новый документ и не как новая версия), в рамках Phase 7 authorization (2026-07-23), скорректированный по прямому указанию Project Owner (2026-07-23) отказаться от подхода "новый successor v2.5" в пользу in-place synchronization той же version 2.4, и повторно скорректированный (2026-07-23) для закрытия independent-review findings PC-1 и PC-2.
+Этот документ подготовлен как in-place corrected byte identity существующего Project Context v2.4 (не как новый документ и не как новая версия), под явным Project Owner decision (2026-07-29) о единственной active canonical version и in-place-only updates для `Project Context v2.4.md`.
 
-Эта вторая корректировка была построена методологически иначе, чем первая: вместо переписывания секций по памяти, базовым текстом послужила точная копия принятой 654-строчной accepted identity (`a6c2ae24...4f1`), прочитанная напрямую из живого репозитория, с последующими точечными правками (str_replace) поверх неё. Это гарантирует byte-for-byte сохранность всех секций, не требующих изменения, и восстанавливает все 11 исторических commit-хешей, полную структуру §§9/11/12/14/18, и убирает оба self-identity placeholder (PC-1).
+Базовым текстом послужила точная копия repository-persisted identity, прочитанная напрямую из живого репозитория (commit `94398e947264c24b5db2ecb19fb8d29325a5faa1`, 2026-07-24, HEAD текущего preflight — `97537cf85f956847d764ec91d0e3b00977fdc08d`), с последующими точечными правками поверх неё. Это гарантирует byte-for-byte сохранность всех секций, не требующих изменения.
 
-Изменения ограничены: синхронизацией с текущим Owner-accepted, candidate-locked (где применимо) и repository-persisted состоянием Candidate A root architecture package (§10.2), добавлением Residential-34 (§10.3), Operation/RoomCase/ImageAsset[1..6] (§10.4) и cross-cutting compatibility foundation (§10.5) секций, обновлением non-authorization boundary (§16) и next governance sequence (§23), и восстановлением исторического содержания, ранее по ошибке сжатого. Никакая новая архитектура, категория, activation state, gate, contract или Owner Decision не введены — все содержательные факты уже отдельно приняты в цитируемых документах. Никакая новая версия документа не создана.
+Перед редактированием независимо проверено через `git`/прямое чтение файлов: repository preflight (branch `main`, HEAD `97537cf8...`, working tree clean, 0/0 ahead/behind origin/main); отсутствие файлов Contract 9 в `docs/engineering-decisions/reviews/`; commit-история добавления каждого Candidate Lock C1-C8; точная byte-identity (line count / byte count / SHA-256) Supporting Contract 8 и Candidate Lock C8-REV1-CL-001, независимо совпавшая с ожидаемыми значениями (327005 bytes / SHA-256 `95fa71f4...c89d7`; 8853 bytes / SHA-256 `c38a7717...fb35`); status-headers предыдущих Project Context.md / v2.2 / v2.3 файлов (metadata только, не изменялись).
 
-**Repository:** файлы не создавались/не изменялись в репозитории, commit/push не выполнялись, repository persistence не авторизована.
+Изменения ограничены: синхронизацией §1 и §10.2 с текущим Owner-accepted, candidate-locked, repository-persisted состоянием Supporting Contracts 3-8; обновлением §16, §17, §23, §26; добавлением нового нормативного раздела "Project Context Version Governance"; исправлением одного stale self-referential statement в header предыдущей identity. Никакая новая архитектура, категория, activation state, gate, contract или Owner Decision не введены — все содержательные факты уже отдельно приняты в цитируемых документах (Candidate Lock records C3-C8). Никакая новая версия документа не создана; предыдущие Project Context.md / v2.2 / v2.3 не изменялись.
+
+**Repository:** только `docs/project/Project Context v2.4.md` изменён в working tree; commit/push не выполнялись; repository persistence не авторизована.
 
 ---
 
@@ -990,48 +1201,74 @@ Repository persistence находится вне настоящего Acceptance
 
 ```text
 Project Context v2.4 corrected identity:
-CORRECTED DRAFT — AWAITING LIMITED INDEPENDENT CLOSURE VERIFICATION
-OF PC-1 AND PC-2 AND PROJECT OWNER ACCEPTANCE
+IN-PLACE CORRECTED DRAFT — CURRENT PROJECT-STATE RECONCILIATION
+COMPLETED; CORRECTION CYCLE 1 (MAJOR-01, MAJOR-02) APPLIED, EXTERNAL
+CLOSURE VERIFICATION FAILED WITH 1 REMAINING MAJOR FINDING (MAJOR-01
+NOT CLOSED); CORRECTION CYCLE 2 (MAJOR-01) APPLIED; AWAITING VALID
+EXTERNAL TARGETED CORRECTION CLOSURE VERIFICATION AND PROJECT OWNER
+ACCEPTANCE
 
-Phase 7 state:
+Reconciliation state:
+repository preflight: PASSED (branch main, HEAD 97537cf8..., working
+    tree clean, 0/0 ahead/behind origin/main)
 drafting: COMPLETE
-full independent consolidated review: COMPLETED — CORRECTIONS REQUIRED (PC-1, PC-2)
-PC-1/PC-2 correction: COMPLETED — CLAIMED, AWAITING VERIFICATION
-limited independent closure verification: NOT YET PERFORMED
+external independent review (full, pre-Correction-Cycle-1 identity):
+    COMPLETED — FINAL VERDICT FAIL, 0 blocker / 2 MAJOR (MAJOR-01,
+    MAJOR-02) / 0 minor / 0 improvement
+Correction Cycle 1 (MAJOR-01, MAJOR-02): APPLIED
+external targeted correction closure verification (of the Correction
+    Cycle 1 identity): COMPLETED — FINAL VERDICT FAIL, 0 blocker / 1
+    MAJOR (MAJOR-01 NOT CLOSED) / 0 minor / 0 improvement; MAJOR-02
+    CLOSED
+Correction Cycle 2 (MAJOR-01): APPLIED, this exact identity
+external targeted correction closure verification of this exact
+    (Correction Cycle 2) edited identity: NOT YET PERFORMED
 Project Owner Acceptance: NOT YET PERFORMED
 repository persistence: NOT AUTHORIZED
 
 Version bump:
 NONE
 
-Current authoritative identity:
-the previously accepted 654-line Project Context v2.4 (SHA-256
-a6c2ae24658c625b267331db603015d4d25ba33b3bec524251f9744efc2184f1)
-remains authoritative until this corrected v2.4 identity is separately
-accepted
+Version authority (per Project Context Version Governance, above):
+Project Context v2.4 is the sole active canonical Project Context
+version line, effective immediately upon this decision, independent of
+exact-byte acceptance state.
 
-PC-1 (self-identity placeholders):
-CLOSED — no unresolved self-identity placeholder remains; the exact
-final line count is stated below, and the exact full SHA-256 is
-recorded externally in the correction report
+Exact-byte authority:
+this specific edited byte identity (below) is a draft, not yet
+Project Owner-accepted; the previously committed 2026-07-24 identity
+(commit 94398e947264c24b5db2ecb19fb8d29325a5faa1) remains the current
+repository-persisted Project Context content until this corrected
+identity is separately reviewed and accepted.
 
-PC-2 (compressed historical sections):
-CLOSED — all 11 original commit hashes restored in their original
-sections (§9, §11, §12); full §12.1/§12.2 structure restored; full
-§18 historical drift text restored; §14's "Policy Rev4 §§15, 17-18"
-and "С 2026-07-17" framing confirmed intact
+Supporting Contracts 1-8:
+CLOSURE-COMPLETE (Owner-accepted, candidate-locked, repository-
+persisted — §1, §10.2)
 
-Final line count of this exact corrected identity:
-1039
+Supporting Contract 9:
+NOT AUTHORIZED, NOT OPENED
 
-Final SHA-256 of this exact corrected identity:
-recorded externally, in the correction report accompanying this
-drafting cycle only (not embedded in this file — embedding a file's
-own hash inside itself is a recursive condition with no fixed point;
-this paragraph makes no promise that the hash appears inside this file)
+Supporting Contract 10:
+NOT AUTHORIZED, NOT OPENED
+
+Supporting Contract 11:
+NOT AUTHORIZED, NOT OPENED
+
+Final line count, byte count, and SHA-256 of this exact corrected
+identity:
+computed by post-edit verification immediately following this drafting
+pass (binary-safe read of the file as it stands in the working tree)
+and reported separately in this session's chat output — not fabricated
+or estimated here.
 
 Blocking findings:
-Not yet assessed (further independent review not performed)
+MAJOR-01 and MAJOR-02 (external independent review of the
+pre-Correction-Cycle-1 identity) — MAJOR-02 CLOSED in Correction Cycle
+1; MAJOR-01 NOT CLOSED per external targeted correction closure
+verification of the Correction Cycle 1 identity, and CORRECTED in
+Correction Cycle 2, above. Blocking-finding status of this exact
+(Correction Cycle 2) corrected identity: not yet assessed (external
+targeted correction closure verification not yet performed).
 
 Repository persistence:
 NOT PERFORMED
