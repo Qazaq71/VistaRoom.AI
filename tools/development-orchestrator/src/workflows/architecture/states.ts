@@ -1,6 +1,6 @@
 /**
  * State IDs this MVP slice implements handlers for. These are references into the canonical
- * registry loaded from config/architecture-workflow.yaml at runtime — this file does not declare
+ * registry loaded from config/architecture-workflow.json at runtime — this file does not declare
  * the registry itself and does not assert a total state count (main document §23, ORCH-REV-006).
  */
 export const MVP_STATES = {

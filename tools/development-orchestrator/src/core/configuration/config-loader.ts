@@ -1,7 +1,22 @@
 import { readFileSync } from "node:fs";
-import { parse } from "yaml";
 import { StateCategory, StateDefinition, StateRegistry } from "../state-machine/contract.js";
 import { PolicyConfig, TokenBudgetConfig } from "./types.js";
+
+function readJsonConfig(filePath: string): unknown {
+  let text: string;
+  try {
+    text = readFileSync(filePath, "utf8");
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(`CONFIG_NOT_FOUND: '${filePath}' could not be read: ${detail}`);
+  }
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(`CONFIG_INVALID: '${filePath}' is not valid JSON: ${detail}`);
+  }
+}
 
 interface RawStateEntry {
   id: string;
@@ -16,7 +31,7 @@ interface RawWorkflowConfig {
 }
 
 export function loadStateRegistry(filePath: string): StateRegistry {
-  const raw = parse(readFileSync(filePath, "utf8")) as RawWorkflowConfig;
+  const raw = readJsonConfig(filePath) as RawWorkflowConfig;
   if (!Array.isArray(raw.states) || raw.states.length === 0) {
     throw new Error(`CONFIG_INVALID: '${filePath}' declares no states`);
   }
@@ -45,7 +60,7 @@ interface RawPolicyConfig {
 }
 
 export function loadPolicyConfig(filePath: string): PolicyConfig {
-  const raw = parse(readFileSync(filePath, "utf8")) as RawPolicyConfig;
+  const raw = readJsonConfig(filePath) as RawPolicyConfig;
   return {
     forbiddenPathSegments: raw.forbidden_path_segments ?? [],
     forbiddenGitOperations: raw.forbidden_git_operations ?? [],
@@ -60,7 +75,7 @@ interface RawTokenBudgetConfig {
 }
 
 export function loadTokenBudgetConfig(filePath: string): TokenBudgetConfig {
-  const raw = parse(readFileSync(filePath, "utf8")) as RawTokenBudgetConfig;
+  const raw = readJsonConfig(filePath) as RawTokenBudgetConfig;
   const modes: Record<string, { contextSelectionBudget: number }> = {};
   for (const [mode, value] of Object.entries(raw.modes)) {
     modes[mode] = { contextSelectionBudget: value.context_selection_budget };

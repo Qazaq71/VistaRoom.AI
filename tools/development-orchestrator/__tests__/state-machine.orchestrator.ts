@@ -5,7 +5,7 @@ import { loadStateRegistry } from "../src/core/configuration/config-loader.js";
 import { StateMachine } from "../src/core/state-machine/state-machine.js";
 import { IllegalTransitionError, UnknownStateError } from "../src/core/state-machine/contract.js";
 
-const CONFIG_PATH = path.join(PACKAGE_ROOT, "config", "architecture-workflow.yaml");
+const CONFIG_PATH = path.join(PACKAGE_ROOT, "config", "architecture-workflow.json");
 
 describe("StateMachine", () => {
   it("loads the full canonical registry without a hard-coded count", () => {

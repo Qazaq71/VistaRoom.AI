@@ -44,9 +44,9 @@ export async function runArchitectureWorkflow(
   const runDir = path.join(runsRoot, runId);
   mkdirSync(runDir, { recursive: true });
 
-  const registry = loadStateRegistry(path.join(PACKAGE_ROOT, "config", "architecture-workflow.yaml"));
-  const policyConfig = loadPolicyConfig(path.join(PACKAGE_ROOT, "config", "allowed-paths.yaml"));
-  const tokenBudgetConfig = loadTokenBudgetConfig(path.join(PACKAGE_ROOT, "config", "token-budgets.yaml"));
+  const registry = loadStateRegistry(path.join(PACKAGE_ROOT, "config", "architecture-workflow.json"));
+  const policyConfig = loadPolicyConfig(path.join(PACKAGE_ROOT, "config", "allowed-paths.json"));
+  const tokenBudgetConfig = loadTokenBudgetConfig(path.join(PACKAGE_ROOT, "config", "token-budgets.json"));
 
   const policy = new PolicyEngine(policyConfig);
   const stateMachine = new StateMachine(registry);

@@ -9,7 +9,7 @@ import { WorkflowEngine } from "../src/core/workflow-engine/engine.js";
 import { AuditLog } from "../src/core/audit/audit-log.js";
 import { StateHandlerNotImplementedError } from "../src/core/state-machine/contract.js";
 
-const CONFIG_PATH = path.join(PACKAGE_ROOT, "config", "architecture-workflow.yaml");
+const CONFIG_PATH = path.join(PACKAGE_ROOT, "config", "architecture-workflow.json");
 
 describe("WorkflowEngine", () => {
   it("throws STATE_HANDLER_NOT_IMPLEMENTED for a registered-but-unimplemented state", async () => {

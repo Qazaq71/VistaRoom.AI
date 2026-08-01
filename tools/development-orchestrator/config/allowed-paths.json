@@ -1,0 +1,32 @@
+{
+  "_comment": [
+    "Minimal Policy Engine configuration (main document §37, MVP-Implementation-Handoff.md §9).",
+    "The safe workspace root and the run directory root are supplied at runtime (CLI flags / run context),",
+    "never hard-coded here — this file only carries policy that is independent of any specific run.",
+    "forbidden_path_segments: never treated as merely 'not in the allow-list' — checked explicitly, in",
+    "addition to allow-list enforcement (defense in depth), matching Change-Bundle-Specification.md's",
+    "allowed/forbidden split.",
+    "forbidden_git_operations: subcommands the orchestrator must never invoke, from any component, in",
+    "this MVP. The Baseline Validator (core/workspace) only ever reads; it must never call any of these.",
+    "disallow_shell_execution_from_config: workflow config must never be interpreted as executable shell —",
+    "this is an explicit reminder that no code path in this package shells out to a command read from",
+    "config/workflow files."
+  ],
+  "forbidden_path_segments": [
+    ".git",
+    ".env",
+    ".env.local",
+    "node_modules"
+  ],
+  "forbidden_git_operations": [
+    "commit",
+    "push",
+    "merge",
+    "rebase",
+    "reset",
+    "checkout -b",
+    "cherry-pick",
+    "clean"
+  ],
+  "disallow_shell_execution_from_config": true
+}
