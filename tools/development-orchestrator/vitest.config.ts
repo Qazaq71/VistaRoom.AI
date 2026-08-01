@@ -17,7 +17,14 @@ export default defineConfig({
     }
   },
   test: {
-    include: ["test/**/*.test.ts"],
+    // Package-only suffix (not .test.ts/.spec.ts) so these files are never picked up by
+    // the root repository's default Vitest include glob — this package stays fully
+    // isolated from the product's root test run without requiring any root-level exclusion.
+    // Also kept under a __tests__/ directory: the root product's `next build` type-checker
+    // ignores diagnostics from files under __tests__/__mocks__ or named *.test.*/*.spec.*
+    // (node_modules/next/dist/lib/typescript/runTypeCheck.js), so this directory name is
+    // load-bearing for keeping this package's own TS diagnostics from breaking the root build.
+    include: ["__tests__/**/*.orchestrator.ts"],
     environment: "node",
     passWithNoTests: false
   }
