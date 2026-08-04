@@ -1314,10 +1314,3 @@ Deployment / production activation:                       NOT GRANTED
 ```
 
 Findings applied this cycle: SAB-R1-12 (MAJOR — removed residual direct Security↔Diagnosability wording in the asset register and independence matrix, and the undefined `security/eng` role), SAB-R1-13 (BLOCKER — obligation-set lifecycle `open → finalized` with a designated finalization authority, a completeness proof, premature/unauthorized/conflicting-finalization blocking, and defined late-discovered-obligation behavior before/after release), SAB-R1-14 (MAJOR — at-most-one active incident per correlation key with a safe conflict path, and a single no-reopen model with an optional append-only related-incident link) — all closed. Regression review confirms SAB-R1-01…11 hold: Security Events and Incidents carry no `diagnosticEventId`; `securityIncidentReferenceId` is unused-by-Security; security-owned identities remain `securityEventId` and `securityIncidentId`; `emission-failed` is a delivery state; correlation is only via neutral platform identities; SEC-CRYPTO-01…10, Hard Security Stop, held-out non-disclosure, and provider default-deny are intact; no undefined human role, no numeric retention duration, and no technology were introduced. The governance cross-check is preserved and not performed. This self-review is an author self-review only. It is not, and must not be represented as, an independent consolidated review.
-
-
-
-
-
-
-
