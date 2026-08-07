@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
+import { classifyPollContainment } from './pollContainment'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -131,7 +132,16 @@ export function useImageGeneration(props: UseImageGenerationProps): UseImageGene
             const pollRes = await fetch(
               `/api/poll?id=${encodeURIComponent(data.predictionId)}&statusUrl=${encodeURIComponent(data.statusUrl)}`
             )
-            if (!pollRes.ok) { await delay(2000); continue }
+            if (!pollRes.ok) {
+              const errBody = await pollRes.json().catch(() => null)
+              const containment = classifyPollContainment(pollRes.status, errBody)
+              if (containment.isContainment) {
+                if (activeGenRef.current !== currentGenId) return
+                setStatus('error'); setStatusMsg(containment.message)
+                return
+              }
+              await delay(2000); continue
+            }
 
             const pollData = await pollRes.json()
             if (activeGenRef.current !== currentGenId) return

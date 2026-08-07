@@ -17,6 +17,7 @@ import {
 } from '@/lib/interior/prompt-engine/acs004-prompt-builder-rules/acs004-prompt-builder-rules'
 import { format } from '@/lib/interior/prompt-engine/formatter/formatter'
 import { checkMaskInvariant } from '@/lib/interior/generation-intelligence/acs001-mask-invariant/acs001-mask-invariant'
+import { isContainmentActive, containmentResponse } from '@/lib/containment'
 
 export const maxDuration = 60
 
@@ -77,6 +78,8 @@ function nearestAspectRatio(width: number, height: number): string {
 const interiorService = new InteriorService(createImageProvider())
 
 export async function POST(req: NextRequest) {
+  if (isContainmentActive()) return containmentResponse()
+
   const t0 = Date.now()
   console.log('[Timing] Generate START')
   // Hoisted so the catch-all below can log them without exposing them to the client.

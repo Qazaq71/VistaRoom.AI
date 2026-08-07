@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isContainmentActive, containmentResponse } from '@/lib/containment'
 
 const ALLOWED_DOMAINS = [
   'fal.media',
@@ -11,6 +12,8 @@ const ALLOWED_DOMAINS = [
 ]
 
 export async function GET(req: NextRequest) {
+  if (isContainmentActive()) return containmentResponse()
+
   try {
     const rawUrl = req.nextUrl.searchParams.get('url')
     if (!rawUrl) return new NextResponse('Missing url parameter', { status: 400 })

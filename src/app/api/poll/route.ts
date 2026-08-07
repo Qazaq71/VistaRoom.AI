@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isAllowedFalUrl, falStatusUrl, falResultUrl } from '@/config/image'
+import { isContainmentActive, containmentResponse } from '@/lib/containment'
 
 export const dynamic    = 'force-dynamic'
 export const maxDuration = 55
@@ -17,6 +18,8 @@ interface FalResultResponse {
 }
 
 export async function GET(req: NextRequest) {
+  if (isContainmentActive()) return containmentResponse()
+
   const t0 = Date.now()
   try {
     const id        = req.nextUrl.searchParams.get('id')
