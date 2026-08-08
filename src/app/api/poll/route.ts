@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { isAllowedFalUrl, falStatusUrl, falResultUrl } from '@/config/image'
+import { isAllowedFalUrl, isAllowedFalResultUrl, falStatusUrl, falResultUrl } from '@/config/image'
 import { isContainmentActive, containmentResponse } from '@/lib/containment'
+import { uploadPrivateAsset, createResultCapability } from '@/lib/privateAssets'
 
 export const dynamic    = 'force-dynamic'
 export const maxDuration = 55
@@ -15,6 +16,51 @@ interface FalStatusResponse {
 
 interface FalResultResponse {
   images?: { url: string }[]
+}
+
+// M0.2: how long the client has to redeem the /api/proxy capability for one
+// generated result before it expires (Lean Delivery Decision §6.1 "закрытое
+// хранение"; C1 Delivery Brief §5 package 2). Not a substitute for account
+// auth (M2) or retention/deletion (M0.3).
+const RESULT_CAPABILITY_TTL_MS = 15 * 60 * 1000
+const RESULT_DOWNLOAD_TIMEOUT_MS = 20_000
+const RESULT_MAX_BYTES = 20 * 1024 * 1024
+const GENERIC_RESULT_FAILURE = 'Generation failed'
+
+// M0.2 correction (FINDING-2): reads the result body incrementally and stops
+// as soon as the running total exceeds maxBytes, instead of buffering the
+// whole response via arrayBuffer() first. Content-Length (checked by the
+// caller) is only an early fast-fail — it is absent/forgeable, so this is
+// the actual memory bound. Returns null on any failure (oversized, stream
+// error, missing body) so the caller can collapse every case into the same
+// generic, fail-closed response.
+async function readLimitedBody(response: Response, maxBytes: number): Promise<Buffer | null> {
+  const body = response.body
+  if (!body) return null
+
+  const reader = body.getReader()
+  const chunks: Uint8Array[] = []
+  let total = 0
+
+  while (true) {
+    let result: ReadableStreamReadResult<Uint8Array>
+    try {
+      result = await reader.read()
+    } catch {
+      await reader.cancel().catch(() => {})
+      return null
+    }
+    if (result.done) break
+
+    total += result.value.byteLength
+    if (total > maxBytes) {
+      await reader.cancel().catch(() => {})
+      return null
+    }
+    chunks.push(result.value)
+  }
+
+  return Buffer.concat(chunks, total)
 }
 
 export async function GET(req: NextRequest) {
@@ -87,8 +133,70 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ id, status: 'failed', outputUrl: null, error: 'No image in response' })
     }
 
+    // M0.2: the provider result URL is never returned to the client. It is
+    // validated, downloaded server-side, copied into our own private Blob
+    // store, and replaced with a short-lived result capability token.
+    if (!isAllowedFalResultUrl(outputUrl)) {
+      console.error(`[/api/poll] result host not allowed id=${id}`)
+      return NextResponse.json({ id, status: 'failed', outputUrl: null, error: GENERIC_RESULT_FAILURE })
+    }
+
+    let imageRes: Response
+    try {
+      // M0.2 correction (FINDING-1): redirect: 'manual' — isAllowedFalResultUrl
+      // above only validated outputUrl's own host; following a redirect would
+      // silently move the actual download to an unvalidated host. No redirect,
+      // to any host including the same one, is followed for M0.2.
+      imageRes = await fetch(outputUrl, {
+        redirect: 'manual',
+        signal: AbortSignal.timeout(RESULT_DOWNLOAD_TIMEOUT_MS),
+      })
+    } catch (err: unknown) {
+      console.error(`[/api/poll] result download error id=${id}:`, err instanceof Error ? err.message : String(err))
+      return NextResponse.json({ id, status: 'failed', outputUrl: null, error: GENERIC_RESULT_FAILURE })
+    }
+
+    if (imageRes.status >= 300 && imageRes.status < 400) {
+      console.error(`[/api/poll] result download redirected id=${id} status=${imageRes.status}`)
+      return NextResponse.json({ id, status: 'failed', outputUrl: null, error: GENERIC_RESULT_FAILURE })
+    }
+
+    if (!imageRes.ok) {
+      console.error(`[/api/poll] result download status ${imageRes.status} id=${id}`)
+      return NextResponse.json({ id, status: 'failed', outputUrl: null, error: GENERIC_RESULT_FAILURE })
+    }
+
+    const resultContentType = imageRes.headers.get('content-type') ?? ''
+    if (!resultContentType.startsWith('image/')) {
+      console.error(`[/api/poll] result content-type rejected id=${id}`)
+      return NextResponse.json({ id, status: 'failed', outputUrl: null, error: GENERIC_RESULT_FAILURE })
+    }
+
+    // Early fast-fail only — Content-Length can be absent or understated, so
+    // it must not be relied on as the actual memory bound (see FINDING-2).
+    const declaredLength = Number(imageRes.headers.get('content-length') ?? '0')
+    if (Number.isFinite(declaredLength) && declaredLength > RESULT_MAX_BYTES) {
+      console.error(`[/api/poll] result too large (declared) id=${id}`)
+      return NextResponse.json({ id, status: 'failed', outputUrl: null, error: GENERIC_RESULT_FAILURE })
+    }
+
+    const imageBuffer = await readLimitedBody(imageRes, RESULT_MAX_BYTES)
+    if (!imageBuffer) {
+      console.error(`[/api/poll] result too large, unreadable, or missing body id=${id}`)
+      return NextResponse.json({ id, status: 'failed', outputUrl: null, error: GENERIC_RESULT_FAILURE })
+    }
+
+    let resultToken: string
+    try {
+      const { pathname } = await uploadPrivateAsset('results', imageBuffer, resultContentType)
+      resultToken = createResultCapability(pathname, RESULT_CAPABILITY_TTL_MS)
+    } catch {
+      console.error(`[/api/poll] private result storage failed id=${id}`)
+      return NextResponse.json({ id, status: 'failed', outputUrl: null, error: GENERIC_RESULT_FAILURE })
+    }
+
     console.log(`[/api/poll] succeeded id=${id} (${Date.now() - t0}ms)`)
-    return NextResponse.json({ id, status: 'succeeded', outputUrl, error: null })
+    return NextResponse.json({ id, status: 'succeeded', resultToken, error: null })
 
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error'

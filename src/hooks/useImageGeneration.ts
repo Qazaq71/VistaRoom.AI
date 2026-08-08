@@ -1,5 +1,6 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { classifyPollContainment } from './pollContainment'
+import { buildBearerAuthHeader, classifyProxyFailure, createObjectUrlManager } from './resultDelivery'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -68,10 +69,20 @@ export function useImageGeneration(props: UseImageGenerationProps): UseImageGene
   // incremented on each generate() call; stale upload/polling completions check this
   const activeGenRef = useRef(0)
 
+  // M0.2: exactly one live browser object URL for the private result blob at
+  // a time — revoked on every new generation, reset() and unmount.
+  const objectUrlManagerRef = useRef(createObjectUrlManager())
+
+  useEffect(() => {
+    const manager = objectUrlManagerRef.current
+    return () => manager.clear()
+  }, [])
+
   const generate = useCallback(async () => {
     if (!imageFile) { setStatus('error'); setStatusMsg('Загрузите фотографию помещения'); return }
 
     const currentGenId = ++activeGenRef.current
+    objectUrlManagerRef.current.clear()
 
     setStatus('uploading'); setStatusMsg('Отправляю изображение...'); setOutputUrl(null)
 
@@ -146,8 +157,25 @@ export function useImageGeneration(props: UseImageGenerationProps): UseImageGene
             const pollData = await pollRes.json()
             if (activeGenRef.current !== currentGenId) return
 
-            if (pollData.status === 'succeeded' && pollData.outputUrl) {
-              setOutputUrl(pollData.outputUrl)
+            if (pollData.status === 'succeeded' && pollData.resultToken) {
+              const proxyRes = await fetch('/api/proxy', {
+                headers: buildBearerAuthHeader(pollData.resultToken),
+              })
+              if (activeGenRef.current !== currentGenId) return
+
+              if (!proxyRes.ok) {
+                const errBody = await proxyRes.json().catch(() => null)
+                const failure = classifyProxyFailure(proxyRes.status, errBody)
+                setStatus('error'); setStatusMsg(failure.message)
+                return
+              }
+
+              const blob = await proxyRes.blob()
+              if (activeGenRef.current !== currentGenId) return
+
+              const objectUrl = URL.createObjectURL(blob)
+              objectUrlManagerRef.current.set(objectUrl)
+              setOutputUrl(objectUrl)
               setStatus('done')
               return
             } else if (pollData.status === 'failed') {
@@ -181,6 +209,7 @@ export function useImageGeneration(props: UseImageGenerationProps): UseImageGene
 
   const reset = useCallback(() => {
     activeGenRef.current++
+    objectUrlManagerRef.current.clear()
     setOutputUrl(null); setStatus('idle')
   }, [])
 

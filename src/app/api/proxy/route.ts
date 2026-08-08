@@ -1,55 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isContainmentActive, containmentResponse } from '@/lib/containment'
+import { readPrivateAsset, verifyResultCapability } from '@/lib/privateAssets'
 
-const ALLOWED_DOMAINS = [
-  'fal.media',
-  'cdn.fal.ai',
-  'storage.googleapis.com',
-  'public.blob.vercel-storage.com',
-  'stablediffusionapi.com',
-  'modelslab.com',
-  'pub-3626123a908346a7a8be8d9295f44e26.r2.dev',
-]
+// M0.2 authorized private-result delivery (Lean Delivery Decision §6.1;
+// C1 Delivery Brief §5 package 2). This route no longer proxies arbitrary
+// remote URLs — it serves exactly one private results/ Blob object per
+// request, gated by a short-lived Bearer capability token. There is no
+// ?url= parameter, no domain allowlist, and no public/CORS-open response.
+
+function unauthorized(): NextResponse {
+  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+}
+
+function notFound(): NextResponse {
+  return NextResponse.json({ error: 'Not found' }, { status: 404 })
+}
 
 export async function GET(req: NextRequest) {
   if (isContainmentActive()) return containmentResponse()
 
+  const authHeader = req.headers.get('authorization') ?? ''
+  const match = /^Bearer\s+(.+)$/.exec(authHeader)
+  if (!match) return unauthorized()
+
+  const verification = verifyResultCapability(match[1])
+  if (!verification.ok) return unauthorized()
+
+  let result
   try {
-    const rawUrl = req.nextUrl.searchParams.get('url')
-    if (!rawUrl) return new NextResponse('Missing url parameter', { status: 400 })
-
-    let parsed: URL
-    try {
-      parsed = new URL(rawUrl)
-    } catch {
-      return new NextResponse('Invalid URL', { status: 400 })
-    }
-
-    if (parsed.protocol !== 'https:') return new NextResponse('Only HTTPS allowed', { status: 400 })
-
-    const host      = parsed.hostname
-    const isAllowed = ALLOWED_DOMAINS.some(d => host === d || host.endsWith('.' + d))
-    if (!isAllowed) {
-      console.warn('[/api/proxy] Blocked domain:', host)
-      return new NextResponse('Forbidden', { status: 403 })
-    }
-
-    const res  = await fetch(rawUrl, { headers: { 'User-Agent': 'Mozilla/5.0 VistaRoom-AI/1.0' } })
-    if (!res.ok) return new NextResponse(`Upstream error: ${res.status}`, { status: 502 })
-
-    const blob        = await res.arrayBuffer()
-    const contentType = res.headers.get('content-type') ?? 'image/jpeg'
-
-    return new NextResponse(blob, {
-      headers: {
-        'Content-Type':  contentType,
-        'Cache-Control': 'public, max-age=86400, immutable',
-        'Access-Control-Allow-Origin': '*',
-      },
-    })
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
-    console.error('[/api/proxy]', message)
-    return new NextResponse('Proxy error: ' + message, { status: 500 })
+    result = await readPrivateAsset(verification.pathname)
+  } catch {
+    return new NextResponse(null, { status: 500 })
   }
+
+  if (!result || result.statusCode !== 200) return notFound()
+
+  return new NextResponse(result.stream, {
+    status: 200,
+    headers: {
+      'Content-Type': result.blob.contentType,
+      'X-Content-Type-Options': 'nosniff',
+      'Cache-Control': 'private, no-store',
+    },
+  })
 }

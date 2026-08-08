@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
-import { put } from '@vercel/blob'
+import { uploadPrivateAsset, createProviderGetUrl } from '@/lib/privateAssets'
 import { RoomDetails } from '@/lib/prompts'
 import { getRateLimit } from '@/lib/rateLimit'
 import { InteriorService } from '@/services/InteriorService'
@@ -22,6 +22,10 @@ import { isContainmentActive, containmentResponse } from '@/lib/containment'
 export const maxDuration = 60
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10 MB
+
+// M0.2: short-lived, asset-scoped, GET-only presigned URL lifetime handed to
+// Fal.ai for the private source/mask objects it needs to fetch once.
+const PROVIDER_ASSET_URL_TTL_MS = 10 * 60 * 1000
 
 function validateImageFile(file: File): string | null {
   const type = typeof file.type === 'string' ? file.type : ''
@@ -144,11 +148,8 @@ export async function POST(req: NextRequest) {
     const imgRaw = Buffer.from(await imageFile.arrayBuffer())
     const tBlobStart = Date.now()
     const { data: compressedImg, width: imgWidth, height: imgHeight } = await compressImage(imgRaw)
-    const { url: imageUrl } = await put(
-      `interior/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`,
-      compressedImg,
-      { access: 'public', contentType: 'image/jpeg' },
-    )
+    const { pathname: sourcePathname } = await uploadPrivateAsset('sources', compressedImg, 'image/jpeg')
+    const imageUrl = await createProviderGetUrl(sourcePathname, PROVIDER_ASSET_URL_TTL_MS)
     console.log(`[Timing] Upload Source Image to Blob: ${Date.now() - tBlobStart}ms`)
 
     let maskUrl: string | null = null
@@ -160,13 +161,9 @@ export async function POST(req: NextRequest) {
         .png()
         .toBuffer()
       const tMaskStart = Date.now()
-      const { url } = await put(
-        `masks/${Date.now()}-${Math.random().toString(36).slice(2)}.png`,
-        resizedMask,
-        { access: 'public', contentType: 'image/png' },
-      )
+      const { pathname: maskPathname } = await uploadPrivateAsset('masks', resizedMask, 'image/png')
+      maskUrl = await createProviderGetUrl(maskPathname, PROVIDER_ASSET_URL_TTL_MS)
       console.log(`[Timing] Upload Mask to Blob: ${Date.now() - tMaskStart}ms`)
-      maskUrl = url
     }
 
     const maskInvariantCheck = checkMaskInvariant(mode as InteriorMode, !!maskUrl)

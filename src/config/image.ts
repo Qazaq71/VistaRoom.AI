@@ -34,3 +34,21 @@ export function isAllowedFalUrl(url: string): boolean {
     return false
   }
 }
+
+// Hosts Fal.ai's openai/gpt-image-2/edit is proven to serve result assets
+// from (same set already trusted for Next/Image rendering — see
+// next.config.js remotePatterns). /api/poll validates the provider-returned
+// result URL against this allowlist before downloading it server-side; there
+// is no arbitrary/client-controlled host in this path.
+export const FAL_RESULT_ALLOWED_HOSTS = ['fal.media', 'cdn.fal.ai', 'storage.googleapis.com']
+
+export function isAllowedFalResultUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    if (parsed.protocol !== 'https:') return false
+    const host = parsed.hostname
+    return FAL_RESULT_ALLOWED_HOSTS.some(d => host === d || host.endsWith('.' + d))
+  } catch {
+    return false
+  }
+}
