@@ -1,5 +1,5 @@
 import { createHmac } from 'node:crypto'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { put, get, del, list, issueSignedToken, presignUrl } = vi.hoisted(() => ({
   put: vi.fn(),
@@ -32,9 +32,25 @@ import {
 const VALID_SECRET = 'a'.repeat(32)
 const GROUP_ID_RE = /^g1-[0-9a-f]{12}-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
+const TEST_STORE_ID = 'store_test_private_fixture'
+const TEST_OIDC_TOKEN = 'test-oidc-token-fixture'
+
 function makeGroupId(createdAtMs = Date.now()): string {
   return `g1-${createdAtMs.toString(16).padStart(12, '0')}-11111111-1111-4111-8111-111111111111`
 }
+
+// Every function in this module resolves private-store auth before issuing
+// any Blob command, so a default valid store+OIDC pair is stubbed for every
+// test; individual tests override or clear these to exercise the fallback
+// and fail-closed paths.
+beforeEach(() => {
+  vi.stubEnv('PRIVATE_ASSETS_STORE_ID', TEST_STORE_ID)
+  vi.stubEnv('VERCEL_OIDC_TOKEN', TEST_OIDC_TOKEN)
+})
+
+afterEach(() => {
+  vi.unstubAllEnvs()
+})
 
 describe('createAssetLifecycleGroup / parseGroupId', () => {
   it('creates a strictly formatted, server-generated group id', () => {
@@ -164,7 +180,14 @@ describe('listPrivateAssets', () => {
 
     const page = await listPrivateAssets('sources/', undefined, 100)
 
-    expect(list).toHaveBeenCalledWith({ prefix: 'sources/', cursor: undefined, limit: 100, mode: 'expanded' })
+    expect(list).toHaveBeenCalledWith({
+      storeId: TEST_STORE_ID,
+      oidcToken: TEST_OIDC_TOKEN,
+      prefix: 'sources/',
+      cursor: undefined,
+      limit: 100,
+      mode: 'expanded',
+    })
     expect(page).toEqual({
       blobs: [{ pathname: 'sources/g1-x/a.jpg', uploadedAt: new Date(1000) }],
       cursor: 'next-cursor',
@@ -184,7 +207,10 @@ describe('deletePrivateAssets', () => {
   it('deletes an array of exact pathnames', async () => {
     del.mockResolvedValue(undefined)
     await deletePrivateAssets(['sources/g1-x/a.jpg', 'masks/g1-x/b.png'])
-    expect(del).toHaveBeenCalledWith(['sources/g1-x/a.jpg', 'masks/g1-x/b.png'])
+    expect(del).toHaveBeenCalledWith(
+      ['sources/g1-x/a.jpg', 'masks/g1-x/b.png'],
+      { storeId: TEST_STORE_ID, oidcToken: TEST_OIDC_TOKEN },
+    )
   })
 
   it('is a no-op for an empty array (never calls del())', async () => {
@@ -307,7 +333,12 @@ describe('writeGroupTombstone / groupTombstoneExists', () => {
     await expect(groupTombstoneExists(groupId)).resolves.toBe(true)
     // F-4 cache hardening: tombstone reads must bypass CDN cache — a stale
     // cached "not found" is exactly the resurrection window F-1 closes.
-    expect(get).toHaveBeenCalledWith(expect.stringMatching(/^tombstones\//), { access: 'private', useCache: false })
+    expect(get).toHaveBeenCalledWith(expect.stringMatching(/^tombstones\//), {
+      storeId: TEST_STORE_ID,
+      oidcToken: TEST_OIDC_TOKEN,
+      access: 'private',
+      useCache: false,
+    })
   })
 
   it('rejects an invalid group id before ever calling Blob get()', async () => {
@@ -395,12 +426,210 @@ describe('readPrivateAsset', () => {
   it('reads with access: private', async () => {
     get.mockResolvedValue(null)
     await readPrivateAsset('results/a.jpg')
-    expect(get).toHaveBeenCalledWith('results/a.jpg', { access: 'private' })
+    expect(get).toHaveBeenCalledWith('results/a.jpg', {
+      storeId: TEST_STORE_ID,
+      oidcToken: TEST_OIDC_TOKEN,
+      access: 'private',
+    })
   })
 
   it('sanitizes underlying errors', async () => {
     get.mockRejectedValue(new Error('leaky detail'))
     await expect(readPrivateAsset('results/a.jpg')).rejects.toThrow('Failed to read stored asset.')
+  })
+})
+
+describe('private store auth', () => {
+  afterEach(() => {
+    put.mockReset()
+    get.mockReset()
+    list.mockReset()
+    del.mockReset()
+    issueSignedToken.mockReset()
+    presignUrl.mockReset()
+  })
+
+  it('gives put() (uploadPrivateAsset) explicit storeId + oidcToken, and no token, under OIDC', async () => {
+    put.mockResolvedValue({ pathname: 'sources/x.jpg' })
+    const { groupId } = createAssetLifecycleGroup()
+
+    await uploadPrivateAsset('sources', groupId, Buffer.from('x'), 'image/jpeg')
+
+    const options = put.mock.calls[0][2]
+    expect(options.storeId).toBe(TEST_STORE_ID)
+    expect(options.oidcToken).toBe(TEST_OIDC_TOKEN)
+    expect(options.token).toBeUndefined()
+  })
+
+  it('gives list() (listPrivateAssets) explicit storeId + oidcToken, and no token, under OIDC', async () => {
+    list.mockResolvedValue({ blobs: [], cursor: undefined, hasMore: false })
+
+    await listPrivateAssets('sources/')
+
+    const options = list.mock.calls[0][0]
+    expect(options.storeId).toBe(TEST_STORE_ID)
+    expect(options.oidcToken).toBe(TEST_OIDC_TOKEN)
+    expect(options.token).toBeUndefined()
+  })
+
+  it('gives del() (deletePrivateAssets) explicit storeId + oidcToken, and no token, under OIDC', async () => {
+    del.mockResolvedValue(undefined)
+
+    await deletePrivateAssets(['sources/g1-x/a.jpg'])
+
+    const options = del.mock.calls[0][1]
+    expect(options.storeId).toBe(TEST_STORE_ID)
+    expect(options.oidcToken).toBe(TEST_OIDC_TOKEN)
+    expect(options.token).toBeUndefined()
+  })
+
+  it('gives get() (readPrivateAsset) explicit storeId + oidcToken, and no token, under OIDC', async () => {
+    get.mockResolvedValue(null)
+
+    await readPrivateAsset('results/a.jpg')
+
+    const options = get.mock.calls[0][1]
+    expect(options.storeId).toBe(TEST_STORE_ID)
+    expect(options.oidcToken).toBe(TEST_OIDC_TOKEN)
+    expect(options.token).toBeUndefined()
+  })
+
+  it('gives issueSignedToken() (createProviderGetUrl) explicit storeId + oidcToken, and no token, under OIDC', async () => {
+    issueSignedToken.mockResolvedValue({
+      delegationToken: 'd', clientSigningToken: 'c', validUntil: Date.now() + 60_000,
+    })
+    presignUrl.mockResolvedValue({ presignedUrl: 'https://blob.example/signed' })
+
+    await createProviderGetUrl('sources/a.jpg', 60_000)
+
+    const options = issueSignedToken.mock.calls[0][0]
+    expect(options.storeId).toBe(TEST_STORE_ID)
+    expect(options.oidcToken).toBe(TEST_OIDC_TOKEN)
+    expect(options.token).toBeUndefined()
+  })
+
+  it('never forwards storeId/oidcToken/token to presignUrl — it only takes the already-issued signed token', async () => {
+    issueSignedToken.mockResolvedValue({
+      delegationToken: 'd', clientSigningToken: 'c', validUntil: Date.now() + 60_000,
+    })
+    presignUrl.mockResolvedValue({ presignedUrl: 'https://blob.example/signed' })
+
+    await createProviderGetUrl('sources/a.jpg', 60_000)
+
+    const presignOptions = presignUrl.mock.calls[0][1]
+    expect(presignOptions).not.toHaveProperty('storeId')
+    expect(presignOptions).not.toHaveProperty('oidcToken')
+    expect(presignOptions).not.toHaveProperty('token')
+    // GET-only, single-pathname, private — unchanged by the store-binding correction.
+    expect(presignOptions.operation).toBe('get')
+    expect(presignOptions.pathname).toBe('sources/a.jpg')
+    expect(presignOptions.access).toBe('private')
+  })
+
+  it('falls back to PRIVATE_ASSETS_READ_WRITE_TOKEN (not oidcToken) when no OIDC token is available', async () => {
+    vi.stubEnv('VERCEL_OIDC_TOKEN', '')
+    vi.stubEnv('PRIVATE_ASSETS_READ_WRITE_TOKEN', 'fixture-fallback-token')
+    put.mockResolvedValue({ pathname: 'sources/x.jpg' })
+    const { groupId } = createAssetLifecycleGroup()
+
+    await uploadPrivateAsset('sources', groupId, Buffer.from('x'), 'image/jpeg')
+
+    const options = put.mock.calls[0][2]
+    expect(options.storeId).toBe(TEST_STORE_ID)
+    expect(options.token).toBe('fixture-fallback-token')
+    expect(options.oidcToken).toBeUndefined()
+  })
+
+  it('prefers OIDC over PRIVATE_ASSETS_READ_WRITE_TOKEN when both are present', async () => {
+    vi.stubEnv('PRIVATE_ASSETS_READ_WRITE_TOKEN', 'fixture-fallback-token')
+    put.mockResolvedValue({ pathname: 'sources/x.jpg' })
+    const { groupId } = createAssetLifecycleGroup()
+
+    await uploadPrivateAsset('sources', groupId, Buffer.from('x'), 'image/jpeg')
+
+    const options = put.mock.calls[0][2]
+    expect(options.oidcToken).toBe(TEST_OIDC_TOKEN)
+    expect(options.token).toBeUndefined()
+  })
+
+  it('fails closed before any Blob call when PRIVATE_ASSETS_STORE_ID is missing', async () => {
+    vi.stubEnv('PRIVATE_ASSETS_STORE_ID', '')
+    const { groupId } = createAssetLifecycleGroup()
+
+    await expect(uploadPrivateAsset('sources', groupId, Buffer.from('x'), 'image/jpeg'))
+      .rejects.toBeInstanceOf(PrivateAssetError)
+    expect(put).not.toHaveBeenCalled()
+  })
+
+  it('fails closed before any Blob call when PRIVATE_ASSETS_STORE_ID is whitespace-only', async () => {
+    vi.stubEnv('PRIVATE_ASSETS_STORE_ID', '   ')
+    const { groupId } = createAssetLifecycleGroup()
+
+    await expect(uploadPrivateAsset('sources', groupId, Buffer.from('x'), 'image/jpeg'))
+      .rejects.toBeInstanceOf(PrivateAssetError)
+    expect(put).not.toHaveBeenCalled()
+  })
+
+  it('fails closed before any Blob call when the store id is set but neither OIDC nor a private fallback token is available', async () => {
+    vi.stubEnv('VERCEL_OIDC_TOKEN', '')
+    vi.stubEnv('PRIVATE_ASSETS_READ_WRITE_TOKEN', '')
+    const { groupId } = createAssetLifecycleGroup()
+
+    await expect(uploadPrivateAsset('sources', groupId, Buffer.from('x'), 'image/jpeg'))
+      .rejects.toBeInstanceOf(PrivateAssetError)
+    expect(put).not.toHaveBeenCalled()
+  })
+
+  it('never authenticates via the old generic BLOB_STORE_ID / BLOB_READ_WRITE_TOKEN — even when only those are set', async () => {
+    vi.stubEnv('PRIVATE_ASSETS_STORE_ID', '')
+    vi.stubEnv('VERCEL_OIDC_TOKEN', '')
+    vi.stubEnv('BLOB_STORE_ID', 'old-public-store')
+    vi.stubEnv('BLOB_READ_WRITE_TOKEN', 'old-public-token')
+    const { groupId } = createAssetLifecycleGroup()
+
+    await expect(uploadPrivateAsset('sources', groupId, Buffer.from('x'), 'image/jpeg'))
+      .rejects.toBeInstanceOf(PrivateAssetError)
+    expect(put).not.toHaveBeenCalled()
+  })
+
+  it('ignores the old generic BLOB_STORE_ID / BLOB_READ_WRITE_TOKEN even when the private store is correctly configured', async () => {
+    vi.stubEnv('BLOB_STORE_ID', 'old-public-store')
+    vi.stubEnv('BLOB_READ_WRITE_TOKEN', 'old-public-token')
+    put.mockResolvedValue({ pathname: 'sources/x.jpg' })
+    const { groupId } = createAssetLifecycleGroup()
+
+    await uploadPrivateAsset('sources', groupId, Buffer.from('x'), 'image/jpeg')
+
+    const options = put.mock.calls[0][2]
+    expect(options.storeId).toBe(TEST_STORE_ID)
+    expect(options.storeId).not.toBe('old-public-store')
+    expect(options.token).not.toBe('old-public-token')
+    expect(JSON.stringify(options)).not.toContain('old-public-store')
+    expect(JSON.stringify(options)).not.toContain('old-public-token')
+  })
+
+  it('never touches access: public regardless of which auth path is used', async () => {
+    put.mockResolvedValue({ pathname: 'sources/x.jpg' })
+    const { groupId } = createAssetLifecycleGroup()
+
+    await uploadPrivateAsset('sources', groupId, Buffer.from('x'), 'image/jpeg')
+
+    expect(put.mock.calls[0][2].access).toBe('private')
+  })
+
+  it('sanitized fail-closed error does not leak the store id or any token', async () => {
+    vi.stubEnv('PRIVATE_ASSETS_STORE_ID', '')
+    vi.stubEnv('BLOB_STORE_ID', 'old-public-store')
+    vi.stubEnv('BLOB_READ_WRITE_TOKEN', 'old-public-token')
+    const { groupId } = createAssetLifecycleGroup()
+
+    const error = await uploadPrivateAsset('sources', groupId, Buffer.from('x'), 'image/jpeg').catch(e => e)
+    expect(error).toBeInstanceOf(PrivateAssetError)
+    expect(error.message).toBe('Private asset storage is not configured.')
+    expect(error.message).not.toContain(TEST_STORE_ID)
+    expect(error.message).not.toContain(TEST_OIDC_TOKEN)
+    expect(error.message).not.toContain('old-public-store')
+    expect(error.message).not.toContain('old-public-token')
   })
 })
 
@@ -462,7 +691,12 @@ describe('result capability tokens', () => {
     vi.stubEnv('ASSET_ACCESS_SECRET', VALID_SECRET)
     const token = createResultCapability('results/abc.jpg', 60_000)
     const [payloadB64, sig] = token.split('.')
-    const flipped = sig.slice(0, -1) + (sig.at(-1) === 'A' ? 'B' : 'A')
+    const sigBytes = Buffer.from(sig, 'base64url')
+    const tamperedBytes = Buffer.from(sigBytes)
+    tamperedBytes[0] ^= 0x01
+    const flipped = tamperedBytes.toString('base64url')
+    expect(flipped).not.toBe(sig)
+    expect(Buffer.compare(tamperedBytes, sigBytes)).not.toBe(0)
     expect(verifyResultCapability(`${payloadB64}.${flipped}`)).toEqual({ ok: false })
   })
 

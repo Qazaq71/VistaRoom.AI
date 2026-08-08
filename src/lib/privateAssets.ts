@@ -36,6 +36,36 @@ const GROUP_ID_PATTERN =
 // upstream error detail to what reaches the client.
 export class PrivateAssetError extends Error {}
 
+interface PrivateStoreAuth {
+  storeId: string
+  oidcToken?: string
+  token?: string
+}
+
+/**
+ * Resolves explicit @vercel/blob auth for the private assets store, for
+ * every Blob command this module issues. Deliberately reads only
+ * PRIVATE_ASSETS_STORE_ID / VERCEL_OIDC_TOKEN / PRIVATE_ASSETS_READ_WRITE_TOKEN
+ * — never the generic BLOB_STORE_ID / BLOB_READ_WRITE_TOKEN the SDK would
+ * otherwise fall back to, since those point at the separate public store.
+ * Fails closed before any Blob call when the private store isn't configured.
+ */
+function privateStoreAuth(): PrivateStoreAuth {
+  const storeId = process.env.PRIVATE_ASSETS_STORE_ID?.trim()
+  if (!storeId) {
+    throw new PrivateAssetError('Private asset storage is not configured.')
+  }
+  const oidcToken = process.env.VERCEL_OIDC_TOKEN?.trim()
+  if (oidcToken) {
+    return { storeId, oidcToken }
+  }
+  const token = process.env.PRIVATE_ASSETS_READ_WRITE_TOKEN?.trim()
+  if (token) {
+    return { storeId, token }
+  }
+  throw new PrivateAssetError('Private asset storage is not configured.')
+}
+
 export function assetAccessSecret(): string {
   const secret = process.env.ASSET_ACCESS_SECRET
   if (!secret || secret.length < MIN_SECRET_LENGTH) {
@@ -113,9 +143,11 @@ export async function uploadPrivateAsset(
   if (!parseGroupId(groupId)) {
     throw new PrivateAssetError('Invalid asset lifecycle group.')
   }
+  const auth = privateStoreAuth()
   const pathname = `${prefix}/${groupId}/${randomUUID()}.${extensionForContentType(contentType)}`
   try {
     const result = await put(pathname, body, {
+      ...auth,
       access: 'private',
       contentType,
       addRandomSuffix: false,
@@ -147,8 +179,9 @@ export async function listPrivateAssets(
   cursor?: string,
   limit?: number,
 ): Promise<ListPrivateAssetsPage> {
+  const auth = privateStoreAuth()
   try {
-    const result = await list({ prefix, cursor, limit, mode: 'expanded' })
+    const result = await list({ ...auth, prefix, cursor, limit, mode: 'expanded' })
     return {
       blobs: result.blobs.map(b => ({ pathname: b.pathname, uploadedAt: b.uploadedAt })),
       cursor: result.cursor,
@@ -165,8 +198,9 @@ export async function listPrivateAssets(
  */
 export async function deletePrivateAssets(pathnames: string[]): Promise<void> {
   if (pathnames.length === 0) return
+  const auth = privateStoreAuth()
   try {
-    await del(pathnames)
+    await del(pathnames, auth)
   } catch {
     throw new PrivateAssetError('Failed to delete stored assets.')
   }
@@ -179,9 +213,11 @@ export async function deletePrivateAssets(pathnames: string[]): Promise<void> {
  * listing/delete path.
  */
 export async function writeDeletionJournalEntry(body: Buffer): Promise<void> {
+  const auth = privateStoreAuth()
   const pathname = `${DELETION_JOURNAL_PREFIX}${randomUUID()}.json`
   try {
     await put(pathname, body, {
+      ...auth,
       access: 'private',
       contentType: 'application/json',
       addRandomSuffix: false,
@@ -223,6 +259,7 @@ export async function writeGroupTombstone(groupId: string, reason: TombstoneReas
   if (!parseGroupId(groupId)) {
     throw new PrivateAssetError('Invalid asset lifecycle group.')
   }
+  const auth = privateStoreAuth()
   const ref = tombstoneRef(groupId)
   const pathname = tombstonePathnameForRef(ref)
   const payload: TombstonePayload = {
@@ -234,6 +271,7 @@ export async function writeGroupTombstone(groupId: string, reason: TombstoneReas
   const body = Buffer.from(JSON.stringify(payload), 'utf8')
   try {
     await put(pathname, body, {
+      ...auth,
       access: 'private',
       contentType: 'application/json',
       addRandomSuffix: false,
@@ -253,12 +291,13 @@ export async function groupTombstoneExists(groupId: string): Promise<boolean> {
   if (!parseGroupId(groupId)) {
     throw new PrivateAssetError('Invalid asset lifecycle group.')
   }
+  const auth = privateStoreAuth()
   const pathname = tombstonePathnameForRef(tombstoneRef(groupId))
   try {
     // useCache: false — a tombstone consistency check must see the current
     // state, not a CDN-cached response; a stale cached "not found" here
     // would be exactly the resurrection window F-1 exists to close.
-    const result = await get(pathname, { access: 'private', useCache: false })
+    const result = await get(pathname, { ...auth, access: 'private', useCache: false })
     return result !== null
   } catch {
     throw new PrivateAssetError('Failed to verify asset lifecycle status.')
@@ -271,9 +310,10 @@ export async function groupTombstoneExists(groupId: string): Promise<boolean> {
  * ever seeing the raw private Blob URL or a Bearer capability.
  */
 export async function createProviderGetUrl(pathname: string, ttlMs: number): Promise<string> {
+  const auth = privateStoreAuth()
   try {
     const validUntil = Date.now() + ttlMs
-    const signed = await issueSignedToken({ pathname, operations: ['get'], validUntil })
+    const signed = await issueSignedToken({ ...auth, pathname, operations: ['get'], validUntil })
     const { presignedUrl } = await presignUrl(signed, {
       operation: 'get',
       pathname,
@@ -291,8 +331,9 @@ export async function createProviderGetUrl(pathname: string, ttlMs: number): Pro
  * /api/proxy delivery route). Returns null when the asset does not exist.
  */
 export async function readPrivateAsset(pathname: string): Promise<GetBlobResult | null> {
+  const auth = privateStoreAuth()
   try {
-    return await get(pathname, { access: 'private' })
+    return await get(pathname, { ...auth, access: 'private' })
   } catch {
     throw new PrivateAssetError('Failed to read stored asset.')
   }
