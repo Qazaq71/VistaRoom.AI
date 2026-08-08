@@ -69,6 +69,13 @@ export function useImageGeneration(props: UseImageGenerationProps): UseImageGene
   // incremented on each generate() call; stale upload/polling completions check this
   const activeGenRef = useRef(0)
 
+  // M0.3: the current generation's asset lifecycle token, held only in memory
+  // for the lifetime of this generation — never a URL/query param, never
+  // localStorage/sessionStorage, never logged. Cleared on every new
+  // generate() and on reset() so a stale generation can never reuse a
+  // newer/older one's token.
+  const assetLifecycleTokenRef = useRef<string | null>(null)
+
   // M0.2: exactly one live browser object URL for the private result blob at
   // a time — revoked on every new generation, reset() and unmount.
   const objectUrlManagerRef = useRef(createObjectUrlManager())
@@ -83,6 +90,7 @@ export function useImageGeneration(props: UseImageGenerationProps): UseImageGene
 
     const currentGenId = ++activeGenRef.current
     objectUrlManagerRef.current.clear()
+    assetLifecycleTokenRef.current = null
 
     setStatus('uploading'); setStatusMsg('Отправляю изображение...'); setOutputUrl(null)
 
@@ -122,6 +130,9 @@ export function useImageGeneration(props: UseImageGenerationProps): UseImageGene
       }
       const data = await res.json()
       setRemaining(data.remaining)
+      if (typeof data.assetLifecycleToken === 'string') {
+        assetLifecycleTokenRef.current = data.assetLifecycleToken
+      }
       if (data.outputUrl) {
         setOutputUrl(data.outputUrl); setStatus('done')
       } else if (data.predictionId && data.statusUrl) {
@@ -140,8 +151,15 @@ export function useImageGeneration(props: UseImageGenerationProps): UseImageGene
           }
 
           try {
+            const lifecycleToken = assetLifecycleTokenRef.current
+            if (!lifecycleToken) {
+              if (activeGenRef.current !== currentGenId) return
+              setStatus('error'); setStatusMsg('Ошибка запуска генерации.')
+              return
+            }
             const pollRes = await fetch(
-              `/api/poll?id=${encodeURIComponent(data.predictionId)}&statusUrl=${encodeURIComponent(data.statusUrl)}`
+              `/api/poll?id=${encodeURIComponent(data.predictionId)}&statusUrl=${encodeURIComponent(data.statusUrl)}`,
+              { headers: buildBearerAuthHeader(lifecycleToken) },
             )
             if (!pollRes.ok) {
               const errBody = await pollRes.json().catch(() => null)
@@ -210,6 +228,7 @@ export function useImageGeneration(props: UseImageGenerationProps): UseImageGene
   const reset = useCallback(() => {
     activeGenRef.current++
     objectUrlManagerRef.current.clear()
+    assetLifecycleTokenRef.current = null
     setOutputUrl(null); setStatus('idle')
   }, [])
 

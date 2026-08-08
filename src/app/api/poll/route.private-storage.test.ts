@@ -1,16 +1,56 @@
 import { NextRequest } from 'next/server'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { uploadPrivateAsset, createResultCapability } = vi.hoisted(() => ({
+const {
+  uploadPrivateAsset,
+  createResultCapability,
+  verifyAssetLifecycleCapability,
+  groupTombstoneExists,
+  purgeTombstonedGroupAssets,
+  recordDeletionJournalEntry,
+  recordPendingCleanupJournalEntry,
+} = vi.hoisted(() => ({
   uploadPrivateAsset: vi.fn(),
   createResultCapability: vi.fn(),
+  verifyAssetLifecycleCapability: vi.fn(),
+  groupTombstoneExists: vi.fn(),
+  purgeTombstonedGroupAssets: vi.fn(),
+  recordDeletionJournalEntry: vi.fn(),
+  recordPendingCleanupJournalEntry: vi.fn(),
 }))
-vi.mock('@/lib/privateAssets', () => ({ uploadPrivateAsset, createResultCapability }))
+// parseGroupId is real (pure, no Blob calls) so the F-2 retention-deadline
+// re-check in the route runs for real against VALID_GROUP_ID's embedded
+// creation time below.
+vi.mock('@/lib/privateAssets', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/privateAssets')>('@/lib/privateAssets')
+  return { ...actual, uploadPrivateAsset, createResultCapability, groupTombstoneExists }
+})
+vi.mock('@/lib/assetLifecycle', () => ({ verifyAssetLifecycleCapability }))
+vi.mock('@/lib/assetGroupDeletion', () => ({ purgeTombstonedGroupAssets }))
+vi.mock('@/lib/deletionJournal', () => ({ recordDeletionJournalEntry, recordPendingCleanupJournalEntry }))
 
 import { GET } from './route'
 
+// A freshly-timestamped group id (not the ancient shared 1970 fixture used
+// elsewhere) so the real F-2 retention-deadline check below has something
+// meaningful to compare "now" against.
+function freshGroupId(now = Date.now()): string {
+  return `g1-${now.toString(16).padStart(12, '0')}-11111111-1111-4111-8111-111111111111`
+}
+const VALID_GROUP_ID = freshGroupId()
+
+// M0.3: every /api/poll request now requires a verified lifecycle Bearer
+// token before any provider fetch or Blob call. These M0.2 result-handling
+// tests aren't testing that gate itself (see route.test.ts / a dedicated
+// M0.3 test file) — they stub a passing verification, an open (non-
+// tombstoned) group and ample retention headroom, so the pre-existing M0.2
+// behaviors below (redirect/streaming/private-result handling) keep
+// exercising the same code paths they always did. The F-1/F-2 gates
+// themselves are covered in the dedicated describe block further down.
 function pollRequest(id = 'req-1'): NextRequest {
-  return new NextRequest(`http://localhost/api/poll?id=${id}`)
+  return new NextRequest(`http://localhost/api/poll?id=${id}`, {
+    headers: { Authorization: 'Bearer valid-lifecycle-token' },
+  })
 }
 
 function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
@@ -61,14 +101,30 @@ function streamedResponse(
 const activeEnv = () => {
   vi.stubEnv('VERCEL_ENV', '')
   vi.stubEnv('NODE_ENV', 'test')
+  // F-2: ample headroom before VALID_GROUP_ID's retention deadline for every
+  // test in this file that isn't specifically exercising expiry.
+  vi.stubEnv('ASSET_RETENTION_HOURS', '24')
 }
 
 describe('GET /api/poll — M0.2 result handling', () => {
+  beforeEach(() => {
+    verifyAssetLifecycleCapability.mockReturnValue({ ok: true, groupId: VALID_GROUP_ID })
+    groupTombstoneExists.mockResolvedValue(false)
+    purgeTombstonedGroupAssets.mockResolvedValue({ deletedCount: 0, verifiedAbsent: true })
+    recordDeletionJournalEntry.mockResolvedValue(undefined)
+    recordPendingCleanupJournalEntry.mockResolvedValue(undefined)
+  })
+
   afterEach(() => {
     vi.unstubAllEnvs()
     vi.unstubAllGlobals()
     uploadPrivateAsset.mockReset()
     createResultCapability.mockReset()
+    verifyAssetLifecycleCapability.mockReset()
+    groupTombstoneExists.mockReset()
+    purgeTombstonedGroupAssets.mockReset()
+    recordDeletionJournalEntry.mockReset()
+    recordPendingCleanupJournalEntry.mockReset()
   })
 
   it('does not create a Blob result while the generation is still processing', async () => {
@@ -103,7 +159,7 @@ describe('GET /api/poll — M0.2 result handling', () => {
     expect(body.resultToken).toBe('capability-token-abc')
     expect(body.outputUrl).toBeUndefined()
 
-    expect(uploadPrivateAsset).toHaveBeenCalledWith('results', expect.any(Buffer), 'image/jpeg')
+    expect(uploadPrivateAsset).toHaveBeenCalledWith('results', VALID_GROUP_ID, expect.any(Buffer), 'image/jpeg')
     expect(createResultCapability).toHaveBeenCalledWith('results/generated-id.jpg', expect.any(Number))
 
     const serialized = JSON.stringify(body)
@@ -282,5 +338,246 @@ describe('GET /api/poll — M0.2 result handling', () => {
     expect(body.outputUrl).toBeNull()
     expect(JSON.stringify(body)).not.toMatch(/fal\.media|public/i)
     expect(createResultCapability).not.toHaveBeenCalled()
+  })
+})
+
+// M0.3 F-1/F-2 correction: deterministic, fully local/mocked race-condition
+// coverage for the three tombstone/retention checkpoints in route.ts —
+// before any provider/Blob work, immediately before the result upload, and
+// immediately after it. No real network, Vercel, Fal or Blob call, and no
+// timer waiting — every "race" is expressed as a sequenced mock return.
+describe('GET /api/poll — M0.3 F-1/F-2 tombstone and retention race protection', () => {
+  function completedFetchSequence(): ReturnType<typeof vi.fn> {
+    const resultBody = 'fake-jpeg-bytes'
+    return vi.fn()
+      .mockResolvedValueOnce(jsonResponse({ status: 'COMPLETED', response_url: 'https://queue.fal.run/x' }))
+      .mockResolvedValueOnce(jsonResponse({ images: [{ url: 'https://fal.media/files/result.jpg' }] }))
+      .mockResolvedValueOnce(imageResponse(resultBody, { contentLength: String(resultBody.length) }))
+  }
+
+  beforeEach(() => {
+    verifyAssetLifecycleCapability.mockReturnValue({ ok: true, groupId: VALID_GROUP_ID })
+    uploadPrivateAsset.mockResolvedValue({ pathname: 'results/whatever.jpg' })
+    createResultCapability.mockReturnValue('capability-token-abc')
+    purgeTombstonedGroupAssets.mockResolvedValue({ deletedCount: 1, verifiedAbsent: true })
+    recordDeletionJournalEntry.mockResolvedValue(undefined)
+    recordPendingCleanupJournalEntry.mockResolvedValue(undefined)
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
+    uploadPrivateAsset.mockReset()
+    createResultCapability.mockReset()
+    verifyAssetLifecycleCapability.mockReset()
+    groupTombstoneExists.mockReset()
+    purgeTombstonedGroupAssets.mockReset()
+    recordDeletionJournalEntry.mockReset()
+    recordPendingCleanupJournalEntry.mockReset()
+  })
+
+  it('1. an old poll token used after DELETE (already tombstoned): no provider fetch, no upload, no success', async () => {
+    activeEnv()
+    groupTombstoneExists.mockResolvedValue(true)
+    const fetchMock = completedFetchSequence()
+    vi.stubGlobal('fetch', fetchMock)
+
+    const res = await GET(pollRequest())
+
+    expect(res.status).toBe(401)
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(uploadPrivateAsset).not.toHaveBeenCalled()
+    expect(createResultCapability).not.toHaveBeenCalled()
+  })
+
+  it('1b. the same tombstone gate blocks a token regardless of whether DELETE or the retention sweep wrote it — the route only ever checks presence', async () => {
+    // deleteAssetGroup (used by both /api/assets DELETE and the retention
+    // sweep) writes to the exact same tombstone this route reads back via
+    // groupTombstoneExists — see assetGroupDeletion.test.ts for the write
+    // side. From the route's point of view there is nothing to distinguish.
+    activeEnv()
+    groupTombstoneExists.mockResolvedValue(true)
+    vi.stubGlobal('fetch', completedFetchSequence())
+
+    const res = await GET(pollRequest())
+
+    expect(res.status).toBe(401)
+    expect(uploadPrivateAsset).not.toHaveBeenCalled()
+  })
+
+  it('2. deletion lands after the initial check but before upload: the pre-upload re-check catches it, upload never runs', async () => {
+    activeEnv()
+    // checkpoint 1 (before provider work): open. checkpoint 2 (pre-upload,
+    // after the provider download but before the private write): tombstoned.
+    groupTombstoneExists.mockResolvedValueOnce(false).mockResolvedValueOnce(true)
+    const fetchMock = completedFetchSequence()
+    vi.stubGlobal('fetch', fetchMock)
+
+    const res = await GET(pollRequest())
+
+    expect(res.status).toBe(401)
+    // The provider download itself isn't gated (it fetches nothing private),
+    // but the private write it feeds into never runs.
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(uploadPrivateAsset).not.toHaveBeenCalled()
+    expect(createResultCapability).not.toHaveBeenCalled()
+  })
+
+  it('3. tombstone appears between the last pre-upload check and upload completion: post-upload check purges the result and denies success', async () => {
+    activeEnv()
+    // checkpoint 1: open. checkpoint 2 (pre-upload): still open. checkpoint 3 (post-upload): tombstoned.
+    groupTombstoneExists.mockResolvedValueOnce(false).mockResolvedValueOnce(false).mockResolvedValueOnce(true)
+    vi.stubGlobal('fetch', completedFetchSequence())
+
+    const res = await GET(pollRequest())
+    const body = await res.json()
+
+    expect(uploadPrivateAsset).toHaveBeenCalledTimes(1) // the leaked write did happen…
+    expect(purgeTombstonedGroupAssets).toHaveBeenCalledWith(VALID_GROUP_ID) // …but was purged and verified absent…
+    expect(createResultCapability).not.toHaveBeenCalled() // …no capability was ever issued…
+    expect(res.status).toBe(401) // …and no success was ever returned.
+    expect(JSON.stringify(body)).not.toContain('capability-token-abc')
+  })
+
+  // M0.3 F-4 correction: the four required outcomes of the post-upload
+  // purge — production code must actually read verifiedAbsent (not just
+  // call purge and assume success), and must record durable, privacy-safe
+  // evidence distinguishing a confirmed corrective deletion from a merely
+  // pending one.
+  it('F-4.1: purge returns verifiedAbsent: true — no capability, 401, and a confirmed corrective journal (not merely "purge was called")', async () => {
+    activeEnv()
+    groupTombstoneExists.mockResolvedValueOnce(false).mockResolvedValueOnce(false).mockResolvedValueOnce(true)
+    purgeTombstonedGroupAssets.mockResolvedValue({ deletedCount: 1, verifiedAbsent: true })
+
+    vi.stubGlobal('fetch', completedFetchSequence())
+
+    const res = await GET(pollRequest())
+
+    expect(res.status).toBe(401)
+    expect(createResultCapability).not.toHaveBeenCalled()
+    expect(recordPendingCleanupJournalEntry).not.toHaveBeenCalled()
+    // The confirmed entry proves the *value* of verifiedAbsent was read, not
+    // just that purgeTombstonedGroupAssets happened to be called.
+    expect(recordDeletionJournalEntry).toHaveBeenCalledWith({
+      reason: 'post-deletion-race-cleanup',
+      groupIdentifier: VALID_GROUP_ID,
+      deletedCount: 1,
+    })
+  })
+
+  it('F-4.2: purge returns verifiedAbsent: false — no capability, 401, a pending event (never a confirmed absence)', async () => {
+    activeEnv()
+    groupTombstoneExists.mockResolvedValueOnce(false).mockResolvedValueOnce(false).mockResolvedValueOnce(true)
+    purgeTombstonedGroupAssets.mockResolvedValue({ deletedCount: 0, verifiedAbsent: false })
+
+    vi.stubGlobal('fetch', completedFetchSequence())
+
+    const res = await GET(pollRequest())
+
+    expect(res.status).toBe(401)
+    expect(createResultCapability).not.toHaveBeenCalled()
+    expect(recordDeletionJournalEntry).not.toHaveBeenCalled()
+    expect(recordPendingCleanupJournalEntry).toHaveBeenCalledWith({ groupIdentifier: VALID_GROUP_ID })
+  })
+
+  it('3b / F-4.3: purge throws — no capability, 401, a pending event, and the exception never reaches the client', async () => {
+    activeEnv()
+    groupTombstoneExists.mockResolvedValueOnce(false).mockResolvedValueOnce(false).mockResolvedValueOnce(true)
+    purgeTombstonedGroupAssets.mockRejectedValue(new Error('blob outage'))
+    vi.stubGlobal('fetch', completedFetchSequence())
+
+    const res = await GET(pollRequest())
+    const body = await res.json()
+
+    expect(res.status).toBe(401)
+    expect(createResultCapability).not.toHaveBeenCalled()
+    expect(recordDeletionJournalEntry).not.toHaveBeenCalled()
+    expect(recordPendingCleanupJournalEntry).toHaveBeenCalledWith({ groupIdentifier: VALID_GROUP_ID })
+    expect(JSON.stringify(body)).not.toMatch(/blob outage/i)
+  })
+
+  it('F-4.4: the pending journal write itself throws — denial is not weakened or masked, still 401, no capability', async () => {
+    activeEnv()
+    groupTombstoneExists.mockResolvedValueOnce(false).mockResolvedValueOnce(false).mockResolvedValueOnce(true)
+    purgeTombstonedGroupAssets.mockResolvedValue({ deletedCount: 0, verifiedAbsent: false })
+    recordPendingCleanupJournalEntry.mockRejectedValue(new Error('journal outage'))
+    vi.stubGlobal('fetch', completedFetchSequence())
+
+    const res = await GET(pollRequest())
+    const body = await res.json()
+
+    expect(res.status).toBe(401)
+    expect(createResultCapability).not.toHaveBeenCalled()
+    expect(JSON.stringify(body)).not.toMatch(/journal outage/i)
+  })
+
+  it('5. a tombstone-check failure at checkpoint 1 fails closed: no upload, no capability, no success', async () => {
+    activeEnv()
+    groupTombstoneExists.mockRejectedValue(new Error('blob outage'))
+    const fetchMock = completedFetchSequence()
+    vi.stubGlobal('fetch', fetchMock)
+
+    const res = await GET(pollRequest())
+
+    expect(res.status).toBe(401)
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(uploadPrivateAsset).not.toHaveBeenCalled()
+    expect(createResultCapability).not.toHaveBeenCalled()
+  })
+
+  it('5b. a tombstone-check failure at the pre-upload re-check also fails closed', async () => {
+    activeEnv()
+    groupTombstoneExists.mockResolvedValueOnce(false).mockRejectedValueOnce(new Error('blob outage'))
+    const fetchMock = completedFetchSequence()
+    vi.stubGlobal('fetch', fetchMock)
+
+    const res = await GET(pollRequest())
+
+    expect(res.status).toBe(401)
+    expect(uploadPrivateAsset).not.toHaveBeenCalled()
+  })
+
+  it('F-2: does not upload a result for a group already past the current retention deadline', async () => {
+    activeEnv() // ASSET_RETENTION_HOURS=24
+    const expiredGroupId = freshGroupId(Date.now() - 48 * 60 * 60 * 1000) // 48h old, only 24h retention
+    verifyAssetLifecycleCapability.mockReturnValue({ ok: true, groupId: expiredGroupId })
+    const fetchMock = completedFetchSequence()
+    vi.stubGlobal('fetch', fetchMock)
+
+    const res = await GET(pollRequest())
+
+    expect(res.status).toBe(401)
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(uploadPrivateAsset).not.toHaveBeenCalled()
+    // The retention check alone was decisive — it never needed to ask about
+    // a tombstone for an already-expired group.
+    expect(groupTombstoneExists).not.toHaveBeenCalled()
+  })
+
+  it('F-2: fails closed (denies the write) when the retention configuration is missing/invalid', async () => {
+    vi.stubEnv('VERCEL_ENV', '')
+    vi.stubEnv('NODE_ENV', 'test')
+    // ASSET_RETENTION_HOURS intentionally left unset — unlike activeEnv().
+    const fetchMock = completedFetchSequence()
+    vi.stubGlobal('fetch', fetchMock)
+
+    const res = await GET(pollRequest())
+
+    expect(res.status).toBe(401)
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(uploadPrivateAsset).not.toHaveBeenCalled()
+  })
+
+  it('a fully open, in-retention, non-tombstoned group still succeeds normally', async () => {
+    activeEnv()
+    groupTombstoneExists.mockResolvedValue(false)
+    vi.stubGlobal('fetch', completedFetchSequence())
+
+    const res = await GET(pollRequest())
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.status).toBe('succeeded')
+    expect(body.resultToken).toBe('capability-token-abc')
   })
 })

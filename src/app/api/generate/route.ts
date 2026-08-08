@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
-import { uploadPrivateAsset, createProviderGetUrl } from '@/lib/privateAssets'
+import { uploadPrivateAsset, createProviderGetUrl, createAssetLifecycleGroup } from '@/lib/privateAssets'
+import { createAssetLifecycleCapability } from '@/lib/assetLifecycle'
+import { deleteAssetGroup } from '@/lib/assetGroupDeletion'
+import { recordDeletionJournalEntry } from '@/lib/deletionJournal'
+import { getAssetRetentionMs } from '@/lib/retentionConfig'
 import { RoomDetails } from '@/lib/prompts'
 import { getRateLimit } from '@/lib/rateLimit'
 import { InteriorService } from '@/services/InteriorService'
@@ -89,6 +93,31 @@ export async function POST(req: NextRequest) {
   // Hoisted so the catch-all below can log them without exposing them to the client.
   let mode: string | undefined
   let operation: InteriorEditRequest['operation'] | undefined
+  // M0.3: set once the lifecycle group exists, so a later failure (thrown or
+  // an explicit early return) can trigger best-effort cleanup of whatever
+  // was already uploaded under it. Never surfaced to the client.
+  let groupId: string | undefined
+  const cleanupOnFailure = async (): Promise<void> => {
+    if (!groupId) return
+    try {
+      const result = await deleteAssetGroup(groupId, 'failed-generation-cleanup')
+      // Only a verified-absent deletion is real evidence to journal (F-3
+      // correction) — a partial/unverified cleanup must not claim success.
+      if (!result.verifiedAbsent) return
+      try {
+        await recordDeletionJournalEntry({
+          reason: 'failed-generation-cleanup',
+          groupIdentifier: groupId,
+          deletedCount: result.deletedCount,
+        })
+      } catch {
+        // Journal failure must never surface here — the original generation
+        // error below (from the outer catch) is what the client/logs see.
+      }
+    } catch {
+      // Best-effort only — must never mask or replace the original failure.
+    }
+  }
   try {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '127.0.0.1'
     const { ok, remaining, limit } = await getRateLimit(ip)
@@ -145,10 +174,32 @@ export async function POST(req: NextRequest) {
       if (maskError) return NextResponse.json({ error: `Маска: ${maskError}` }, { status: 400 })
     }
 
+    // M0.3: TTL config, then lifecycle group + capability — required before
+    // the first Blob upload or Fal.ai call of this request (C1 Delivery
+    // Brief §5 package 3, §6). Any failure here fails closed with the same
+    // generic error as every other failure path — no public fallback.
+    let retentionMs: number
+    try {
+      retentionMs = getAssetRetentionMs()
+    } catch {
+      return NextResponse.json({ error: 'Image generation failed. Please try again.' }, { status: 500 })
+    }
+
+    const group = createAssetLifecycleGroup()
+    groupId = group.groupId
+    const retentionDeadlineMs = group.createdAtMs + retentionMs
+
+    let assetLifecycleToken: string
+    try {
+      assetLifecycleToken = createAssetLifecycleCapability(groupId, retentionDeadlineMs)
+    } catch {
+      return NextResponse.json({ error: 'Image generation failed. Please try again.' }, { status: 500 })
+    }
+
     const imgRaw = Buffer.from(await imageFile.arrayBuffer())
     const tBlobStart = Date.now()
     const { data: compressedImg, width: imgWidth, height: imgHeight } = await compressImage(imgRaw)
-    const { pathname: sourcePathname } = await uploadPrivateAsset('sources', compressedImg, 'image/jpeg')
+    const { pathname: sourcePathname } = await uploadPrivateAsset('sources', groupId, compressedImg, 'image/jpeg')
     const imageUrl = await createProviderGetUrl(sourcePathname, PROVIDER_ASSET_URL_TTL_MS)
     console.log(`[Timing] Upload Source Image to Blob: ${Date.now() - tBlobStart}ms`)
 
@@ -161,7 +212,7 @@ export async function POST(req: NextRequest) {
         .png()
         .toBuffer()
       const tMaskStart = Date.now()
-      const { pathname: maskPathname } = await uploadPrivateAsset('masks', resizedMask, 'image/png')
+      const { pathname: maskPathname } = await uploadPrivateAsset('masks', groupId, resizedMask, 'image/png')
       maskUrl = await createProviderGetUrl(maskPathname, PROVIDER_ASSET_URL_TTL_MS)
       console.log(`[Timing] Upload Mask to Blob: ${Date.now() - tMaskStart}ms`)
     }
@@ -174,6 +225,7 @@ export async function POST(req: NextRequest) {
         hasMask: maskInvariantCheck.hasMask,
         reason: maskInvariantCheck.reason,
       }))
+      await cleanupOnFailure()
       return NextResponse.json(
         {
           error: 'Некорректная комбинация режима и маски для этого запроса.',
@@ -212,6 +264,7 @@ export async function POST(req: NextRequest) {
           mode,
           violations: ruleResult.violations,
         }))
+        await cleanupOnFailure()
         return NextResponse.json(
           { error: 'Не удалось сформировать промпт для генерации. Попробуйте изменить параметры.' },
           { status: 500 },
@@ -243,6 +296,7 @@ export async function POST(req: NextRequest) {
           mode,
           violations: ruleResult.violations,
         }))
+        await cleanupOnFailure()
         return NextResponse.json(
           { error: 'Не удалось сформировать промпт для генерации. Попробуйте изменить параметры.' },
           { status: 500 },
@@ -281,10 +335,16 @@ export async function POST(req: NextRequest) {
       promptUsed:   promptUsed
         ? promptUsed.substring(0, 300) + '...'
         : '(no prompt — erase mode)',
+      assetLifecycleToken,
     })
 
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err))
+
+    // M0.3: best-effort cleanup of whatever this generation's lifecycle
+    // group already uploaded before the failure — never lets a cleanup
+    // problem mask or replace the original failure below.
+    await cleanupOnFailure()
 
     // Full detail stays server-side only — never forwarded to the client.
     console.error(JSON.stringify({

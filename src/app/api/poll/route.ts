@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isAllowedFalUrl, isAllowedFalResultUrl, falStatusUrl, falResultUrl } from '@/config/image'
 import { isContainmentActive, containmentResponse } from '@/lib/containment'
-import { uploadPrivateAsset, createResultCapability } from '@/lib/privateAssets'
+import { uploadPrivateAsset, createResultCapability, parseGroupId, groupTombstoneExists } from '@/lib/privateAssets'
+import { verifyAssetLifecycleCapability } from '@/lib/assetLifecycle'
+import { purgeTombstonedGroupAssets } from '@/lib/assetGroupDeletion'
+import { recordDeletionJournalEntry, recordPendingCleanupJournalEntry } from '@/lib/deletionJournal'
+import { getAssetRetentionMs } from '@/lib/retentionConfig'
 
 export const dynamic    = 'force-dynamic'
 export const maxDuration = 55
@@ -63,8 +67,56 @@ async function readLimitedBody(response: Response, maxBytes: number): Promise<Bu
   return Buffer.concat(chunks, total)
 }
 
+function unauthorized(): NextResponse {
+  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+}
+
+// M0.3 F-1/F-2: fail-closed gate checked before any provider/Blob write this
+// request might perform. A group is closed for new writes once it is either
+// tombstoned (F-1 — a deletion/retention-sweep already committed to removing
+// it) or past the *current* retention configuration's deadline (F-2 — a
+// defense-in-depth re-check independent of the lifecycle token's own exp,
+// in case retention config changed after the token was issued). Any error
+// while checking (bad/missing config, Blob read failure) collapses to
+// "closed" — an unknown lifecycle state must never be treated as open.
+async function isGroupClosedForWrites(groupId: string): Promise<boolean> {
+  try {
+    const parsed = parseGroupId(groupId)
+    if (!parsed) return true
+    const retentionMs = getAssetRetentionMs()
+    if (Date.now() >= parsed.createdAtMs + retentionMs) return true
+    return await groupTombstoneExists(groupId)
+  } catch {
+    return true
+  }
+}
+
+async function isGroupTombstoned(groupId: string): Promise<boolean> {
+  try {
+    return await groupTombstoneExists(groupId)
+  } catch {
+    return true
+  }
+}
+
 export async function GET(req: NextRequest) {
   if (isContainmentActive()) return containmentResponse()
+
+  // M0.3: the asset lifecycle Bearer token is required before any provider
+  // fetch or Blob call — it is what authorizes this poll to store its result
+  // under a specific, already-verified asset group.
+  const authHeader = req.headers.get('authorization') ?? ''
+  const match = /^Bearer\s+(.+)$/.exec(authHeader)
+  if (!match) return unauthorized()
+
+  const lifecycleVerification = verifyAssetLifecycleCapability(match[1])
+  if (!lifecycleVerification.ok) return unauthorized()
+  const groupId = lifecycleVerification.groupId
+
+  // M0.3 F-1/F-2 checkpoint 1: before any provider fetch or Blob call. Stops
+  // a token whose group was deleted/expired after issuance from ever
+  // starting provider/download work.
+  if (await isGroupClosedForWrites(groupId)) return unauthorized()
 
   const t0 = Date.now()
   try {
@@ -186,12 +238,67 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ id, status: 'failed', outputUrl: null, error: GENERIC_RESULT_FAILURE })
     }
 
-    let resultToken: string
+    // M0.3 F-1/F-2 checkpoint 2: immediately before writing the result — the
+    // race window between checkpoint 1 and here is exactly where a
+    // concurrent DELETE/retention sweep could otherwise be resurrected.
+    if (await isGroupClosedForWrites(groupId)) return unauthorized()
+
+    let resultPathname: string
     try {
-      const { pathname } = await uploadPrivateAsset('results', imageBuffer, resultContentType)
-      resultToken = createResultCapability(pathname, RESULT_CAPABILITY_TTL_MS)
+      const uploaded = await uploadPrivateAsset('results', groupId, imageBuffer, resultContentType)
+      resultPathname = uploaded.pathname
     } catch {
       console.error(`[/api/poll] private result storage failed id=${id}`)
+      return NextResponse.json({ id, status: 'failed', outputUrl: null, error: GENERIC_RESULT_FAILURE })
+    }
+
+    // M0.3 F-1 checkpoint 3: immediately after the write, before issuing any
+    // capability. If a tombstone landed during the upload itself (the last
+    // race window this route can close), the leaked result — or the whole
+    // group — is purged, and its actual outcome (F-4 correction) decides
+    // what gets recorded: a verified-absent purge is journaled as a
+    // confirmed corrective deletion; anything less certain (verifiedAbsent:
+    // false, or the purge throwing) is journaled as pending cleanup instead
+    // — never as confirmed absence. Either way the durable tombstone itself
+    // (not this journal entry) is what makes the next retention sweep retry
+    // the purge, and this route denies the client identically regardless of
+    // which branch ran — it never reveals whether the purge succeeded.
+    if (await isGroupTombstoned(groupId)) {
+      console.error(`[/api/poll] group tombstoned during upload id=${id}`)
+
+      let verifiedAbsent = false
+      let deletedCount = 0
+      try {
+        const purgeResult = await purgeTombstonedGroupAssets(groupId)
+        verifiedAbsent = purgeResult.verifiedAbsent
+        deletedCount = purgeResult.deletedCount
+      } catch {
+        verifiedAbsent = false
+      }
+
+      try {
+        if (verifiedAbsent) {
+          await recordDeletionJournalEntry({
+            reason: 'post-deletion-race-cleanup',
+            groupIdentifier: groupId,
+            deletedCount,
+          })
+        } else {
+          await recordPendingCleanupJournalEntry({ groupIdentifier: groupId })
+        }
+      } catch {
+        // Journal-write failure must never weaken the denial below, and must
+        // never be allowed to surface to the client.
+      }
+
+      return unauthorized()
+    }
+
+    let resultToken: string
+    try {
+      resultToken = createResultCapability(resultPathname, RESULT_CAPABILITY_TTL_MS)
+    } catch {
+      console.error(`[/api/poll] result capability creation failed id=${id}`)
       return NextResponse.json({ id, status: 'failed', outputUrl: null, error: GENERIC_RESULT_FAILURE })
     }
 
